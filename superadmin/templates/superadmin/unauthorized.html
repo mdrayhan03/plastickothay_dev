@@ -1,0 +1,9 @@
+{% extends "superadmin/base.html" %}
+{% block title %}Unauthorized{% endblock %}
+{% block main-content %}
+<div style="max-width: 640px; margin: 4rem auto; padding: 2rem; border-radius: 16px; background: white; box-shadow: 0 12px 30px rgba(0,0,0,0.08); text-align: center;">
+  <h2 style="margin-bottom: 0.75rem;">Access restricted</h2>
+  <p style="color: #4b5563; margin-bottom: 1.5rem;">Only administrators can access this dashboard.</p>
+  <a href="{% url 'superadmin:login' %}" style="display: inline-block; padding: 0.75rem 1.25rem; border-radius: 999px; background: #1D5342; color: white;">Go to login</a>
+</div>
+{% endblock %}

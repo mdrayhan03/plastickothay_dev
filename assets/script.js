@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapElement = document.getElementById('map');
     let map;
     let userMarker;
+    let postMarkersLayer;
 
     if (mapElement) {
         // Initialize the map without default zoom controls
@@ -138,40 +139,127 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    function set_post() {
-        const basePostUrl = "{% url 'plastickothay:post' 'REPLACE_ID' %}".replace('REPLACE_ID', '');
-        
-        // var circle = L.circle([23.8103, 90.4125], {
-        //     color: 'transparent',        // stroke color
-        //     fillColor: '#30a3ff', // fill color
-        //     fillOpacity: 0.5,
-        //     radius: 500           // radius in meters
-        // }).addTo(map);
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-        // circle.bindPopup("Radius: 500 m");
+    function setMapStatus(state, message) {
+        const loadingEl = document.getElementById('map-loading');
+        const errorEl = document.getElementById('map-error');
 
-        var customIcon = L.icon({
-            iconUrl: ICON_URL, // your icon image URL
-            iconSize: [20, 30],  // size of icon
-            iconAnchor: [20, 40], // point of icon which will correspond to marker's location
-            popupAnchor: [0, -35] // popup position relative to icon
-        });
+        if (!loadingEl || !errorEl) {
+            return;
+        }
 
-        if (posts && posts.length > 0) {
-            posts.forEach(post => {
-                const postId = post._id.$oid;
-                // const postUrl = basePostUrl + postId;
-                const postUrl = "/post/" + postId
-                L.marker([post.lat, post.lon], { icon: customIcon })
-                    .addTo(map)
-                    .bindPopup(`<b>${post.name}</b><br>Severity: ${post.severity}<br><a href="${postUrl}">Open post</a>`)
-            });
-        } else {
-            console.warn("No posts found to add markers.");
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'none';
+
+        if (state === 'loading') {
+            loadingEl.textContent = message || 'Loading posts…';
+            loadingEl.style.display = 'flex';
+        } else if (state === 'error') {
+            errorEl.textContent = message || 'Unable to load posts right now.';
+            errorEl.style.display = 'flex';
+        } else if (state === 'empty') {
+            loadingEl.textContent = message || 'No active posts with coordinates are available yet.';
+            loadingEl.style.display = 'flex';
         }
     }
 
-    set_post() ;
+    function getSeverityColor(severity) {
+        const value = Number(severity);
+        if (value >= 4) return '#dc2626';
+        if (value === 3) return '#f59e0b';
+        return '#16a34a';
+    }
+
+    function renderPostsToMap(posts) {
+        if (!map) {
+            return;
+        }
+
+        if (!postMarkersLayer) {
+            postMarkersLayer = L.layerGroup().addTo(map);
+        } else {
+            postMarkersLayer.clearLayers();
+        }
+
+        if (!Array.isArray(posts) || posts.length === 0) {
+            setMapStatus('empty', 'No active posts with coordinates are available yet.');
+            return;
+        }
+
+        posts.forEach(post => {
+            if (post.lat === null || post.lon === null || post.lat === undefined || post.lon === undefined) {
+                return;
+            }
+
+            const lat = Number(post.lat);
+            const lon = Number(post.lon);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                return;
+            }
+
+            const severityValue = Number(post.severity ?? 3);
+            const markerColor = getSeverityColor(severityValue);
+            const title = escapeHtml(post.name || 'Untitled post');
+            const severityLabel = escapeHtml(post.severity ? `Level ${post.severity}` : 'Unknown');
+            const description = escapeHtml(post.description || 'No description provided.');
+            const photoMarkup = post.imageID
+                ? `<img src="https://drive.google.com/thumbnail?id=${encodeURIComponent(post.imageID)}" alt="${title}" />`
+                : '<p class="post-map-popup-empty">Photo preview unavailable.</p>';
+            const popupHtml = `
+                <div class="post-map-popup">
+                    <strong>${title}</strong>
+                    <p><strong>Severity:</strong> ${severityLabel}</p>
+                    <p>${description}</p>
+                    ${photoMarkup}
+                </div>
+            `;
+
+            L.circleMarker([lat, lon], {
+                radius: 8,
+                color: markerColor,
+                fillColor: markerColor,
+                fillOpacity: 0.85,
+                weight: 1.5
+            }).bindPopup(popupHtml).addTo(postMarkersLayer);
+        });
+
+        setMapStatus('idle', '');
+    }
+
+    function loadPostsToMap() {
+        setMapStatus('loading', 'Loading posts…');
+
+        fetch('/api/posts/', { credentials: 'same-origin' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const posts = Array.isArray(data.posts) ? data.posts : [];
+                renderPostsToMap(posts);
+            })
+            .catch(error => {
+                console.error('Error loading posts:', error);
+                setMapStatus('error', 'Unable to load posts right now. Please try again later.');
+            });
+    }
+
+    function set_post() {
+        loadPostsToMap();
+    }
+
+    set_post();
 
     document.querySelector('.profile-btn').addEventListener('click', () => {
         document.querySelector('.profile-modal').classList.add('active');

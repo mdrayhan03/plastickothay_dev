@@ -254,6 +254,46 @@ main {
     background-color: #e8f5e9;
 }
 
+.map-status {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1D5342;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: none;
+}
+
+.map-status-error {
+    color: #b91c1c;
+    background: rgba(254, 242, 242, 0.95);
+}
+
+.post-map-popup {
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.post-map-popup img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin-top: 0.25rem;
+}
+
+.post-map-popup-empty {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
 .map-controls {
     position: absolute;
     bottom: 1rem;

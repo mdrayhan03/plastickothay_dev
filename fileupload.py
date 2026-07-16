@@ -14,6 +14,7 @@ FOLDER_ID = "143-8VgTr2KPveoPtcJ4s2SZGrT1w8Vth"  # Drive folder ID
 
 # Authenticate using local file or env
 creds = None
+drive_service = None
 try:
     if os.path.exists(SERVICE_ACCOUNT_FILE):
         creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -29,10 +30,9 @@ try:
         print("✅ Authenticated using base64 credentials from environment.")
 except Exception as e:
     print(f"❌ Error in authentication: {str(e)}")
-    raise
 
-# Build Drive service
-drive_service = build("drive", "v3", credentials=creds)
+if creds is not None:
+    drive_service = build("drive", "v3", credentials=creds)
 
 def upload_to_drive(base64_image: str, filename: str) -> dict | None:
     """

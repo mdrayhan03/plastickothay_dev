@@ -2,289 +2,228 @@
 {% load static %}
 {% block main-content %}
 <style>
-    .wish {
-        padding-bottom: 1rem;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .map-container {
-      margin-top: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      width: 100%;
-      height: 400px; /* You can adjust */
-    }
-
-    #admin_map {
-      width: 100%;
-      height: 100%;
-    }
-
-    .card {
-      padding: 2rem 1rem;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      text-align: center;
-    }
-
-    .table-responsive {
-      width: 100%;
-      margin-top: 2rem;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      overflow-x: auto;
-    }
-
-    table {
-      min-width: 800px;
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-
-    th, td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      background: #f0f0f0;
-    }
-
-    .btn {
-      padding: 0.4rem 0.8rem;
-      margin-right: 0.4rem;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-    }
-
-    .btn-view { background-color: #0d6efd; }
-    .btn-accept { background-color: #198754; }
-    .btn-reject { background-color: #dc3545; }
-
-    .main {
-        display: grid;
-        grid-template-columns: 7fr 3fr;
-        gap: 1rem;
-    }
-
-    .main .right-side {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      .main {
-        grid-template-columns: 1fr;
-      }
-      .card {
-        padding: 10px;
-        width: 100%;
-      }
-      .table-responsive {
-        width: calc(100vw - 40px);
-      }
-    }
+    .wish { padding-bottom: 1rem; }
+    .dashboard-shell { display: flex; flex-direction: column; gap: 1rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .stat-card { padding: 1rem 1.25rem; border-radius: 16px; background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .stat-card.primary { border-left: 5px solid #2563eb; }
+    .stat-card.warning { border-left: 5px solid #f59e0b; }
+    .stat-card.success { border-left: 5px solid #16a34a; }
+    .stat-card.danger { border-left: 5px solid #dc2626; }
+    .stat-label { display: block; color: #64748b; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .stat-value { font-size: 1.65rem; font-weight: 700; color: #0f172a; }
+    .panel { background: white; border-radius: 16px; padding: 1rem 1.1rem; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: 600; color: #0f172a; }
+    .chart-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; }
+    .chart-card { min-height: 260px; }
+    .map-container { border-radius: 16px; overflow: hidden; height: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    #admin_map { width: 100%; height: 100%; }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 0.8rem 0.9rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f8fafc; color: #334155; }
+    .action-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn { border: 0; padding: 0.45rem 0.75rem; border-radius: 999px; color: white; cursor: pointer; font-size: 0.9rem; }
+    .btn-accept { background: #16a34a; }
+    .btn-reject { background: #dc2626; }
+    .btn-secondary { background: #64748b; }
+    .muted { color: #64748b; }
+    @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-    crossorigin=""/>
-<!-- Leaflet JavaScript for OpenStreetMap -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
-    crossorigin=""></script>
-
-<!-- Leaflet heat -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
-<!-- 👋 Greeting -->
-<h2 class="wish">Good {{ wish }}, {{ user.first_name }} {{ user.last_name }} 
-  {% if user.user_type == 1 %}(Super Admin){% elif user.user_type == 2 %}(Admin){% endif %}👋
-</h2>
+<h2 class="wish">Good {{ wish }}, {{ user.first_name }} {{ user.last_name }} {% if user.user_type == 1 %}(Super Admin){% elif user.user_type == 2 %}(Admin){% endif %}👋</h2>
 
-<div class="filter-container">
-  <a href="?filter=last_28_days" class="{% if request.GET.filter == 'last_28_days' or not request.GET.filter %}active{% endif %}">Last 28 Days</a>  
-  <a href="?filter=today" class="{% if request.GET.filter == 'today' %}active{% endif %}">Today</a>
-  <a href="?filter=last_week" class="{% if request.GET.filter == 'last_week' %}active{% endif %}">Last Week</a>
-  <a href="?filter=all" class="{% if request.GET.filter == 'all'%}active{% endif %}">Lifetime</a>
-</div>
+<div class="dashboard-shell">
+  <div class="stats-grid">
+    {% for stat in stats_cards %}
+      <div class="stat-card {{ stat.tone }}">
+        <span class="stat-label">{{ stat.label }}</span>
+        <strong class="stat-value">{{ stat.value }}</strong>
+      </div>
+    {% endfor %}
+  </div>
 
-<!-- 📊 Dashboard Stats -->
-<div class="main">
-  <div class="left-side">
-    <div class="dashboard-grid">
-      <div class="card" id="total-post-chart"></div>
-      <div class="card" id="pending-post-chart"></div>
+  <div class="chart-grid">
+    <div class="panel">
+      <div class="panel-header">Weekly overview</div>
+      <div class="chart-card" id="activity-chart"></div>
     </div>
-
-    <!-- Map section -->
-    <div class="map-container">
-      <div id="admin_map"></div>
+    <div class="panel">
+      <div class="panel-header">Report status</div>
+      <div class="chart-card" id="status-chart"></div>
     </div>
+  </div>
 
-    <!-- 📋 Table Section -->
+  <div class="panel">
+    <div class="panel-header">Pending reports</div>
     <div class="table-responsive">
       <table>
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
+            <th>Report</th>
+            <th>Reporter</th>
+            <th>Contact</th>
+            <th>Created</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>10:23 AM</td>
-            <td>Rayhan Hossain</td>
-            <td>rayhan@gmail.com</td>
-            <td>01xxxxxxxxx</td>
-            <td>
-              <button class="btn btn-view"><i class="fa-solid fa-eye"></i></button>
-              <button class="btn btn-accept"><i class="fa-solid fa-check"></i></button>
-              <button class="btn btn-reject"><i class="fa-solid fa-trash-can"></i></button>
-            </td>
-          </tr>
+          {% if pending_reports %}
+            {% for report in pending_reports %}
+              <tr>
+                <td>{{ report.title }}</td>
+                <td>{{ report.reporter }}</td>
+                <td>{{ report.email }}<br><span class="muted">{{ report.phone }}</span></td>
+                <td>{{ report.created }}</td>
+                <td>
+                  <div class="action-row">
+                    <form method="post" action="{% url 'superadmin:api_accept_post' report.id %}" data-action="approve" data-id="{{ report.id }}">
+                      {% csrf_token %}
+                      <button class="btn btn-accept" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'superadmin:api_reject_post' report.id %}" data-action="reject" data-id="{{ report.id }}">
+                      {% csrf_token %}
+                      <button class="btn btn-reject" type="submit">Reject</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" class="muted">No pending reports right now.</td></tr>
+          {% endif %}
         </tbody>
       </table>
     </div>
   </div>
-  <div class="right-side">
-    <div class="card" id="post-donut-chart"></div>
-    <div class="card" id="accept-pending-chart"></div>
+
+  <div class="panel">
+    <div class="panel-header">Reported hotspots</div>
+    <div class="map-container">
+      <div id="admin_map"></div>
+    </div>
   </div>
 </div>
 
 <script>
-  const recent_post = {{ recent_post }};
-  const pending_post = {{ pending_post }};
-  const accept_post = {{ accept_post }};
-  {% comment %} const accept_post = [5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 2, 6, 7] {% endcomment %}
-  const negative_pending_post = {{ negative_pending_post }};
-  {% comment %} const negative_pending_post = [5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 5, 3, 1, 3, 7, 2, 6, 7] {% endcomment %}
-  const days = {{ days|safe }};
-  const accept_count = {{ accept_count }};
-  const reject_count = {{ reject_count }};
-  const pending_count = {{ pending_count }};
+  window.dashboardData = {
+    labels: {{ chart_data.labels|safe }},
+    series: [
+      { name: '{{ chart_data.series.0.name }}', data: {{ chart_data.series.0.data|safe }} },
+      { name: '{{ chart_data.series.1.name }}', data: {{ chart_data.series.1.data|safe }} }
+    ],
+    pendingSeries: {{ chart_data.pending_series|safe }}
+  };
+</script>
+
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('form[data-action]').forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const button = form.querySelector('button');
+        const originalText = button.textContent;
+        button.textContent = 'Working...';
+        button.disabled = true;
+
+        fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            if (data.success) {
+              window.location.reload();
+            } else {
+              alert(data.error || 'Unable to update this report.');
+              button.textContent = originalText;
+              button.disabled = false;
+            }
+          })
+          .catch(function () {
+            alert('Something went wrong while updating the report.');
+            button.textContent = originalText;
+            button.disabled = false;
+          });
+      });
+    });
+  });
 </script>
 
 <script>
   const mapElement = document.getElementById('admin_map');
   let map;
-  const posts = {{ posts|safe }} ;
+  const posts = {{ posts|safe }};
 
   if (mapElement) {
-    // Use the correct ID: admin_map
-    map = L.map('admin_map'); 
-    
-    // Add OpenStreetMap tile layer
+    map = L.map('admin_map');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18
     }).addTo(map);
-
-    // If you have this function defined somewhere
-    if (typeof connectLocation === "function") {
-      connectLocation();
-    }
   }
 
   if (navigator.geolocation && map) {
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        
-        // Center the map on user's location
-        map.setView([lat, lng], 12);
-
-        // Optionally, add a marker for the user
-        // L.marker([lat, lng]).addTo(map)
-        //   .bindPopup('Your location')
-        //   .openPopup();
-      }, 
-      function(error) {
-        console.error('Error getting location:', error);
-        alert('Unable to get your location. Please check your permissions.');
-      }
-    );
+    navigator.geolocation.getCurrentPosition(function (position) {
+      map.setView([position.coords.latitude, position.coords.longitude], 12);
+    }, function (error) {
+      console.warn('Location unavailable:', error);
+    });
   }
+
   function set_post() {
-    // const basePostUrl = "{% url 'plastickothay:post' 'REPLACE_ID' %}".replace('REPLACE_ID', '');
-    
-    // var circle = L.circle([23.8103, 90.4125], {
-    //     color: 'transparent',        // stroke color
-    //     fillColor: '#30a3ff', // fill color
-    //     fillOpacity: 0.5,
-    //     radius: 500           // radius in meters
-    // }).addTo(map);
-
-    // circle.bindPopup("Radius: 500 m");
-
-    var ICON_URL = "{% static 'icon.png' %}";
-
-    var customIcon = L.icon({
-        iconUrl: ICON_URL, // your icon image URL
-        iconSize: [20, 30],  // size of icon
-        iconAnchor: [20, 40], // point of icon which will correspond to marker's location
-        popupAnchor: [0, -35] // popup position relative to icon
+    if (!map || !posts || posts.length === 0) return;
+    const icon = L.icon({
+      iconUrl: '{% static "icon.png" %}',
+      iconSize: [20, 30],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -35]
     });
 
-    if (posts && posts.length > 0) {
-        posts.forEach(post => {
-            const postId = post._id.$oid;
-            // const postUrl = basePostUrl + postId;
-            const postUrl = "/post/" + postId
-            L.marker([post.lat, post.lon], { icon: customIcon })
-                .addTo(map)
-                .bindPopup(`<b>${post.name}</b><br>Severity: ${post.severity}<br><a href="${postUrl}">Open post</a>`)
-        });
-    } else {
-        console.warn("No posts found to add markers.");
-    }
+    posts.forEach(function (post) {
+      const postId = post._id && post._id.$oid ? post._id.$oid : '';
+      const postUrl = '/post/' + postId;
+      L.marker([post.lat, post.lon], { icon: icon })
+        .addTo(map)
+        .bindPopup('<b>' + (post.name || 'Untitled report') + '</b><br>Severity: ' + (post.severity || 'N/A') + '<br><a href="' + postUrl + '">Open post</a>');
+    });
   }
 
-  set_post() ;
-
   function set_heat() {
-    let heatPoints = [];
-
-    for (let i = 0; i < posts.length; i++) {
-        let post = posts[i];
-        // Assuming Django passed them as { lat: ..., lng: ... }
-        heatPoints.push([post.lat, post.lon]);
-    }
+    if (!map || !posts || posts.length === 0) return;
+    const heatPoints = posts.map(function (post) {
+      return [post.lat, post.lon];
+    });
 
     L.heatLayer(heatPoints, {
-      radius: 50,        // how big each point is in pixels
-      blur: 5,          // smoothing
-      maxZoom: 17,       // zoom level where points max out
-      max: 1.0,          // intensity scale
-      gradient: {        // optional custom colors
-          0.4: 'blue',
-          0.65: 'lime',
-          1: 'red'
-      }
+      radius: 50,
+      blur: 5,
+      maxZoom: 17,
+      max: 1.0,
+      gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
     }).addTo(map);
   }
 
-  set_heat() ;
-
+  set_post();
+  set_heat();
 </script>
 
 {% endblock main-content %}

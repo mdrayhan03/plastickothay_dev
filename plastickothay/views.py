@@ -79,6 +79,38 @@ def home (request):
 
     return render(request, "plastickothay/index.html", context)
 
+def posts_api(request):
+    try:
+        posts = Post.objects(status=1).order_by('-created')
+        serialized_posts = []
+
+        for post in posts:
+            lat = getattr(post, "lat", None)
+            lon = getattr(post, "lon", None)
+
+            if lat is None or lon is None:
+                continue
+
+            try:
+                lat = float(lat)
+                lon = float(lon)
+            except (TypeError, ValueError):
+                continue
+
+            serialized_posts.append({
+                "id": str(post.id),
+                "name": post.name or "Untitled post",
+                "severity": int(post.severity) if post.severity is not None else 3,
+                "description": post.description or "No description provided.",
+                "lat": lat,
+                "lon": lon,
+                "imageID": post.imageID or "",
+            })
+
+        return JsonResponse({"posts": serialized_posts}, status=200)
+    except Exception as exc:
+        return JsonResponse({"error": "Unable to load posts right now."}, status=500)
+
 def posts(request):
     if 'user_id' in request.session:
         try:

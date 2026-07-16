@@ -4,6 +4,7 @@ from . import views
 app_name = "plastickothay"
 urlpatterns = [
     path("", views.home, name="home"),
+    path("api/posts/", views.posts_api, name="posts_api"),
     path("posts/", views.posts, name="posts"),
     path("post/<str:id>/", views.post, name="post"),
     path("contact/", views.contact, name="contact"),

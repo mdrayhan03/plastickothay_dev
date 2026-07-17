@@ -51,3 +51,6 @@ pip-delete-this-directory.txt
 
 # Node (if using frontend)
 node_modules/
+
+# custom
+backend_old/

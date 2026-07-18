@@ -21,8 +21,11 @@ class DomainUser:
 
     is_authenticated = True
 
+    is_anonymous = False
+
     def __init__(self, claims: TokenClaims) -> None:
         self.id = claims.user_id
+        self.pk = claims.user_id  # DRF throttling reads request.user.pk for the cache key
         self.role = claims.role
 
     @property

@@ -6,5 +6,6 @@ urlpatterns = [
     path("auth/", include("api.auth.urls")),
     path("me/", MeView.as_view(), name="me"),
     path("", include("api.reports.urls")),
-    # engagement, scoring, admin, content wired in B4–B6
+    path("admin/", include("api.admin.urls")),
+    # engagement, scoring, content wired in B5–B6
 ]

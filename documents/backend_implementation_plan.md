@@ -157,6 +157,10 @@ Those are the rules the whole product rests on, and every one is testable before
 
 ## 4. Milestone detail
 
+> **Task-level breakdown, per-milestone exit criteria, and live progress live in
+> `backend_milestones_b1_b7.md`.** This table is the summary; that file is the working plan.
+> Current status: **B0 ✅, B1 ✅ (SQLite-validated), B2 next.**
+
 | # | Milestone | Key risk it retires | Exit criteria |
 |---|---|---|---|
 | **B0** | Hexagon skeleton | Is the architecture real or decorative? | §3 above |

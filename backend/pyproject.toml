@@ -7,14 +7,18 @@ requires-python = ">=3.12"
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q --strict-markers"
+# Integration/API tests use this; unit tests never touch the DB (guaranteed by import-linter,
+# not by Django's absence — Django is now a project dependency).
+DJANGO_SETTINGS_MODULE = "config.settings.test"
 markers = [
-    "integration: needs a real PostgreSQL (skipped by default)",
+    "integration: exercises the Django ORM; needs a database",
     "contract: repository contract suite, run against every implementation",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+extend-exclude = ["*/migrations/*", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

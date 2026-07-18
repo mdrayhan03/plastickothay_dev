@@ -146,3 +146,19 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
+
+# Throttle counters must be shared across Gunicorn workers. LocMemCache is per-process, so a
+# "10/hour" limit would become ~10×workers/hour and drift by which worker serves the request.
+# DatabaseCache (a Postgres table via `manage.py createcachetable`) is shared and correct —
+# slower than Redis, fine at this scale (LLD §8.6, DEC-8). Tests override this in test.py.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "throttle_cache",
+    }
+}
+
+# The React SPA is served by Django/Whitenoise from this directory (same-origin, DEC-7). A
+# catch-all route (config.urls) returns index.html so client-side routing survives a hard
+# refresh. CORS is therefore unnecessary in production.
+FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"

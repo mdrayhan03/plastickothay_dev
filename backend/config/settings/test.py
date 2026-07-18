@@ -24,5 +24,9 @@ else:
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
+# In-process cache — no createcachetable needed, and throttle counters still work within a
+# test (a single process). Prod uses DatabaseCache (shared across workers).
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
 # Faster password hashing in tests.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

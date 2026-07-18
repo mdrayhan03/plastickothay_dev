@@ -4,6 +4,8 @@ Plain factory functions, no DI framework: a monolith this size does not need one
 layer (B2+) calls these to build use cases per request. LeaderboardRepository arrives in B5.
 """
 
+from django.conf import settings
+
 from adapters.persistence.django_orm.repositories import (
     DjangoContactRepository,
     DjangoEngagementRepository,
@@ -22,6 +24,30 @@ from adapters.system.clock import SystemClock
 
 def clock():
     return SystemClock()
+
+
+def image_storage():
+    # Google Drive in prod (when credentials are configured), local filesystem otherwise.
+    # The port makes this a one-line swap; nothing above it changes.
+    if getattr(settings, "USE_GOOGLE_DRIVE", False):
+        from adapters.storage.gdrive import GoogleDriveImageStorage
+
+        return GoogleDriveImageStorage()
+    from adapters.storage.local import LocalImageStorage
+
+    return LocalImageStorage()
+
+
+def notifier():
+    from adapters.notifications.mailjet import MailjetNotifier
+
+    return MailjetNotifier()
+
+
+def token_service():
+    from adapters.security.jwt_service import SimpleJWTTokenService
+
+    return SimpleJWTTokenService()
 
 
 def unit_of_work():

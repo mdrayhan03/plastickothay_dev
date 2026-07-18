@@ -92,3 +92,9 @@ def contact():
 
 def moderation_log():
     return DjangoModerationLogRepository()
+
+
+def leaderboard():
+    from adapters.persistence.django_orm.leaderboard import DjangoLeaderboardRepository
+
+    return DjangoLeaderboardRepository()

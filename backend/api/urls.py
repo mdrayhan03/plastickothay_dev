@@ -8,6 +8,6 @@ urlpatterns = [
     path("", include("api.reports.urls")),
     path("", include("api.engagement.urls")),
     path("", include("api.scoring.urls")),
+    path("", include("api.content.urls")),
     path("admin/", include("api.admin.urls")),
-    # content wired in B6
 ]

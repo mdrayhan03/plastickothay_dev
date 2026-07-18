@@ -118,9 +118,26 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    # Authentication, exception handler and pagination classes are wired in B2 when the api/
-    # package exists. Referencing them here now would fail Django's system check.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "api.authentication.JWTCookieAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",  # public endpoints override explicitly
     ],
+    "EXCEPTION_HANDLER": "api.exception_handler.domain_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "anon_post_submit": "5/hour",
+        "anon_like": "30/hour",
+        "auth_like": "200/day",
+        "contact_submit": "5/hour",
+        "feedback_submit": "5/hour",
+        "login": "10/hour",
+        "otp_resend": "3/hour",
+    },
+    # Cursor pagination is handled per-view via api.pagination (use cases return domain Pages,
+    # not querysets), so no DEFAULT_PAGINATION_CLASS.
+}
+
+SIMPLE_JWT = {
+    "BLACKLIST_AFTER_ROTATION": True,
 }

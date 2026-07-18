@@ -5,9 +5,9 @@ API routes are wired from B2 onward. Django admin is mounted for config-table CR
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
-    # path("api/", include("api.urls")),   # B2+
+    path("api/", include("api.urls")),
 ]

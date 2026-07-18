@@ -10,14 +10,18 @@
 
 | Milestone | Status | Evidence |
 |---|---|---|
-| **B0** Hexagon skeleton | ✅ complete | 23 commits, 76 unit tests, 4/4 import contracts |
-| **B1** Persistence & identity | ✅ complete (SQLite-validated) | +15 integration tests → 91 total; real-Postgres validation pends `DATABASE_URL` |
-| **B2** Auth vertical slice | ⏳ next | — |
-| **B3** Reports | ⬜ planned | — |
-| **B4** Moderation | ⬜ planned | — |
-| **B5** Engagement & scoring | ⬜ planned | — |
-| **B6** Content | ⬜ planned | — |
-| **B7** Hardening & cutover | ⬜ planned | — |
+| **B0** Hexagon skeleton | ✅ complete | 76 unit tests, 4/4 import contracts |
+| **B1** Persistence & identity | ✅ complete | migrated + validated on Supabase Postgres 17.6 |
+| **B2** Auth vertical slice | ✅ complete | JWT + httpOnly cookie, 14 auth tests |
+| **B3** Reports | ✅ complete | public/admin split, PII leak closed, 11 tests |
+| **B4** Moderation | ✅ complete | approve/reject/hide/unhide, 12 tests |
+| **B5** Engagement & scoring | ✅ complete | leaderboard + contract suite (20 tests) |
+| **B6** Content | ✅ complete | contact/feedback + config-only admin, 12 tests |
+| **B7** Hardening & cutover | ✅ complete | permission matrix, throttles, SPA, CI |
+
+**Backend complete: 188 tests (76 unit · 92 integration · 20 contract), 4/4 contracts, ruff
+clean.** Detail in `b2_b7_implementation_report.md`. Open items (real-Postgres test run, live
+Mailjet/Drive creds, `createcachetable`, timeouts) are in that report §5.
 
 ---
 

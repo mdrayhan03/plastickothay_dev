@@ -38,6 +38,24 @@ export const reportSchema = z.object({
   phone: z.string().optional().default(''),
 })
 
+export const contactSchema = z.object({
+  name: z.string().min(1, 'Your name helps us reply'),
+  email: z.string().email('Enter a valid email'),
+  phone: z.string().optional(),
+  subject: z.string().min(1, 'Add a subject'),
+  message: z.string().min(5, 'Tell us a little more'),
+})
+
+export const feedbackSchema = z.object({
+  rating: z.number().min(1, 'Pick a rating').max(5),
+  comment: z.string().max(1000).optional(),
+  name: z.string().optional(),
+  email: z.string().email('Enter a valid email').or(z.literal('')).optional(),
+})
+
+export type ContactInput = z.infer<typeof contactSchema>
+export type FeedbackInput = z.infer<typeof feedbackSchema>
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type OtpInput = z.infer<typeof otpSchema>

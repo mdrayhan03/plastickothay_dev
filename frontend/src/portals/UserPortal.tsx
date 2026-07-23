@@ -1,13 +1,14 @@
-import { User } from 'lucide-react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { MobileShell } from '@/components/layout/MobileShell'
 import { PhoneFrame } from '@/components/layout/PhoneFrame'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { AboutPage } from '@/pages/AboutPage'
+import { ContactPage } from '@/pages/ContactPage'
+import { FeedbackFormPage } from '@/pages/FeedbackFormPage'
 import { HomePage } from '@/pages/HomePage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { MePage } from '@/pages/MePage'
 import { MorePage } from '@/pages/MorePage'
-import { Placeholder } from '@/pages/Placeholder'
 import { ReportPage } from '@/pages/ReportPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -41,9 +42,9 @@ export function UserPortal() {
             }
           />
           <Route path="more" element={<MorePage />} />
-          <Route path="contact" element={<Placeholder title="Contact us" icon={User} milestone="soon" />} />
-          <Route path="feedback" element={<Placeholder title="Feedback" icon={User} milestone="soon" />} />
-          <Route path="about" element={<Placeholder title="About" icon={User} milestone="soon" />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="feedback" element={<FeedbackFormPage />} />
+          <Route path="about" element={<AboutPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

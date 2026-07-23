@@ -39,6 +39,8 @@ export interface PublicPost {
   lon: number
   description: string
   created: string
+  likes: number
+  liked_by_me: boolean
 }
 
 export interface OwnPost extends PublicPost {
@@ -115,6 +117,47 @@ export interface ContactPage {
   map_lat: number | null
   map_lon: number | null
   socials: { platform: string; url: string; order: number }[]
+}
+
+// --- admin ---
+export interface AdminStats {
+  pending: number
+  approved: number
+  hidden: number
+  rejected: number
+  total: number
+}
+
+export interface AdminUser {
+  id: number
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  phone: string
+  role: Role
+  is_verified: boolean
+  is_active: boolean
+}
+
+export interface ContactMessage {
+  id: number
+  name: string
+  email: string
+  phone: string
+  subject: string
+  message: string
+  status: string
+  created: string
+}
+
+export interface FeedbackItem {
+  id: number
+  name: string
+  email: string
+  rating: number
+  comment: string
+  created: string
 }
 
 // --- shared ---

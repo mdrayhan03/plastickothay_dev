@@ -7,9 +7,16 @@ cookie stays first-party and CORS is not needed (LLD §11.2, DEC-7).
 import os
 
 from config.settings.base import *  # noqa: F401,F403
-from config.settings.base import INSTALLED_APPS
+from config.settings.base import FRONTEND_DIST, INSTALLED_APPS
 
 DEBUG = False
+
+# Whitenoise serves the built SPA (frontend/dist) at the site root — so /assets/*.js, the
+# manifest, the service worker and icons are served as real files, while any non-file route
+# falls through to Django's catch-all (config/urls.py) which returns index.html for client-side
+# routing. Same-origin, no CORS (DEC-7). Requires `npm run build` before deploy.
+if FRONTEND_DIST.exists():
+    WHITENOISE_ROOT = str(FRONTEND_DIST)
 
 # Mailjet transport (anymail) is only needed in prod — dev/test use console/locmem backends,
 # so it stays out of the base INSTALLED_APPS and its install is a prod-only dependency.

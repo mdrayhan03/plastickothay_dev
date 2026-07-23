@@ -47,7 +47,12 @@ export function HomePage() {
         <div className="font-display text-2xl font-extrabold text-brand">
           {config?.site_name ?? 'PlasticKothay'}
         </div>
-        <div className="mt-1 font-[Hind_Siliguri] text-sm font-bold text-brand">প্লাস্টিক কোথায়?</div>
+        <div
+          className="mt-1 text-sm font-bold text-brand"
+          style={{ fontFamily: 'var(--font-bengali)' }}
+        >
+          প্লাস্টিক কোথায়?
+        </div>
         <p className="mt-3 text-sm text-ink-2">
           {config?.tagline || 'Map plastic pollution. Clean up your city, together.'}
         </p>

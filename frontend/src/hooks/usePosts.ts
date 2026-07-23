@@ -6,6 +6,14 @@ export function useMapMarkers() {
   return useQuery({ queryKey: qk.mapMarkers, queryFn: postService.mapMarkers })
 }
 
+export function usePost(id: number | null) {
+  return useQuery({
+    queryKey: qk.post(id ?? 0),
+    queryFn: () => postService.get(id as number),
+    enabled: id != null,
+  })
+}
+
 export function usePostFeed(severity?: number) {
   return useInfiniteQuery({
     queryKey: qk.posts({ severity }),

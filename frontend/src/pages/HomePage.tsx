@@ -1,4 +1,6 @@
 import { Bell, MapPin, Moon, Sun } from 'lucide-react'
+import { useState } from 'react'
+import { PostSheet } from '@/components/feed/PostSheet'
 import { ReportCard } from '@/components/feed/ReportCard'
 import { LazyMap } from '@/components/map/LazyMap'
 import { useAuth } from '@/context/auth-context'
@@ -12,6 +14,7 @@ export function HomePage() {
   const { theme, toggle } = useTheme()
   const { data: markers } = useMapMarkers()
   const feed = usePostFeed()
+  const [selected, setSelected] = useState<number | null>(null)
 
   const center: [number, number] = config?.map_center
     ? [config.map_center.lat, config.map_center.lon]
@@ -51,7 +54,12 @@ export function HomePage() {
 
       {/* map */}
       <div className="relative mx-4.5 mt-2 h-75 overflow-hidden rounded-3xl border border-line shadow-md">
-        <LazyMap center={center} zoom={config?.map_zoom ?? 12} markers={markers ?? []} />
+        <LazyMap
+          center={center}
+          zoom={config?.map_zoom ?? 12}
+          markers={markers ?? []}
+          onMarkerClick={setSelected}
+        />
         <div className="absolute right-3 top-3 z-[500] rounded-2xl border border-line bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] px-3 py-2 shadow-sm backdrop-blur">
           <b className="block font-display text-lg leading-none tnum">{markers?.length ?? 0}</b>
           <span className="text-[10px] font-bold uppercase tracking-wide text-ink-2">on map</span>
@@ -91,6 +99,8 @@ export function HomePage() {
           {feed.isFetchingNextPage ? 'Loading…' : 'Load more'}
         </button>
       )}
+
+      <PostSheet postId={selected} onClose={() => setSelected(null)} />
     </>
   )
 }

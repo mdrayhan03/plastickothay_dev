@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* dark mode driven by a class on <html> (set by the theme provider) */
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================================== TOKENS
+   The design system from the locked prototype (frontend/ui_ux).
+   GREEN = brand & action · GOLD = reward & achievement · severity = status. */
+:root {
+  --brand: #0a9c74;
+  --brand-2: #17be8f;
+  --brand-deep: #066a4e;
+  --brand-soft: #e1f3ec;
+  --gold: #dfa317;
+  --gold-2: #f3c651;
+  --gold-soft: #fbf0d6;
+
+  --ink: #0a211c;
+  --ink-2: #425f59;
+  --ink-3: #7c948c;
+  --ground: #eef4f0;
+  --surface: #ffffff;
+  --surface-2: #f5f9f5;
+  --line: #e3eae5;
+  --line-2: #d3dfd8;
+
+  --sev-1: #2fa96a;
+  --sev-2: #8cb93b;
+  --sev-3: #f2a93b;
+  --sev-4: #f0801e;
+  --sev-5: #e5484d;
+  --heart: #e5527a;
+
+  --radius: 0.9rem;
+
+  /* shadcn semantic aliases mapped onto the palette */
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--brand-soft);
+  --accent-foreground: var(--brand-deep);
+  --destructive: var(--sev-5);
+  --border: var(--line);
+  --input: var(--line-2);
+  --ring: var(--brand);
+}
+
+.dark {
+  --brand: #20c998;
+  --brand-2: #33dcab;
+  --brand-deep: #0c9a72;
+  --brand-soft: #123029;
+  --gold: #f0c24e;
+  --gold-2: #f8d982;
+  --gold-soft: #2e2713;
+
+  --ink: #e9f1ed;
+  --ink-2: #9db5ac;
+  --ink-3: #6f857d;
+  --ground: #07120f;
+  --surface: #0d1d18;
+  --surface-2: #112420;
+  --line: #1b2e28;
+  --line-2: #243d36;
+}
+
+/* expose tokens to Tailwind utilities (bg-brand, text-ink, etc.) */
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-soft: var(--brand-soft);
+  --color-gold: var(--gold);
+  --color-gold-2: var(--gold-2);
+  --color-gold-soft: var(--gold-soft);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-sev-1: var(--sev-1);
+  --color-sev-2: var(--sev-2);
+  --color-sev-3: var(--sev-3);
+  --color-sev-4: var(--sev-4);
+  --color-sev-5: var(--sev-5);
+  --color-heart: var(--heart);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-display: 'Bricolage Grotesque', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+

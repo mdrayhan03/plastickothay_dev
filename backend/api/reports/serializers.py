@@ -58,9 +58,19 @@ class PublicPostSerializer(serializers.Serializer):
     lon = serializers.SerializerMethodField()
     description = serializers.CharField()
     created = serializers.DateTimeField()
+    likes = serializers.SerializerMethodField()
+    liked_by_me = serializers.SerializerMethodField()
 
     def get_reporter_name(self, post: Post) -> str:
         return post.reporter.name
+
+    # Like count and the caller's like state come from the view's batched context
+    # (EngagementRepository.counts_for / liked_post_ids) to avoid an N+1 per card.
+    def get_likes(self, post: Post) -> int:
+        return self.context.get("likes", {}).get(post.id, 0)
+
+    def get_liked_by_me(self, post: Post) -> bool:
+        return post.id in self.context.get("liked_ids", set())
 
     def get_image_url(self, post: Post) -> str:
         return _image_url(post)

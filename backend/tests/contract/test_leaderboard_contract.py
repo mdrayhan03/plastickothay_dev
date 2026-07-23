@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 import pytest
 
 from core.domain.pagination import PageRequest
-from core.domain.value_objects import Period, Role
+from core.domain.value_objects import Role
 from tests.fakes.seed import DEFAULT_LEVEL_RULES, DEFAULT_POINT_RULES
 
 NOW = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
@@ -203,18 +203,21 @@ class TestLeaderboardContract:
         backend.add_post(bob.id, PostStatus.APPROVED, approved_at=NOW)
         backend.add_like(p.id, alice.id)  # bob gets +3, alice +1
 
-        rows = backend.leaderboard.top(Period.ALL, DEFAULT_POINT_RULES, PageRequest(limit=10))
+        rows = backend.leaderboard.top(None, DEFAULT_POINT_RULES, PageRequest(limit=10))
         assert [(r.username, r.points) for r in rows.items] == [("bob", 203), ("alice", 101)]
         assert rows.items[0].rank == 1
 
     def test_weekly_period_excludes_old_approvals(self, backend):
-        from core.domain.value_objects import PostStatus
+        from core.domain.periods import period_start
+        from core.domain.value_objects import Period, PostStatus
 
         alice = backend.add_user("alice")
         backend.add_post(alice.id, PostStatus.APPROVED,
                          approved_at=datetime(2026, 1, 1, tzinfo=UTC))  # old
 
-        rows = backend.leaderboard.top(Period.WEEK, DEFAULT_POINT_RULES, PageRequest(limit=10))
+        # The use case computes `since`; here we compute it the same way and pass it in.
+        since = period_start(Period.WEEK, NOW)
+        rows = backend.leaderboard.top(since, DEFAULT_POINT_RULES, PageRequest(limit=10))
         # Old approval falls outside this week → alice not on the weekly board.
         assert all(r.username != "alice" for r in rows.items)
 

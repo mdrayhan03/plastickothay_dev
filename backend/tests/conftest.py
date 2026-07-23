@@ -28,6 +28,7 @@ from tests.fakes.repositories import (
     InMemoryOTPRepository,
     InMemoryPointRuleRepository,
     InMemoryPostRepository,
+    InMemorySiteConfigRepository,
     InMemoryUserRepository,
 )
 from tests.fakes.system import (
@@ -85,6 +86,11 @@ def level_rules() -> InMemoryLevelRuleRepository:
 @pytest.fixture
 def leaderboard(posts, engagements, users, clock) -> InMemoryLeaderboardRepository:
     return InMemoryLeaderboardRepository(posts, engagements, users, clock)
+
+
+@pytest.fixture
+def site_config() -> InMemorySiteConfigRepository:
+    return InMemorySiteConfigRepository()
 
 
 @pytest.fixture

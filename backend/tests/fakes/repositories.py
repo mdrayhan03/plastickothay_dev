@@ -18,6 +18,7 @@ from core.domain.entities import (
     LevelRule,
     Post,
     PostModerationLog,
+    SiteConfig,
     User,
 )
 from core.domain.errors import AlreadyLiked, EmailTaken, UsernameTaken, UserNotFound
@@ -31,7 +32,6 @@ from core.domain.ids import (
     UserId,
 )
 from core.domain.pagination import Page, PageRequest
-from core.domain.periods import period_start
 from core.domain.points import (
     Rules,
     compute_breakdown,
@@ -46,7 +46,7 @@ from core.domain.read_models import (
     PostFilter,
     StatusCounts,
 )
-from core.domain.value_objects import EngagementType, OTPPurpose, Period, PostStatus, Role
+from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
     ContactRepository,
     EngagementRepository,
@@ -57,6 +57,7 @@ from core.ports.repositories import (
     OTPRepository,
     PointRuleRepository,
     PostRepository,
+    SiteConfigRepository,
     UserRepository,
 )
 
@@ -311,8 +312,7 @@ class InMemoryLeaderboardRepository(LeaderboardRepository):
         self.users = users
         self.clock = clock
 
-    def top(self, period: Period, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
-        since = period_start(period, self.clock.now())
+    def top(self, since, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
         scores = compute_scores(self.posts.rows.values(), self.engagements.rows, rules, since)
 
         ranked = []
@@ -424,3 +424,15 @@ class InMemoryModerationLogRepository(ModerationLogRepository):
 
     def list_for_post(self, post_id: PostId) -> list[PostModerationLog]:
         return [r for r in self.rows if r.post_id == post_id]
+
+
+class InMemorySiteConfigRepository(SiteConfigRepository):
+    def __init__(self) -> None:
+        self.config = SiteConfig()  # defaults
+
+    def get(self) -> SiteConfig:
+        return self.config
+
+    def save(self, config: SiteConfig) -> SiteConfig:
+        self.config = config
+        return config

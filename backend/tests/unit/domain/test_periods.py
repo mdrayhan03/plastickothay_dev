@@ -28,6 +28,15 @@ class TestPeriodStart:
         assert (local.hour, local.minute) == (0, 0)
         assert local.weekday() == 0
 
+    def test_week_can_start_sunday_when_configured(self):
+        # Same Friday, but with the admin-configured Sunday week-start: week began Sun 12 Jul.
+        start = period_start(
+            Period.WEEK, datetime(2026, 7, 17, 12, 0, tzinfo=UTC), week_starts_on_monday=False
+        )
+        local = start.astimezone(LEADERBOARD_TZ)
+        assert (local.year, local.month, local.day) == (2026, 7, 12)
+        assert local.weekday() == 6  # Sunday
+
     def test_month_starts_first_local_midnight(self):
         start = period_start(Period.MONTH, datetime(2026, 7, 17, 12, 0, tzinfo=UTC))
         local = start.astimezone(LEADERBOARD_TZ)

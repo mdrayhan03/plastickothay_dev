@@ -3,15 +3,26 @@ import type {
   AdminPost,
   AdminStats,
   AdminUser,
+  AdminUserDetail,
+  AuditEntry,
   ContactMessage,
   FeedbackItem,
   Page,
+  Role,
   SiteConfig,
 } from '@/types'
 
 export const adminService = {
   async reviewQueue(params: { status?: string; severity?: number; cursor?: string } = {}) {
     const { data } = await api.get<Page<AdminPost>>('/admin/posts/', { params })
+    return data
+  },
+  /** All Reports — the review-list view accepts repeated ?status= filters. */
+  async reports(params: { statuses?: string[]; severity?: number; cursor?: string } = {}) {
+    const { data } = await api.get<Page<AdminPost>>('/admin/posts/', {
+      params: { status: params.statuses, severity: params.severity, cursor: params.cursor },
+      paramsSerializer: { indexes: null },
+    })
     return data
   },
   async approve(id: number, reason = '') {
@@ -38,8 +49,23 @@ export const adminService = {
     const { data } = await api.get<Page<AdminUser>>('/admin/users/', { params })
     return data
   },
+  async userDetail(id: number) {
+    const { data } = await api.get<AdminUserDetail>(`/admin/users/${id}/`)
+    return data
+  },
   async setActive(id: number, is_active: boolean) {
     const { data } = await api.patch<AdminUser>(`/admin/users/${id}/active/`, { is_active })
+    return data
+  },
+  async setRole(id: number, role: Role) {
+    const { data } = await api.patch<AdminUser>(`/admin/users/${id}/role/`, { role })
+    return data
+  },
+  async deleteUser(id: number) {
+    await api.delete(`/admin/users/${id}/`)
+  },
+  async audit(params: { cursor?: string; post?: number } = {}) {
+    const { data } = await api.get<Page<AuditEntry>>('/admin/audit/', { params })
     return data
   },
   async messages(params: { cursor?: string } = {}) {

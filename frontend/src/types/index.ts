@@ -37,6 +37,9 @@ export interface PublicPost {
   image_url: string
   lat: number
   lon: number
+  // Reverse-geocoded label (e.g. "Hatirjheel, Dhaka"). Optional until the backend
+  // `place_name` field ships — see admin_backend_todo.md (BE-8). Falls back to coords.
+  place_name?: string
   description: string
   created: string
   likes: number
@@ -60,6 +63,18 @@ export interface AdminPost extends PublicPost {
   reporter_id: number | null
   status: PostStatus
   approved_at: string | null
+}
+
+export type ModerationAction = 'approve' | 'reject' | 'hide' | 'unhide'
+
+/** Audit-log row — surfaces the backend's PostModerationLog (endpoint BE-1, pending). */
+export interface AuditEntry {
+  id: number
+  admin: string
+  action: ModerationAction
+  post_id: number
+  reason: string
+  at: string
 }
 
 // --- scoring ---
@@ -138,6 +153,13 @@ export interface AdminUser {
   role: Role
   is_verified: boolean
   is_active: boolean
+}
+
+/** User + contribution stats for the profile drawer (endpoint BE-4, pending). */
+export interface AdminUserDetail extends AdminUser {
+  posts_approved: number
+  likes_received: number
+  total_points: number
 }
 
 export interface ContactMessage {

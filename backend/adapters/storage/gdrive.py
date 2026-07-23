@@ -21,6 +21,7 @@ from core.ports.storage import ImageStorage
 PROVIDER = "gdrive"
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "143-8VgTr2KPveoPtcJ4s2SZGrT1w8Vth")
+TIMEOUT = int(os.getenv("GOOGLE_DRIVE_TIMEOUT", "30"))  # seconds — no Celery, so cap the hang
 
 
 def _credentials():
@@ -43,9 +44,17 @@ class GoogleDriveImageStorage(ImageStorage):
     @property
     def service(self):
         if self._service is None:
+            import google_auth_httplib2
+            import httplib2
             from googleapiclient.discovery import build
 
-            self._service = build("drive", "v3", credentials=_credentials())
+            # Attach a socket timeout to the authorized transport so uploads/deletes can't
+            # hang a worker indefinitely. build(http=...) is the documented way to do this
+            # with a service account (credentials go on the AuthorizedHttp, not build()).
+            authed_http = google_auth_httplib2.AuthorizedHttp(
+                _credentials(), http=httplib2.Http(timeout=TIMEOUT)
+            )
+            self._service = build("drive", "v3", http=authed_http)
         return self._service
 
     def upload(self, data: bytes, filename: str, content_type: str) -> ImageRef:

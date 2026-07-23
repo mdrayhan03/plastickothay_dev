@@ -147,6 +147,12 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
+# No Celery, so email and Drive I/O happen inside the request. Without a timeout a hung
+# upstream ties up a Gunicorn worker until it dies (LLD §11.5). SMTP backends honour
+# EMAIL_TIMEOUT; the Mailjet HTTP backend honours ANYMAIL["REQUESTS_TIMEOUT"] (set in prod);
+# the Drive adapter sets its own socket timeout.
+EMAIL_TIMEOUT = 10  # seconds
+
 # Throttle counters must be shared across Gunicorn workers. LocMemCache is per-process, so a
 # "10/hour" limit would become ~10×workers/hour and drift by which worker serves the request.
 # DatabaseCache (a Postgres table via `manage.py createcachetable`) is shared and correct —

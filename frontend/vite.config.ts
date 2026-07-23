@@ -12,6 +12,35 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      workbox: {
+        // SPA deep-links resolve to the cached shell when offline; never for the API/admin.
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/],
+        runtimeCaching: [
+          {
+            // Map tiles — cache-first so a previously-viewed map still renders offline.
+            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-tiles',
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 14 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Public GET data — network-first, falling back to the last response offline.
+            urlPattern: ({ url, request }: { url: URL; request: Request }) =>
+              url.pathname.startsWith('/api/') && request.method === 'GET',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-get',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
       manifest: {
         name: 'PlasticKothay',
         short_name: 'PlasticKothay',

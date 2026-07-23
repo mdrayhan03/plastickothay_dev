@@ -32,6 +32,25 @@ class TestThrottling:
         ]
         assert codes[5] == 429
 
+    def test_login_is_rate_limited(self):
+        """login is 10/hour/IP — blunts credential stuffing. The 11th attempt is 429."""
+        client = APIClient()
+        codes = [
+            client.post("/api/auth/login/", {"username": "nope", "password": "x"},
+                        format="json").status_code
+            for _ in range(11)
+        ]
+        # First 10 reach the use case (400 invalid credentials); the 11th is throttled.
+        assert codes[10] == 429
+
+
+class TestHealth:
+    def test_health_is_public_and_ok(self):
+        resp = APIClient().get("/api/health/")
+        assert resp.status_code == 200
+        assert resp.data["status"] == "ok"
+        assert resp.data["database"] is True
+
 
 class TestSPACatchAll:
     def test_unknown_route_returns_spa_not_404(self):

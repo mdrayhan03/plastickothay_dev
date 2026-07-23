@@ -28,6 +28,12 @@ class LevelRuleAdmin(admin.ModelAdmin):
     ordering = ("min_points",)
 
 
+@admin.register(orm.BadgeRule)
+class BadgeRuleAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "criteria", "threshold", "active", "icon")
+    list_editable = ("threshold", "active")
+
+
 @admin.register(orm.ContactPage)
 class ContactPageAdmin(admin.ModelAdmin):
     list_display = ("heading", "email", "phone", "updated_at")

@@ -145,6 +145,45 @@ class LevelRule(models.Model):
         ordering = ["min_points"]
 
 
+class BadgeRule(models.Model):
+    POSTS_APPROVED = "posts_approved"
+    LIKES_RECEIVED = "likes_received"
+    LIKES_GIVEN = "likes_given"
+    POINTS_TOTAL = "points_total"
+    CRITERIA_CHOICES = [
+        (POSTS_APPROVED, "Posts approved"),
+        (LIKES_RECEIVED, "Likes received"),
+        (LIKES_GIVEN, "Likes given"),
+        (POINTS_TOTAL, "Total points"),
+    ]
+
+    code = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=128)
+    description = models.CharField(max_length=255, blank=True)
+    criteria = models.CharField(max_length=32, choices=CRITERIA_CHOICES)
+    threshold = models.IntegerField()
+    active = models.BooleanField(default=True)
+    icon = models.CharField(max_length=64, blank=True)
+
+    class Meta:
+        db_table = "badge_rule"
+
+
+class UserBadge(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="badges")
+    badge_code = models.CharField(max_length=64)
+    earned_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "user_badge"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "badge_code"], name="uniq_badge_per_user"
+            ),
+        ]
+        indexes = [models.Index(fields=["user"])]
+
+
 class Feedback(models.Model):
     user = models.ForeignKey(
         "User", null=True, blank=True, on_delete=models.SET_NULL, related_name="feedback"

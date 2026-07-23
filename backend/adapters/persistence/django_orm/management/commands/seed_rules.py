@@ -27,6 +27,16 @@ LEVEL_RULES = [
     (5, 1500, "Champion"),
 ]
 
+# (code, name, description, criteria, threshold, active, icon)
+BADGE_RULES = [
+    ("first_report", "First Report", "Got your first report approved.", "posts_approved", 1, True, "🌱"),  # noqa: E501
+    ("reporter_10", "Active Reporter", "10 approved reports.", "posts_approved", 10, True, "📸"),
+    ("reporter_50", "Dedicated Reporter", "50 approved reports.", "posts_approved", 50, True, "🏅"),  # noqa: E501
+    ("well_liked", "Well Liked", "Received 25 likes.", "likes_received", 25, True, "❤️"),
+    ("supporter", "Supporter", "Gave 25 likes to others.", "likes_given", 25, True, "🤝"),
+    ("champion", "Champion", "Reached 1500 points.", "points_total", 1500, True, "👑"),
+]
+
 
 class Command(BaseCommand):
     help = "Seed point rules and level rules (idempotent)."
@@ -40,6 +50,14 @@ class Command(BaseCommand):
         for level, min_points, title in LEVEL_RULES:
             orm.LevelRule.objects.update_or_create(
                 level=level, defaults={"min_points": min_points, "title": title}
+            )
+        for code, name, desc, criteria, threshold, active, icon in BADGE_RULES:
+            orm.BadgeRule.objects.update_or_create(
+                code=code,
+                defaults={
+                    "name": name, "description": desc, "criteria": criteria,
+                    "threshold": threshold, "active": active, "icon": icon,
+                },
             )
         # Ensure the SiteConfig singleton exists with defaults (Dhaka centre, Monday weeks).
         orm.SiteConfig.objects.get_or_create(
@@ -55,6 +73,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Seeded {len(POINT_RULES)} point rules, {len(LEVEL_RULES)} level rules, "
-                "and the site config."
+                f"{len(BADGE_RULES)} badge rules, and the site config."
             )
         )

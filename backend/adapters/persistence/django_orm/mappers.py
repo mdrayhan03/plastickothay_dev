@@ -7,6 +7,7 @@ above the repository sees domain dataclasses, never a model instance and never a
 from adapters.persistence.django_orm import models as orm
 from core.domain.entities import (
     OTP,
+    BadgeRule,
     ContactMessage,
     ContactPage,
     Engagement,
@@ -16,6 +17,7 @@ from core.domain.entities import (
     PostModerationLog,
     SiteConfig,
     User,
+    UserBadge,
 )
 from core.domain.ids import (
     ContactMessageId,
@@ -27,6 +29,7 @@ from core.domain.ids import (
     UserId,
 )
 from core.domain.value_objects import (
+    BadgeCriteria,
     EngagementType,
     GeoPoint,
     ImageRef,
@@ -202,6 +205,26 @@ def contact_message_to_domain(row: orm.ContactMessage) -> ContactMessage:
 
 
 # --- PostModerationLog -----------------------------------------------------
+
+
+def badge_rule_to_domain(row: orm.BadgeRule) -> BadgeRule:
+    return BadgeRule(
+        code=row.code,
+        name=row.name,
+        description=row.description,
+        criteria=BadgeCriteria(row.criteria),
+        threshold=row.threshold,
+        active=row.active,
+        icon=row.icon,
+    )
+
+
+def user_badge_to_domain(row: orm.UserBadge) -> UserBadge:
+    return UserBadge(
+        user_id=UserId(row.user_id),
+        badge_code=row.badge_code,
+        earned_at=row.earned_at,
+    )
 
 
 def site_config_to_domain(row: orm.SiteConfig) -> SiteConfig:

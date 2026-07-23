@@ -4,7 +4,7 @@ Point values are the agreed scheme (LLD §5.2). Comment rules are seeded INACTIV
 model supports comments so shipping them later is a flag flip, not a migration.
 """
 
-from core.domain.entities import LevelRule
+from core.domain.entities import BadgeRule, LevelRule
 from core.domain.points import (
     RULE_COMMENT_GIVEN,
     RULE_COMMENT_RECEIVED,
@@ -12,6 +12,7 @@ from core.domain.points import (
     RULE_LIKE_RECEIVED,
     RULE_POST_APPROVED,
 )
+from core.domain.value_objects import BadgeCriteria
 
 DEFAULT_POINT_RULES = {
     RULE_POST_APPROVED: 100,
@@ -30,4 +31,15 @@ DEFAULT_LEVEL_RULES = [
     LevelRule(level=3, min_points=300, title="Contributor"),
     LevelRule(level=4, min_points=700, title="Guardian"),
     LevelRule(level=5, min_points=1500, title="Champion"),
+]
+
+DEFAULT_BADGE_RULES = [
+    BadgeRule("first_report", "First Report", "First approved report.",
+              BadgeCriteria.POSTS_APPROVED, 1, True, "🌱"),
+    BadgeRule("reporter_10", "Active Reporter", "10 approved reports.",
+              BadgeCriteria.POSTS_APPROVED, 10, True, "📸"),
+    BadgeRule("well_liked", "Well Liked", "25 likes received.",
+              BadgeCriteria.LIKES_RECEIVED, 25, True, "❤️"),
+    BadgeRule("champion", "Champion", "1500 points.",
+              BadgeCriteria.POINTS_TOTAL, 1500, True, "👑"),
 ]

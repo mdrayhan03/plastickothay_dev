@@ -19,6 +19,7 @@ from core.domain.value_objects import (
     Severity,
 )
 from tests.fakes.repositories import (
+    InMemoryBadgeRepository,
     InMemoryContactRepository,
     InMemoryEngagementRepository,
     InMemoryFeedbackRepository,
@@ -91,6 +92,11 @@ def leaderboard(posts, engagements, users, clock) -> InMemoryLeaderboardReposito
 @pytest.fixture
 def site_config() -> InMemorySiteConfigRepository:
     return InMemorySiteConfigRepository()
+
+
+@pytest.fixture
+def badges() -> InMemoryBadgeRepository:
+    return InMemoryBadgeRepository()
 
 
 @pytest.fixture

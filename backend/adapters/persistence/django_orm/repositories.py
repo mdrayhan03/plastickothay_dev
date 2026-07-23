@@ -40,6 +40,7 @@ from core.domain.points import Rules
 from core.domain.read_models import MapMarker, PostFilter, StatusCounts
 from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
+    BadgeRepository,
     ContactRepository,
     EngagementRepository,
     FeedbackRepository,
@@ -416,6 +417,34 @@ class DjangoModerationLogRepository(ModerationLogRepository):
         return [
             mappers.moderation_log_to_domain(r)
             for r in orm.PostModerationLog.objects.filter(post_id=post_id).order_by("at")
+        ]
+
+
+class DjangoBadgeRepository(BadgeRepository):
+    def active_rules(self):
+        return [
+            mappers.badge_rule_to_domain(r) for r in orm.BadgeRule.objects.filter(active=True)
+        ]
+
+    def rules_by_code(self):
+        return {r.code: mappers.badge_rule_to_domain(r) for r in orm.BadgeRule.objects.all()}
+
+    def earned_codes(self, user_id: UserId) -> set[str]:
+        return set(
+            orm.UserBadge.objects.filter(user_id=user_id).values_list("badge_code", flat=True)
+        )
+
+    def award(self, user_id: UserId, code: str, at) -> None:
+        # Idempotent: the unique(user, badge_code) constraint makes a repeat award a no-op.
+        with transaction.atomic():
+            orm.UserBadge.objects.get_or_create(
+                user_id=user_id, badge_code=code, defaults={"earned_at": at}
+            )
+
+    def list_earned(self, user_id: UserId):
+        return [
+            mappers.user_badge_to_domain(r)
+            for r in orm.UserBadge.objects.filter(user_id=user_id).order_by("earned_at")
         ]
 
 

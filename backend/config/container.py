@@ -104,3 +104,9 @@ def site_config():
     from adapters.persistence.django_orm.repositories import DjangoSiteConfigRepository
 
     return DjangoSiteConfigRepository()
+
+
+def badges():
+    from adapters.persistence.django_orm.repositories import DjangoBadgeRepository
+
+    return DjangoBadgeRepository()

@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from api.authentication import actor_id
 from api.pagination import page_request
 from config import container
+from core.application.scoring.badges import GetUserBadges
 from core.application.scoring.leaderboard import GetContribution, GetLeaderboard
 from core.domain.value_objects import Period
 
@@ -51,3 +52,18 @@ class ContributionView(APIView):
             "progress_percentage": c.progress_percentage,
             "referrals": c.referrals,
         })
+
+
+class MyBadgesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        badges = GetUserBadges(
+            container.badges(), container.leaderboard(), container.point_rules(),
+            container.level_rules(), container.unit_of_work(), container.clock(),
+        ).execute(actor_id(request))
+        return Response([
+            {"code": b.code, "name": b.name, "description": b.description,
+             "icon": b.icon, "earned_at": b.earned_at}
+            for b in badges
+        ])

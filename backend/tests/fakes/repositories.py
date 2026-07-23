@@ -11,6 +11,7 @@ from datetime import datetime
 
 from core.domain.entities import (
     OTP,
+    BadgeRule,
     ContactMessage,
     ContactPage,
     Engagement,
@@ -20,6 +21,7 @@ from core.domain.entities import (
     PostModerationLog,
     SiteConfig,
     User,
+    UserBadge,
 )
 from core.domain.errors import AlreadyLiked, EmailTaken, UsernameTaken, UserNotFound
 from core.domain.ids import (
@@ -48,6 +50,7 @@ from core.domain.read_models import (
 )
 from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
+    BadgeRepository,
     ContactRepository,
     EngagementRepository,
     FeedbackRepository,
@@ -436,3 +439,29 @@ class InMemorySiteConfigRepository(SiteConfigRepository):
     def save(self, config: SiteConfig) -> SiteConfig:
         self.config = config
         return config
+
+
+class InMemoryBadgeRepository(BadgeRepository):
+    def __init__(self, rules: list[BadgeRule] | None = None) -> None:
+        from tests.fakes.seed import DEFAULT_BADGE_RULES
+
+        self.rules = rules if rules is not None else list(DEFAULT_BADGE_RULES)
+        self.earned: list[UserBadge] = []
+
+    def active_rules(self) -> list[BadgeRule]:
+        return [r for r in self.rules if r.active]
+
+    def rules_by_code(self) -> dict[str, BadgeRule]:
+        return {r.code: r for r in self.rules}
+
+    def earned_codes(self, user_id: UserId) -> set[str]:
+        return {b.badge_code for b in self.earned if b.user_id == user_id}
+
+    def award(self, user_id: UserId, code: str, at) -> None:
+        if code not in self.earned_codes(user_id):  # idempotent
+            self.earned.append(UserBadge(user_id=user_id, badge_code=code, earned_at=at))
+
+    def list_earned(self, user_id: UserId) -> list[UserBadge]:
+        return sorted(
+            (b for b in self.earned if b.user_id == user_id), key=lambda b: b.earned_at
+        )

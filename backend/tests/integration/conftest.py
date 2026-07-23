@@ -10,6 +10,7 @@ def _seed_rules(db):
     leaderboard/contribution tests see the real scheme (mirrors `manage.py seed_rules`)."""
     from adapters.persistence.django_orm import models as orm
     from adapters.persistence.django_orm.management.commands.seed_rules import (
+        BADGE_RULES,
         LEVEL_RULES,
         POINT_RULES,
     )
@@ -21,6 +22,12 @@ def _seed_rules(db):
     for level, min_points, title in LEVEL_RULES:
         orm.LevelRule.objects.update_or_create(
             level=level, defaults={"min_points": min_points, "title": title}
+        )
+    for code, name, desc, criteria, threshold, active, icon in BADGE_RULES:
+        orm.BadgeRule.objects.update_or_create(
+            code=code,
+            defaults={"name": name, "description": desc, "criteria": criteria,
+                      "threshold": threshold, "active": active, "icon": icon},
         )
 
 

@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Star } from 'lucide-react'
+import { qk } from '@/lib/queryClient'
 import { adminService } from '@/services/adminService'
 
 export function FeedbackPage() {
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'feedback'],
+    queryKey: qk.adminFeedback,
     queryFn: () => adminService.feedback(),
   })
   const items = data?.results ?? []

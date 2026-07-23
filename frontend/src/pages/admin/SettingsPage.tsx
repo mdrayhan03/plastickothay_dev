@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Btn } from '@/components/Btn'
 import { FormField } from '@/components/FormField'
+import { useAuth } from '@/context/auth-context'
 import { useSiteConfig } from '@/hooks/useSiteConfig'
 import { apiErrorMessage } from '@/lib/api'
 import { qk } from '@/lib/queryClient'
@@ -11,6 +13,8 @@ import { adminService } from '@/services/adminService'
 
 export function SettingsPage() {
   const { data: config } = useSiteConfig()
+  const { user: me } = useAuth()
+  const isAdmin = me?.role === 'admin'
   const qc = useQueryClient()
   const [form, setForm] = useState({
     week_start: 'monday',
@@ -50,6 +54,21 @@ export function SettingsPage() {
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   })
+
+  if (!isAdmin)
+    return (
+      <div className="max-w-xl space-y-6">
+        <h1 className="font-display text-2xl font-extrabold">Site settings</h1>
+        <div className="grid place-items-center rounded-2xl border border-line bg-surface p-14 text-center">
+          <Lock className="mb-3 size-8 text-ink-3" />
+          <div className="font-bold text-ink">Admins only</div>
+          <p className="mt-1 max-w-sm text-sm text-ink-2">
+            Site settings can be changed by admins. Staff can moderate reports and manage the
+            community, but not edit site configuration.
+          </p>
+        </div>
+      </div>
+    )
 
   return (
     <div className="max-w-xl space-y-6">

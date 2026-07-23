@@ -1,15 +1,19 @@
-import { Camera, Loader2, MapPin, Send } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Camera, Crosshair, Loader2, Send } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Btn } from '@/components/Btn'
+import { CameraCapture } from '@/components/CameraCapture'
 import { FormField } from '@/components/FormField'
+import { LazyLocationPicker } from '@/components/map/LazyLocationPicker'
 import { TopBar } from '@/components/layout/TopBar'
 import { useAuth } from '@/context/auth-context'
 import { useSubmitReport } from '@/hooks/usePosts'
+import { useSiteConfig } from '@/hooks/useSiteConfig'
 import { apiErrorMessage } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { severityClass, severityLabel } from '@/lib/severity'
+import { geocodeService } from '@/services/geocodeService'
 import type { Severity } from '@/types'
 
 export function ReportPage() {
@@ -17,32 +21,39 @@ export function ReportPage() {
   const isAuthed = status === 'authed'
   const navigate = useNavigate()
   const submit = useSubmitReport()
-  const fileRef = useRef<HTMLInputElement>(null)
+  const { data: config } = useSiteConfig()
 
   const [photo, setPhoto] = useState<string | null>(null)
+  const [cameraOpen, setCameraOpen] = useState(false)
   const [severity, setSeverity] = useState<Severity>(3)
   const [description, setDescription] = useState('')
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [locating, setLocating] = useState(false)
+  const [placeName, setPlaceName] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
   const [contact, setContact] = useState({ name: '', email: '', phone: '' })
 
-  function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setPhoto(reader.result as string)
-    reader.readAsDataURL(file)
+  const mapCenter: [number, number] = config?.map_center
+    ? [config.map_center.lat, config.map_center.lon]
+    : [23.8103, 90.4125]
+
+  async function applyLocation(lat: number, lon: number) {
+    setCoords({ lat, lon })
+    setGeocoding(true)
+    const name = await geocodeService.reverse(lat, lon)
+    if (name) setPlaceName(name)
+    setGeocoding(false)
   }
 
   function locate() {
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude })
         setLocating(false)
+        applyLocation(pos.coords.latitude, pos.coords.longitude)
       },
       () => {
-        toast.error('Could not get your location. Enable location and try again.')
+        toast.error('Could not get your location. Drop a pin on the map instead.')
         setLocating(false)
       },
       { enableHighAccuracy: true, timeout: 10000 },
@@ -60,6 +71,7 @@ export function ReportPage() {
         severity,
         lat: coords.lat,
         lon: coords.lon,
+        place_name: placeName.trim() || undefined,
         photo,
         description,
         ...(isAuthed ? {} : contact),
@@ -75,15 +87,29 @@ export function ReportPage() {
     <>
       <TopBar title="Report plastic" />
 
+      {cameraOpen && (
+        <CameraCapture
+          onCapture={(dataUrl) => {
+            setPhoto(dataUrl)
+            setCameraOpen(false)
+          }}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
+
       {/* capture */}
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={pickPhoto} />
       <button
         type="button"
-        onClick={() => fileRef.current?.click()}
+        onClick={() => setCameraOpen(true)}
         className="relative mx-4.5 mt-4 grid h-65 w-[calc(100%-2.25rem)] place-items-center overflow-hidden rounded-3xl bg-[linear-gradient(160deg,#12312a,#0a1512)] shadow-md"
       >
         {photo ? (
-          <img src={photo} alt="captured" className="size-full object-cover" />
+          <>
+            <img src={photo} alt="captured" className="size-full object-cover" />
+            <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1.5 text-[12px] font-bold text-white">
+              Retake
+            </span>
+          </>
         ) : (
           <div className="text-center text-white/85">
             <Camera className="mx-auto mb-2.5 size-13 opacity-90" strokeWidth={1.6} />
@@ -119,26 +145,38 @@ export function ReportPage() {
 
       {/* location */}
       <div className="mx-4.5 mt-9">
-        <label className="mb-2 block text-[12.5px] font-bold text-ink-2">Location</label>
-        <button
-          type="button"
-          onClick={locate}
-          className="flex w-full items-center gap-2.5 rounded-[14px] bg-brand-soft px-3.5 py-3 text-left text-brand-deep"
-        >
-          {locating ? <Loader2 className="size-5 animate-spin" /> : <MapPin className="size-5" />}
-          <div className="flex-1">
-            {coords ? (
-              <>
-                <b className="text-sm">Location set</b>
-                <span className="block text-xs opacity-85 tnum">
-                  {coords.lat.toFixed(4)}, {coords.lon.toFixed(4)}
-                </span>
-              </>
-            ) : (
-              <b className="text-sm">{locating ? 'Getting your location…' : 'Use my current location'}</b>
+        <div className="mb-2 flex items-center justify-between">
+          <label className="text-[12.5px] font-bold text-ink-2">Location</label>
+          <button
+            type="button"
+            onClick={locate}
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-[12px] font-bold text-brand-deep"
+          >
+            {locating ? <Loader2 className="size-4 animate-spin" /> : <Crosshair className="size-4" />}
+            Use my location
+          </button>
+        </div>
+
+        <div className="h-52 overflow-hidden rounded-[16px] border border-line shadow-sm">
+          <LazyLocationPicker center={mapCenter} value={coords} onChange={applyLocation} />
+        </div>
+        <p className="mt-1.5 text-[11.5px] text-ink-3">
+          {coords ? 'Drag the pin or tap the map to adjust.' : 'Tap the map to drop a pin, or use your location.'}
+        </p>
+
+        {coords && (
+          <div className="relative mt-2.5">
+            <input
+              value={placeName}
+              onChange={(e) => setPlaceName(e.target.value)}
+              placeholder={geocoding ? 'Finding place name…' : 'Place name (e.g. Hatirjheel, Dhaka)'}
+              className="w-full rounded-[14px] border border-line-2 bg-surface px-3.5 py-3 pr-10 text-[15px] shadow-sm outline-none focus:border-brand"
+            />
+            {geocoding && (
+              <Loader2 className="absolute right-3.5 top-1/2 size-4.5 -translate-y-1/2 animate-spin text-ink-3" />
             )}
           </div>
-        </button>
+        )}
       </div>
 
       {/* description */}

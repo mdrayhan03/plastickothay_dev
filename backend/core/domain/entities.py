@@ -28,6 +28,7 @@ from core.domain.value_objects import (
     Role,
     Severity,
     SocialLink,
+    WeekStart,
 )
 
 
@@ -189,6 +190,29 @@ class ContactPage:
     socials: list[SocialLink] = field(default_factory=list)
     updated_at: datetime | None = None
     updated_by: UserId | None = None
+
+
+@dataclass
+class SiteConfig:
+    """Singleton of admin-editable application settings (LLD app-config).
+
+    Typed fields for the stable, known settings; ``flags`` is a JSON bag for on/off toggles
+    that come and go without a migration. A flag graduates to a typed field once it earns
+    validation or a default.
+    """
+
+    week_start: WeekStart = WeekStart.MONDAY
+    site_name: str = "PlasticKothay"
+    tagline: str = ""
+    logo: ImageRef | None = None
+    map_center: GeoPoint | None = None  # default Leaflet centre
+    map_zoom: int = 12
+    flags: dict[str, bool] = field(default_factory=dict)
+    updated_at: datetime | None = None
+    updated_by: UserId | None = None
+
+    def flag(self, name: str, default: bool = False) -> bool:
+        return self.flags.get(name, default)
 
 
 @dataclass

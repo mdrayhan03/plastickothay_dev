@@ -22,6 +22,7 @@ from core.domain.entities import (
     LevelRule,
     Post,
     PostModerationLog,
+    SiteConfig,
     User,
 )
 from core.domain.ids import ContactMessageId, PostId, UserId
@@ -34,7 +35,7 @@ from core.domain.read_models import (
     PostFilter,
     StatusCounts,
 )
-from core.domain.value_objects import EngagementType, OTPPurpose, Period, Role
+from core.domain.value_objects import EngagementType, OTPPurpose, Role
 
 
 class UserRepository(ABC):
@@ -160,7 +161,12 @@ class LeaderboardRepository(ABC):
     """
 
     @abstractmethod
-    def top(self, period: Period, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]: ...
+    def top(
+        self, since: datetime | None, rules: Rules, page: PageRequest
+    ) -> Page[LeaderboardRow]:
+        """`since` is the inclusive period lower bound (None = all-time), already computed by
+        the use case from the period, the clock, and the configured week-start. The adapter
+        only filters by it — no time/timezone/period logic lives in the adapter."""
 
     @abstractmethod
     def contribution_for(
@@ -205,3 +211,12 @@ class ModerationLogRepository(ABC):
 
     @abstractmethod
     def list_for_post(self, post_id: PostId) -> list[PostModerationLog]: ...
+
+
+class SiteConfigRepository(ABC):
+    @abstractmethod
+    def get(self) -> SiteConfig:
+        """Always returns a config — defaults if none has been saved yet."""
+
+    @abstractmethod
+    def save(self, config: SiteConfig) -> SiteConfig: ...

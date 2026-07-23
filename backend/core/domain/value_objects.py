@@ -51,6 +51,15 @@ class Period(StrEnum):
     WEEK = "week"
 
 
+class WeekStart(StrEnum):
+    MONDAY = "monday"
+    SUNDAY = "sunday"
+
+    @property
+    def starts_on_monday(self) -> bool:
+        return self is WeekStart.MONDAY
+
+
 class ModerationAction(StrEnum):
     APPROVE = "approve"
     REJECT = "reject"

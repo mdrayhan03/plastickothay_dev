@@ -14,7 +14,7 @@ from core.domain.value_objects import Period
 
 LEADERBOARD_TZ = ZoneInfo("Asia/Dhaka")
 
-# ISO-8601: weeks start Monday. Change here if the product wants Sunday.
+# Default when no SiteConfig override is supplied. ISO-8601 weeks start Monday.
 WEEK_STARTS_ON_MONDAY = True
 
 
@@ -22,8 +22,13 @@ def period_start(
     period: Period,
     now: datetime,
     tz: ZoneInfo = LEADERBOARD_TZ,
+    week_starts_on_monday: bool = WEEK_STARTS_ON_MONDAY,
 ) -> datetime | None:
-    """Inclusive lower bound for a period, as tz-aware UTC. ``None`` means unbounded."""
+    """Inclusive lower bound for a period, as tz-aware UTC. ``None`` means unbounded.
+
+    ``week_starts_on_monday`` is admin-configurable via SiteConfig (LLD app-config): the use
+    case reads it and passes it here. The default keeps callers that don't care unchanged.
+    """
     if period is Period.ALL:
         return None
 
@@ -38,7 +43,7 @@ def period_start(
     elif period is Period.MONTH:
         start = local.replace(day=1, **midnight)
     elif period is Period.WEEK:
-        offset = local.weekday() if WEEK_STARTS_ON_MONDAY else (local.weekday() + 1) % 7
+        offset = local.weekday() if week_starts_on_monday else (local.weekday() + 1) % 7
         start = (local - timedelta(days=offset)).replace(**midnight)
     else:
         raise ValueError(f"Unhandled period: {period}")

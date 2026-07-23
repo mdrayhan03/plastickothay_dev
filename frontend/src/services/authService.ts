@@ -30,4 +30,13 @@ export const authService = {
   async verify(username: string, code: number) {
     await api.post('/auth/verify/', { username, code })
   },
+  async resendOtp(username: string) {
+    await api.post('/auth/resend-otp/', { username })
+  },
+  async forgotPassword(username: string) {
+    await api.post('/auth/forgot-password/', { username })
+  },
+  async resetPassword(username: string, code: number, new_password: string) {
+    await api.post('/auth/reset-password/', { username, code, new_password })
+  },
 }

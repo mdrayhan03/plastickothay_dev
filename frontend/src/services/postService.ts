@@ -5,6 +5,7 @@ export interface SubmitReportPayload {
   severity: number
   lat: number
   lon: number
+  place_name?: string
   photo: string // base64 data URL
   description?: string
   name?: string

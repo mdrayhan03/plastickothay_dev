@@ -23,7 +23,7 @@ export function ReportCard({ post }: { post: PublicPost }) {
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 font-bold">
             <MapPin className="size-3.5 text-ink-3" />
-            <span className="truncate">{post.reporter_name || 'Report'}</span>
+            <span className="truncate">{post.place_name || post.reporter_name || 'Report'}</span>
           </div>
           <span
             className={cn(

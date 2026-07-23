@@ -39,20 +39,27 @@ BADGE_RULES = [
 
 
 class Command(BaseCommand):
-    help = "Seed point rules and level rules (idempotent)."
+    help = "Seed point/level/badge rules and site config. Create-if-missing: safe to re-run, "
+    help += "and it never overwrites values an admin has since changed in the database."
 
     def handle(self, *args, **options):
+        # get_or_create, NOT update_or_create: these values start from code defaults but the
+        # DATABASE is the source of truth once seeded — admins edit them at runtime. Re-running
+        # (e.g. on every deploy) must only create rows that don't exist yet, never reset an
+        # admin's change back to the code default. A NEW rule added to the lists below gets
+        # created on the next run; existing rows are left untouched. Changing a shipped default
+        # in code is therefore a deliberate admin/data action, not an automatic seed overwrite.
         for code, points, active, desc in POINT_RULES:
-            orm.PointRule.objects.update_or_create(
+            orm.PointRule.objects.get_or_create(
                 code=code,
                 defaults={"points": points, "active": active, "description": desc},
             )
         for level, min_points, title in LEVEL_RULES:
-            orm.LevelRule.objects.update_or_create(
+            orm.LevelRule.objects.get_or_create(
                 level=level, defaults={"min_points": min_points, "title": title}
             )
         for code, name, desc, criteria, threshold, active, icon in BADGE_RULES:
-            orm.BadgeRule.objects.update_or_create(
+            orm.BadgeRule.objects.get_or_create(
                 code=code,
                 defaults={
                     "name": name, "description": desc, "criteria": criteria,

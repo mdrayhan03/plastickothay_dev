@@ -20,9 +20,10 @@ class LeaderboardView(APIView):
             period = Period(raw)
         except ValueError:
             period = Period.ALL
-        page = GetLeaderboard(container.leaderboard(), container.point_rules()).execute(
-            period, page_request(request)
-        )
+        page = GetLeaderboard(
+            container.leaderboard(), container.point_rules(),
+            container.site_config(), container.clock(),
+        ).execute(period, page_request(request))
         results = [
             {"rank": r.rank, "user_id": r.user_id, "username": r.username,
              "full_name": r.full_name, "points": r.points}

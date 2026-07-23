@@ -18,7 +18,6 @@ from django.db.models import Count, F
 
 from adapters.persistence.django_orm import models as orm
 from core.domain.pagination import Page, PageRequest
-from core.domain.periods import period_start
 from core.domain.points import (
     RULE_LIKE_GIVEN,
     RULE_LIKE_RECEIVED,
@@ -28,7 +27,7 @@ from core.domain.points import (
     level_progress,
 )
 from core.domain.read_models import Contribution, LeaderboardRow
-from core.domain.value_objects import EngagementType, Period, PostStatus
+from core.domain.value_objects import EngagementType, PostStatus
 from core.ports.repositories import LeaderboardRepository
 
 APPROVED = int(PostStatus.APPROVED)
@@ -85,12 +84,9 @@ class DjangoLeaderboardRepository(LeaderboardRepository):
 
         return acc
 
-    def top(self, period: Period, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
-        # period_start needs a "now"; SystemClock isn't injected here, so use tz-aware now.
-        from datetime import UTC
-        from datetime import datetime as _dt
-
-        since = period_start(period, _dt.now(UTC))
+    def top(self, since: datetime | None, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
+        # `since` is computed by the use case (period + clock + configured week-start). The
+        # adapter only filters by it — no time/period logic here.
         scored = self._compute(since, rules)
 
         user_ids = [uid for uid, r in scored.items() if r.points > 0]

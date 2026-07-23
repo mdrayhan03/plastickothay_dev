@@ -98,3 +98,9 @@ def leaderboard():
     from adapters.persistence.django_orm.leaderboard import DjangoLeaderboardRepository
 
     return DjangoLeaderboardRepository()
+
+
+def site_config():
+    from adapters.persistence.django_orm.repositories import DjangoSiteConfigRepository
+
+    return DjangoSiteConfigRepository()

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.domain.entities import ContactMessage, ContactPage, Feedback
+from core.domain.entities import ContactMessage, ContactPage, Feedback, SiteConfig
 
 
 class SocialLinkSerializer(serializers.Serializer):
@@ -68,6 +68,37 @@ class ContactMessageSerializer(serializers.Serializer):
 
 class UpdateMessageStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=["new", "read", "replied"])
+
+
+class SiteConfigSerializer(serializers.Serializer):
+    """Public shape — the frontend fetches this on boot."""
+
+    def to_representation(self, cfg: SiteConfig):
+        from config import container
+
+        logo_url = container.image_storage().public_url(cfg.logo) if cfg.logo else None
+        return {
+            "week_start": cfg.week_start.value,
+            "site_name": cfg.site_name,
+            "tagline": cfg.tagline,
+            "logo_url": logo_url,
+            "map_center": (
+                {"lat": cfg.map_center.lat, "lon": cfg.map_center.lon}
+                if cfg.map_center else None
+            ),
+            "map_zoom": cfg.map_zoom,
+            "flags": cfg.flags,
+        }
+
+
+class UpdateSiteConfigSerializer(serializers.Serializer):
+    week_start = serializers.ChoiceField(choices=["monday", "sunday"])
+    site_name = serializers.CharField(max_length=255)
+    tagline = serializers.CharField(max_length=512, allow_blank=True, default="")
+    map_lat = serializers.FloatField(required=False, allow_null=True)
+    map_lon = serializers.FloatField(required=False, allow_null=True)
+    map_zoom = serializers.IntegerField(min_value=1, max_value=20, default=12)
+    flags = serializers.DictField(child=serializers.BooleanField(), required=False, default=dict)
 
 
 class SubmitFeedbackSerializer(serializers.Serializer):

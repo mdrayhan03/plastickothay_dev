@@ -41,8 +41,20 @@ class Command(BaseCommand):
             orm.LevelRule.objects.update_or_create(
                 level=level, defaults={"min_points": min_points, "title": title}
             )
+        # Ensure the SiteConfig singleton exists with defaults (Dhaka centre, Monday weeks).
+        orm.SiteConfig.objects.get_or_create(
+            pk=1,
+            defaults={
+                "week_start": "monday",
+                "site_name": "PlasticKothay",
+                "map_lat": 23.8103,
+                "map_lon": 90.4125,
+                "map_zoom": 12,
+            },
+        )
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded {len(POINT_RULES)} point rules and {len(LEVEL_RULES)} level rules."
+                f"Seeded {len(POINT_RULES)} point rules, {len(LEVEL_RULES)} level rules, "
+                "and the site config."
             )
         )

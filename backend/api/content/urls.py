@@ -11,4 +11,5 @@ urlpatterns = [
         name="contact-message-status",
     ),
     path("feedback/", views.FeedbackView.as_view(), name="feedback"),
+    path("site-config/", views.SiteConfigView.as_view(), name="site-config"),
 ]

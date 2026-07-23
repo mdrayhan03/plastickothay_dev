@@ -48,6 +48,7 @@ from core.ports.repositories import (
     OTPRepository,
     PointRuleRepository,
     PostRepository,
+    SiteConfigRepository,
     UserRepository,
 )
 
@@ -416,3 +417,25 @@ class DjangoModerationLogRepository(ModerationLogRepository):
             mappers.moderation_log_to_domain(r)
             for r in orm.PostModerationLog.objects.filter(post_id=post_id).order_by("at")
         ]
+
+
+class DjangoSiteConfigRepository(SiteConfigRepository):
+    def get(self):
+        row, _ = orm.SiteConfig.objects.get_or_create(pk=1)
+        return mappers.site_config_to_domain(row)
+
+    def save(self, config):
+        row, _ = orm.SiteConfig.objects.get_or_create(pk=1)
+        row.week_start = config.week_start.value
+        row.site_name = config.site_name
+        row.tagline = config.tagline
+        row.logo_provider = config.logo.provider if config.logo else ""
+        row.logo_external_id = config.logo.external_id if config.logo else ""
+        row.map_lat = config.map_center.lat if config.map_center else None
+        row.map_lon = config.map_center.lon if config.map_center else None
+        row.map_zoom = config.map_zoom
+        row.flags = dict(config.flags)
+        row.updated_at = config.updated_at
+        row.updated_by_id = config.updated_by
+        row.save()
+        return mappers.site_config_to_domain(row)

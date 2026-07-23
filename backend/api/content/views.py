@@ -14,10 +14,12 @@ from api.content.serializers import (
     ContactMessageSerializer,
     ContactPageSerializer,
     FeedbackSerializer,
+    SiteConfigSerializer,
     SubmitContactMessageSerializer,
     SubmitFeedbackSerializer,
     UpdateContactPageSerializer,
     UpdateMessageStatusSerializer,
+    UpdateSiteConfigSerializer,
 )
 from api.pagination import page_request, paginated_response
 from api.permissions import IsStaffOrAdmin
@@ -26,6 +28,11 @@ from core.application.content.contact_page import (
     GetContactPage,
     UpdateContactPage,
     UpdateContactPageCommand,
+)
+from core.application.content.site_config import (
+    GetSiteConfig,
+    UpdateSiteConfig,
+    UpdateSiteConfigCommand,
 )
 from core.application.engagement.submissions import (
     ListContactMessages,
@@ -105,6 +112,31 @@ class FeedbackView(APIView):
     def get(self, request):
         page = ListFeedback(container.feedback()).execute(page_request(request))
         return paginated_response(page, FeedbackSerializer)
+
+
+class SiteConfigView(APIView):
+    def get_permissions(self):
+        return [AllowAny()] if self.request.method == "GET" else [IsStaffOrAdmin()]
+
+    def get(self, request):
+        cfg = GetSiteConfig(container.site_config()).execute()
+        return Response(SiteConfigSerializer(cfg).data)
+
+    def put(self, request):
+        s = UpdateSiteConfigSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        d = s.validated_data
+        cfg = UpdateSiteConfig(
+            container.site_config(), container.unit_of_work(), container.clock()
+        ).execute(
+            UpdateSiteConfigCommand(
+                week_start=d["week_start"], site_name=d["site_name"], tagline=d["tagline"],
+                map_lat=d.get("map_lat"), map_lon=d.get("map_lon"), map_zoom=d["map_zoom"],
+                flags=d["flags"],
+            ),
+            actor_id(request),
+        )
+        return Response(SiteConfigSerializer(cfg).data)
 
 
 class ContactMessageStatusView(APIView):

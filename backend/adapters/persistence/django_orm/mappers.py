@@ -14,6 +14,7 @@ from core.domain.entities import (
     LevelRule,
     Post,
     PostModerationLog,
+    SiteConfig,
     User,
 )
 from core.domain.ids import (
@@ -36,6 +37,7 @@ from core.domain.value_objects import (
     Role,
     Severity,
     SocialLink,
+    WeekStart,
 )
 
 # --- User ------------------------------------------------------------------
@@ -200,6 +202,26 @@ def contact_message_to_domain(row: orm.ContactMessage) -> ContactMessage:
 
 
 # --- PostModerationLog -----------------------------------------------------
+
+
+def site_config_to_domain(row: orm.SiteConfig) -> SiteConfig:
+    logo = None
+    if row.logo_external_id:
+        logo = ImageRef(provider=row.logo_provider or "local", external_id=row.logo_external_id)
+    map_center = None
+    if row.map_lat is not None and row.map_lon is not None:
+        map_center = GeoPoint(row.map_lat, row.map_lon)
+    return SiteConfig(
+        week_start=WeekStart(row.week_start),
+        site_name=row.site_name,
+        tagline=row.tagline,
+        logo=logo,
+        map_center=map_center,
+        map_zoom=row.map_zoom,
+        flags=dict(row.flags or {}),
+        updated_at=row.updated_at,
+        updated_by=UserId(row.updated_by_id) if row.updated_by_id else None,
+    )
 
 
 def moderation_log_to_domain(row: orm.PostModerationLog) -> PostModerationLog:

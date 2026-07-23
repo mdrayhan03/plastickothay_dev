@@ -203,6 +203,30 @@ class ContactMessage(models.Model):
         indexes = [models.Index(fields=["status", "-created"])]
 
 
+class SiteConfig(models.Model):
+    """Singleton of admin-editable app settings. Typed columns for the known set + a JSON
+    ``flags`` bag for on/off toggles that come and go without a migration."""
+
+    id = models.IntegerField(primary_key=True, default=1)
+    week_start = models.CharField(max_length=10, default="monday")  # monday | sunday
+    site_name = models.CharField(max_length=255, default="PlasticKothay")
+    tagline = models.CharField(max_length=512, blank=True)
+    logo_provider = models.CharField(max_length=32, blank=True)
+    logo_external_id = models.CharField(max_length=255, blank=True)
+    map_lat = models.FloatField(null=True, blank=True)
+    map_lon = models.FloatField(null=True, blank=True)
+    map_zoom = models.IntegerField(default=12)
+    flags = models.JSONField(default=dict)
+    updated_at = models.DateTimeField(null=True, blank=True)
+    updated_by = models.ForeignKey(
+        "User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        db_table = "site_config"
+        constraints = [models.CheckConstraint(condition=Q(id=1), name="site_config_singleton")]
+
+
 class PostModerationLog(models.Model):
     """Audit trail for humans. NEVER an input to point calculation (DEC-4)."""
 

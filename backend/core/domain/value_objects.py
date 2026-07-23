@@ -60,6 +60,15 @@ class WeekStart(StrEnum):
         return self is WeekStart.MONDAY
 
 
+class BadgeCriteria(StrEnum):
+    """What a badge measures. Maps to a field of the user's Contribution."""
+
+    POSTS_APPROVED = "posts_approved"
+    LIKES_RECEIVED = "likes_received"
+    LIKES_GIVEN = "likes_given"
+    POINTS_TOTAL = "points_total"
+
+
 class ModerationAction(StrEnum):
     APPROVE = "approve"
     REJECT = "reject"

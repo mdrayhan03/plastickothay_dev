@@ -70,6 +70,15 @@ class Contribution:
 
 
 @dataclass(frozen=True, slots=True)
+class EarnedBadge:
+    code: str
+    name: str
+    description: str
+    icon: str
+    earned_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
 class StatusCounts:
     counts: dict[PostStatus, int] = field(default_factory=dict)
 

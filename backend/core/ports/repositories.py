@@ -15,6 +15,7 @@ from datetime import datetime
 
 from core.domain.entities import (
     OTP,
+    BadgeRule,
     ContactMessage,
     ContactPage,
     Engagement,
@@ -24,6 +25,7 @@ from core.domain.entities import (
     PostModerationLog,
     SiteConfig,
     User,
+    UserBadge,
 )
 from core.domain.ids import ContactMessageId, PostId, UserId
 from core.domain.pagination import Page, PageRequest
@@ -220,3 +222,21 @@ class SiteConfigRepository(ABC):
 
     @abstractmethod
     def save(self, config: SiteConfig) -> SiteConfig: ...
+
+
+class BadgeRepository(ABC):
+    @abstractmethod
+    def active_rules(self) -> list[BadgeRule]: ...
+
+    @abstractmethod
+    def earned_codes(self, user_id: UserId) -> set[str]: ...
+
+    @abstractmethod
+    def award(self, user_id: UserId, code: str, at) -> None:
+        """Idempotent — awarding an already-held badge is a no-op."""
+
+    @abstractmethod
+    def list_earned(self, user_id: UserId) -> list[UserBadge]: ...
+
+    @abstractmethod
+    def rules_by_code(self) -> dict[str, BadgeRule]: ...

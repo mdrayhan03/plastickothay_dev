@@ -18,6 +18,7 @@ from core.domain.ids import (
     UserId,
 )
 from core.domain.value_objects import (
+    BadgeCriteria,
     EngagementType,
     GeoPoint,
     ImageRef,
@@ -190,6 +191,29 @@ class ContactPage:
     socials: list[SocialLink] = field(default_factory=list)
     updated_at: datetime | None = None
     updated_by: UserId | None = None
+
+
+@dataclass
+class BadgeRule:
+    """Config: what earns a badge. Admin-editable, like PointRule/LevelRule."""
+
+    code: str
+    name: str
+    description: str
+    criteria: BadgeCriteria
+    threshold: int
+    active: bool = True
+    icon: str = ""
+
+
+@dataclass
+class UserBadge:
+    """An earned badge. Permanent once awarded — an achievement is not lost if the underlying
+    stat later drops (e.g. a post is hidden)."""
+
+    user_id: UserId
+    badge_code: str
+    earned_at: datetime
 
 
 @dataclass

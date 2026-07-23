@@ -1,0 +1,71 @@
+[project]
+name = "plastickothay-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+# Integration/API tests use this; unit tests never touch the DB (guaranteed by import-linter,
+# not by Django's absence — Django is now a project dependency).
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+markers = [
+    "integration: exercises the Django ORM; needs a database",
+    "contract: repository contract suite, run against every implementation",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*/migrations/*", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# The point rules are a chain of documented guard clauses, one per rule in LLD §5.3.
+# Collapsing the last one into `return not (...)` would make it read differently from the
+# rules above it, which is the opposite of what this module is for.
+"core/domain/points.py" = ["SIM103"]
+
+[tool.importlinter]
+root_packages = ["core", "tests"]
+include_external_packages = true
+
+# The hexagon's boundary, enforced (LLD §2.1). Without this the DB port becomes decorative
+# within weeks: someone imports `django.utils.timezone` "just here", and the domain is no
+# longer swappable. A green test suite will not catch that. This will.
+[[tool.importlinter.contracts]]
+name = "core is framework-free"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = [
+    "django",
+    "rest_framework",
+    "psycopg",
+    "psycopg2",
+    "bson",
+    "mongoengine",
+    "google",
+    "googleapiclient",
+    "anymail",
+    "celery",
+]
+
+[[tool.importlinter.contracts]]
+name = "core does not depend on adapters or api"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = ["adapters", "api", "config"]
+
+[[tool.importlinter.contracts]]
+name = "domain does not depend on ports or application"
+type = "forbidden"
+source_modules = ["core.domain"]
+forbidden_modules = ["core.ports", "core.application"]
+
+[[tool.importlinter.contracts]]
+name = "layered core"
+type = "layers"
+layers = ["core.application", "core.ports", "core.domain"]

@@ -8,6 +8,8 @@ __pycache__
 *.env
 .env
 .env.*
+!.env.example
+!.env.*.example
 # *.sqlite3
 
 # Django
@@ -51,3 +53,6 @@ pip-delete-this-directory.txt
 
 # Node (if using frontend)
 node_modules/
+
+# custom
+backend_old/

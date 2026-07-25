@@ -27,6 +27,8 @@ export const qk = {
   post: (id: number) => ['post', id] as const,
   ownPosts: ['me', 'posts'] as const,
   leaderboard: (period: string) => ['leaderboard', period] as const,
+  userProfile: (id: number) => ['user', id] as const,
+  userPosts: (id: number) => ['user', id, 'posts'] as const,
   contactPage: ['contactPage'] as const,
   adminReview: (status: string) => ['admin', 'review', status] as const,
   adminReports: (statuses: string[]) => ['admin', 'reports', statuses] as const,

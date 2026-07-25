@@ -17,8 +17,8 @@ import {
   User,
   Users,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LogoMark } from '@/components/Logo'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { useAuth } from '@/context/auth-context'
@@ -55,9 +55,20 @@ export function AdminShell() {
   const { user, logout } = useAuth()
   const { toggle } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   const [open, setOpen] = useState(false)
   const [menu, setMenu] = useState(false)
+  const [query, setQuery] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
+
+  function onSearch(e: FormEvent) {
+    e.preventDefault()
+    const q = query.trim()
+    if (!q) return
+    // Search within Users if you're there; otherwise search reports.
+    const base = location.pathname.startsWith('/admin/users') ? '/admin/users' : '/admin/reports'
+    navigate(`${base}?q=${encodeURIComponent(q)}`)
+  }
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -144,13 +155,21 @@ export function AdminShell() {
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Menu">
             <Menu className="size-5" />
           </button>
-          <div className="flex w-80 max-w-[40%] items-center gap-2.5 rounded-xl border border-line bg-surface-2 px-3.5 py-2.5">
-            <Search className="size-[17px] text-ink-3" />
+          <form
+            onSubmit={onSearch}
+            className="flex w-80 max-w-[40%] items-center gap-2.5 rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 focus-within:border-brand"
+          >
+            <button type="submit" aria-label="Search">
+              <Search className="size-[17px] text-ink-3" />
+            </button>
             <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search reports, users…"
+              aria-label="Search reports and users"
               className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-ink-3"
             />
-          </div>
+          </form>
           <div className="relative ml-auto" ref={menuRef}>
             <button
               onClick={() => setMenu((m) => !m)}

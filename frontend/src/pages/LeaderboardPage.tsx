@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Avatar } from '@/components/Avatar'
 import { TopBar } from '@/components/layout/TopBar'
 import { useAuth } from '@/context/auth-context'
 import { useLeaderboard } from '@/hooks/useScoring'
@@ -12,15 +14,6 @@ const PERIODS = [
   { key: 'all', label: 'All' },
 ] as const
 
-function initials(name: string) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-}
-
 function Podium({ rows }: { rows: LeaderboardRow[] }) {
   const [first, second, third] = [rows[0], rows[1], rows[2]]
   const cell = (row: LeaderboardRow | undefined, place: 1 | 2 | 3) => {
@@ -29,16 +22,14 @@ function Podium({ rows }: { rows: LeaderboardRow[] }) {
     const barH = place === 1 ? 'h-16' : place === 2 ? 'h-11' : 'h-8'
     return (
       <div className="flex flex-col items-center gap-2 text-center">
-        <div
-          className={cn(
-            'relative grid place-items-center rounded-full font-extrabold text-white',
-            big ? 'size-17 text-[22px] ring-3 ring-gold' : 'size-14 text-[19px]',
-          )}
-          style={{ background: 'linear-gradient(135deg,var(--brand-2),var(--brand-deep))' }}
-        >
-          {big && <span className="absolute -top-4 text-lg">👑</span>}
-          {initials(row.full_name || row.username)}
-        </div>
+        <Link to={`/u/${row.user_id}`} className="relative">
+          <Avatar
+            name={row.full_name || row.username}
+            src={row.avatar_url}
+            className={cn(big ? 'size-17 text-[22px] ring-3 ring-gold' : 'size-14 text-[19px]')}
+          />
+          {big && <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-lg">👑</span>}
+        </Link>
         <div className="text-[12.5px] font-bold leading-tight">{row.username}</div>
         <div className="font-display text-[15px] font-bold text-gold tnum">{row.points}</div>
         <div
@@ -94,37 +85,33 @@ export function LeaderboardPage() {
       {!isLoading && rows.length > 0 && <Podium rows={rows} />}
 
       {you && (
-        <div className="mx-3 my-1.5 flex items-center gap-3 rounded-2xl bg-brand-soft p-3">
+        <Link to="/me" className="mx-3 my-1.5 flex items-center gap-3 rounded-2xl bg-brand-soft p-3">
           <div className="w-6 text-center font-display text-[15px] font-bold text-brand-deep tnum">
             {you.rank}
           </div>
-          <div className="grid size-9.5 place-items-center rounded-full bg-[linear-gradient(135deg,var(--brand-2),var(--brand-deep))] text-sm font-extrabold text-white">
-            {initials(you.full_name || you.username)}
-          </div>
+          <Avatar name={you.full_name || you.username} src={you.avatar_url} className="size-9.5 text-sm" />
           <div className="flex-1 text-[14.5px] font-semibold">
             You
-            <small className="block text-[11.5px] font-semibold text-brand-deep/70">
-              {you.full_name}
-            </small>
+            <small className="block text-[11.5px] font-semibold text-brand-deep/70">{you.full_name}</small>
           </div>
           <div className="font-display text-base font-bold text-brand-deep tnum">{you.points}</div>
-        </div>
+        </Link>
       )}
 
       {rest.map((row) => (
-        <div key={row.user_id} className="flex items-center gap-3 border-b border-line px-4.5 py-3">
-          <div className="w-6 text-center font-display text-[15px] font-bold text-ink-3 tnum">
-            {row.rank}
-          </div>
-          <div className="grid size-9.5 place-items-center rounded-full bg-[linear-gradient(135deg,var(--brand-2),var(--brand-deep))] text-[13px] font-extrabold text-white">
-            {initials(row.full_name || row.username)}
-          </div>
+        <Link
+          key={row.user_id}
+          to={`/u/${row.user_id}`}
+          className="flex items-center gap-3 border-b border-line px-4.5 py-3 hover:bg-surface-2/60"
+        >
+          <div className="w-6 text-center font-display text-[15px] font-bold text-ink-3 tnum">{row.rank}</div>
+          <Avatar name={row.full_name || row.username} src={row.avatar_url} className="size-9.5 text-[13px]" />
           <div className="flex-1 text-[14.5px] font-semibold">
             {row.full_name || row.username}
             <small className="block text-[11.5px] font-semibold text-ink-3">@{row.username}</small>
           </div>
           <div className="font-display text-base font-bold tnum">{row.points}</div>
-        </div>
+        </Link>
       ))}
 
       {!isLoading && rows.length === 0 && (

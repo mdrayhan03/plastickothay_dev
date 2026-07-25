@@ -14,6 +14,7 @@ function renderLogin(login = vi.fn()) {
     status: 'anon' as const,
     login,
     logout: vi.fn(),
+    setUser: vi.fn(),
     isStaff: false,
   }
   const wrapper = ({ children }: { children: ReactNode }) => (

@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { AvatarPicker } from '@/components/AvatarPicker'
 import { Btn } from '@/components/Btn'
 import { FormField } from '@/components/FormField'
 import { AuthLayout } from '@/components/layout/AuthLayout'
@@ -11,11 +13,13 @@ import { authService } from '@/services/authService'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [avatar, setAvatar] = useState<string | null>(null)
   const form = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) })
+  const name = `${form.watch('first_name') ?? ''} ${form.watch('last_name') ?? ''}`.trim()
 
   async function onSubmit(values: RegisterInput) {
     try {
-      await authService.register(values)
+      await authService.register({ ...values, avatar: avatar ?? undefined })
       toast.success('Check your email for a verification code.')
       navigate(`/verify?username=${encodeURIComponent(values.username)}`)
     } catch (e) {
@@ -26,6 +30,7 @@ export function RegisterPage() {
   return (
     <AuthLayout title="Create your account" subtitle="Earn points for every report you make.">
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
+        <AvatarPicker name={name} value={avatar} onChange={setAvatar} />
         <div className="grid grid-cols-2 gap-3">
           <FormField label="First name" error={form.formState.errors.first_name?.message} {...form.register('first_name')} />
           <FormField label="Last name" error={form.formState.errors.last_name?.message} {...form.register('last_name')} />

@@ -4,11 +4,13 @@ import { PhoneFrame } from '@/components/layout/PhoneFrame'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { AboutPage } from '@/pages/AboutPage'
 import { ContactPage } from '@/pages/ContactPage'
+import { EditProfilePage } from '@/pages/EditProfilePage'
 import { FeedbackFormPage } from '@/pages/FeedbackFormPage'
 import { HomePage } from '@/pages/HomePage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { MePage } from '@/pages/MePage'
 import { MorePage } from '@/pages/MorePage'
+import { ProfilePage } from '@/pages/ProfilePage'
 import { ReportPage } from '@/pages/ReportPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -41,7 +43,16 @@ export function UserPortal() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="me/edit"
+            element={
+              <ProtectedRoute>
+                <EditProfilePage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="more" element={<MorePage />} />
+          <Route path="u/:id" element={<ProfilePage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="feedback" element={<FeedbackFormPage />} />
           <Route path="about" element={<AboutPage />} />

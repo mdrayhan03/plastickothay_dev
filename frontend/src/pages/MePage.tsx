@@ -1,4 +1,5 @@
-import { Moon } from 'lucide-react'
+import { Moon, Pencil } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { TopBar } from '@/components/layout/TopBar'
 import { useAuth } from '@/context/auth-context'
 import { useOwnPosts } from '@/hooks/usePosts'
@@ -74,14 +75,23 @@ export function MePage() {
       <TopBar
         title="My impact"
         right={
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="grid size-10 place-items-center rounded-[13px] bg-surface text-ink shadow-sm"
-          >
-            <Moon className="size-5" />
-          </button>
+          <div className="flex gap-2">
+            <Link
+              to="/me/edit"
+              aria-label="Edit profile"
+              className="grid size-10 place-items-center rounded-[13px] bg-surface text-ink shadow-sm"
+            >
+              <Pencil className="size-[18px]" />
+            </Link>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label="Toggle theme"
+              className="grid size-10 place-items-center rounded-[13px] bg-surface text-ink shadow-sm"
+            >
+              <Moon className="size-5" />
+            </button>
+          </div>
         }
       />
 

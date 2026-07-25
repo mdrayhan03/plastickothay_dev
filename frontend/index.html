@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0A9C74" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>PlasticKothay</title>
+
+    <!-- fonts are self-hosted via @fontsource, imported in main.tsx (no CDN) -->
+
+    <!-- restore theme before paint to avoid a flash -->
+    <script>
+      (function () {
+        var t = localStorage.getItem('pk-theme')
+        var dark = t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -29,6 +29,19 @@ from core.application.reports.queries import (
     UpdateReportDescription,
 )
 from core.application.reports.submission import SubmitReport
+from core.domain.value_objects import EngagementType
+
+
+def _like_context(request, posts) -> dict:
+    """Batch the like count and the caller's like state for a page of posts (avoids N+1)."""
+    ids = [p.id for p in posts if p.id is not None]
+    if not ids:
+        return {"likes": {}, "liked_ids": set()}
+    engagements = container.engagements()
+    counts = engagements.counts_for(ids, EngagementType.LIKE)
+    actor = actor_id(request)
+    liked = engagements.liked_post_ids(ids, actor) if actor else set()
+    return {"likes": counts, "liked_ids": liked}
 
 
 class ReportListCreateView(APIView):
@@ -46,7 +59,7 @@ class ReportListCreateView(APIView):
         except ValueError:
             severity = None
         page = ListReports(container.posts()).execute(page_request(request), severity=severity)
-        return paginated_response(page, PublicPostSerializer)
+        return paginated_response(page, PublicPostSerializer, _like_context(request, page.items))
 
     def post(self, request):
         s = SubmitReportSerializer(data=request.data)
@@ -70,7 +83,9 @@ class ReportDetailView(APIView):
 
     def get(self, request, post_id: int):
         post = GetReport(container.posts()).execute(post_id)
-        return Response(PublicPostSerializer(post).data)
+        return Response(
+            PublicPostSerializer(post, context=_like_context(request, [post])).data
+        )
 
     def patch(self, request, post_id: int):
         s = UpdateDescriptionSerializer(data=request.data)
@@ -97,4 +112,4 @@ class OwnReportsView(APIView):
 
     def get(self, request):
         page = ListOwnReports(container.posts()).execute(actor_id(request), page_request(request))
-        return paginated_response(page, OwnPostSerializer)
+        return paginated_response(page, OwnPostSerializer, _like_context(request, page.items))

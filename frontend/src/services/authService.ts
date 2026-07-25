@@ -1,0 +1,52 @@
+import { api } from '@/lib/api'
+import type { AuthUser, LoginResponse, RefreshResponse } from '@/types'
+
+export const authService = {
+  async login(username: string, password: string) {
+    const { data } = await api.post<LoginResponse>('/auth/login/', { username, password })
+    return data
+  },
+  async refresh() {
+    const { data } = await api.post<RefreshResponse>('/auth/refresh/')
+    return data
+  },
+  async logout() {
+    await api.post('/auth/logout/')
+  },
+  async me() {
+    const { data } = await api.get<AuthUser>('/me/')
+    return data
+  },
+  async updateProfile(payload: {
+    first_name: string
+    last_name: string
+    phone?: string
+    avatar?: string // base64 data URL; ignored until BE-9 ships
+  }) {
+    const { data } = await api.patch<AuthUser>('/me/', payload)
+    return data
+  },
+  async register(payload: {
+    username: string
+    email: string
+    first_name: string
+    last_name: string
+    phone: string
+    password: string
+    avatar?: string // base64 data URL; ignored until BE-9 ships
+  }) {
+    await api.post('/auth/register/', payload)
+  },
+  async verify(username: string, code: number) {
+    await api.post('/auth/verify/', { username, code })
+  },
+  async resendOtp(username: string) {
+    await api.post('/auth/resend-otp/', { username })
+  },
+  async forgotPassword(username: string) {
+    await api.post('/auth/forgot-password/', { username })
+  },
+  async resetPassword(username: string, code: number, new_password: string) {
+    await api.post('/auth/reset-password/', { username, code, new_password })
+  },
+}

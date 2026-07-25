@@ -13,22 +13,39 @@ pytestmark = pytest.mark.django_db
 
 
 def auth(client, username="bob"):
-    client.post("/api/auth/register/", {
-        "username": username, "email": f"{username}@e.com", "first_name": username,
-        "last_name": "T", "phone": "+880", "password": "s3cretpass",
-    }, format="json")
+    client.post(
+        "/api/auth/register/",
+        {
+            "username": username,
+            "email": f"{username}@e.com",
+            "first_name": username,
+            "last_name": "T",
+            "phone": "+880",
+            "password": "s3cretpass",
+        },
+        format="json",
+    )
     code = int(re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
     client.post("/api/auth/verify/", {"username": username, "code": code}, format="json")
-    return client.post("/api/auth/login/", {
-        "username": username, "password": "s3cretpass"}, format="json").data["access"]
+    return client.post(
+        "/api/auth/login/", {"username": username, "password": "s3cretpass"}, format="json"
+    ).data["access"]
 
 
 def approved_post(reporter_id):
     orm.Post.objects.create(
-        reporter_name="R", reporter_email="r@e.com", reporter_phone="x",
-        reporter_user_id=reporter_id, severity=3, image_provider="local", image_external_id="i",
-        lat=23.8, lon=90.4, status=int(PostStatus.APPROVED),
-        created="2026-07-23T12:00:00Z", approved_at="2026-07-23T12:00:00Z",
+        reporter_name="R",
+        reporter_email="r@e.com",
+        reporter_phone="x",
+        reporter_user_id=reporter_id,
+        severity=3,
+        image_provider="local",
+        image_external_id="i",
+        lat=23.8,
+        lon=90.4,
+        status=int(PostStatus.APPROVED),
+        created="2026-07-23T12:00:00Z",
+        approved_at="2026-07-23T12:00:00Z",
     )
 
 
@@ -78,5 +95,5 @@ class TestBadges:
         from django.contrib import admin
 
         registered = {m.__name__ for m in admin.site._registry}
-        assert "BadgeRule" in registered      # config table — editable
+        assert "BadgeRule" in registered  # config table — editable
         assert "UserBadge" not in registered  # earned records — not hand-edited

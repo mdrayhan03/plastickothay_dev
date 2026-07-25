@@ -11,5 +11,6 @@ urlpatterns = [
     path("", include("api.engagement.urls")),
     path("", include("api.scoring.urls")),
     path("", include("api.content.urls")),
+    path("", include("api.users.urls")),
     path("admin/", include("api.admin.urls")),
 ]

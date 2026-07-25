@@ -66,13 +66,24 @@ class ReportListCreateView(APIView):
         s.is_valid(raise_exception=True)
         d = s.validated_data
         cmd = SubmitReportCommand(
-            severity=d["severity"], lat=d["lat"], lon=d["lon"],
-            photo_bytes=d["photo_bytes"], filename=d["filename"], content_type=d["content_type"],
-            description=d["description"], name=d["name"], email=d["email"], phone=d["phone"],
+            severity=d["severity"],
+            lat=d["lat"],
+            lon=d["lon"],
+            photo_bytes=d["photo_bytes"],
+            filename=d["filename"],
+            content_type=d["content_type"],
+            place_name=d["place_name"],
+            description=d["description"],
+            name=d["name"],
+            email=d["email"],
+            phone=d["phone"],
         )
         post = SubmitReport(
-            container.posts(), container.users(), container.image_storage(),
-            container.unit_of_work(), container.clock(),
+            container.posts(),
+            container.users(),
+            container.image_storage(),
+            container.unit_of_work(),
+            container.clock(),
         ).execute(cmd, actor_id(request))
         return Response(PublicPostSerializer(post).data, status=201)
 
@@ -83,16 +94,15 @@ class ReportDetailView(APIView):
 
     def get(self, request, post_id: int):
         post = GetReport(container.posts()).execute(post_id)
-        return Response(
-            PublicPostSerializer(post, context=_like_context(request, [post])).data
-        )
+        return Response(PublicPostSerializer(post, context=_like_context(request, [post])).data)
 
     def patch(self, request, post_id: int):
         s = UpdateDescriptionSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         post = UpdateReportDescription(container.posts(), container.unit_of_work()).execute(
             UpdateDescriptionCommand(
-                post_id=post_id, description=s.validated_data["description"],
+                post_id=post_id,
+                description=s.validated_data["description"],
                 actor_id=actor_id(request),
             )
         )

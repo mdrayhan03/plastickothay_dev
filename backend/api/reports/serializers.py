@@ -25,6 +25,7 @@ class SubmitReportSerializer(serializers.Serializer):
     lat = serializers.FloatField(min_value=-90, max_value=90)
     lon = serializers.FloatField(min_value=-180, max_value=180)
     photo = serializers.CharField()  # base64 data URL
+    place_name = serializers.CharField(required=False, allow_blank=True, default="", max_length=255)
     description = serializers.CharField(required=False, allow_blank=True, default="")
     name = serializers.CharField(required=False, allow_blank=True, default="")
     email = serializers.EmailField(required=False, allow_blank=True, default="")
@@ -52,10 +53,12 @@ class PublicPostSerializer(serializers.Serializer):
 
     id = serializers.IntegerField()
     reporter_name = serializers.SerializerMethodField()
+    reporter_id = serializers.IntegerField(allow_null=True)
     severity = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
     lat = serializers.SerializerMethodField()
     lon = serializers.SerializerMethodField()
+    place_name = serializers.CharField()
     description = serializers.CharField()
     created = serializers.DateTimeField()
     likes = serializers.SerializerMethodField()
@@ -110,6 +113,7 @@ class AdminPostSerializer(serializers.Serializer):
     image_url = serializers.SerializerMethodField()
     lat = serializers.SerializerMethodField()
     lon = serializers.SerializerMethodField()
+    place_name = serializers.CharField()
     description = serializers.CharField()
     status = serializers.SerializerMethodField()
     created = serializers.DateTimeField()

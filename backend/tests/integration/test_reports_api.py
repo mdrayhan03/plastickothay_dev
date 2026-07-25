@@ -30,9 +30,14 @@ def client():
 
 def submit(client, **over):
     payload = {
-        "severity": 3, "lat": 23.8103, "lon": 90.4125, "photo": PHOTO,
+        "severity": 3,
+        "lat": 23.8103,
+        "lon": 90.4125,
+        "photo": PHOTO,
         "description": "Plastic near the canal.",
-        "name": "Walk-in", "email": "walkin@example.com", "phone": "+8801799999999",
+        "name": "Walk-in",
+        "email": "walkin@example.com",
+        "phone": "+8801799999999",
     }
     payload.update(over)
     return client.post("/api/posts/", payload, format="json")
@@ -120,14 +125,23 @@ class TestAuthenticatedSubmission:
 
         from django.core import mail
 
-        client.post("/api/auth/register/", {
-            "username": "bob", "email": "bob@example.com", "first_name": "Bob",
-            "last_name": "T", "phone": "+8801700000000", "password": "s3cretpass",
-        }, format="json")
+        client.post(
+            "/api/auth/register/",
+            {
+                "username": "bob",
+                "email": "bob@example.com",
+                "first_name": "Bob",
+                "last_name": "T",
+                "phone": "+8801700000000",
+                "password": "s3cretpass",
+            },
+            format="json",
+        )
         code = int(re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
         client.post("/api/auth/verify/", {"username": "bob", "code": code}, format="json")
-        access = client.post("/api/auth/login/", {
-            "username": "bob", "password": "s3cretpass"}, format="json").data["access"]
+        access = client.post(
+            "/api/auth/login/", {"username": "bob", "password": "s3cretpass"}, format="json"
+        ).data["access"]
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
     def test_authenticated_submit_ignores_body_contact_details(self, client):
@@ -136,3 +150,29 @@ class TestAuthenticatedSubmission:
         post = orm.Post.objects.get(pk=pid)
         assert post.reporter_user_id is not None
         assert post.reporter_email == "bob@example.com"  # profile, not the body
+
+    def test_public_post_exposes_reporter_id_for_linking(self, client):
+        self._auth(client)
+        pid = submit(client).data["id"]
+        approve(pid)
+        row = client.get(f"/api/posts/{pid}/").data
+        assert row["reporter_id"] == orm.User.objects.get(username="bob").id
+
+
+class TestAnonymousReporterId:
+    def test_anonymous_post_has_null_reporter_id(self, client):
+        pid = submit(client).data["id"]
+        approve(pid)
+        assert client.get(f"/api/posts/{pid}/").data["reporter_id"] is None
+
+
+class TestPlaceName:
+    def test_stored_and_returned(self, client):
+        pid = submit(client, place_name="Hatirjheel, Dhaka").data["id"]
+        approve(pid)
+        assert client.get(f"/api/posts/{pid}/").data["place_name"] == "Hatirjheel, Dhaka"
+
+    def test_optional_defaults_to_blank(self, client):
+        pid = submit(client).data["id"]
+        approve(pid)
+        assert client.get(f"/api/posts/{pid}/").data["place_name"] == ""

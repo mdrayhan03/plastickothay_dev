@@ -49,9 +49,18 @@ class FakeBackend:
         from core.domain.entities import User
 
         return self.users.add(
-            User(id=None, username=username, email=f"{username}@e.com", first_name=username,
-                 last_name="T", phone="x", role=role, is_verified=True, is_active=True,
-                 date_joined=NOW),
+            User(
+                id=None,
+                username=username,
+                email=f"{username}@e.com",
+                first_name=username,
+                last_name="T",
+                phone="x",
+                role=role,
+                is_verified=True,
+                is_active=True,
+                date_joined=NOW,
+            ),
             password="x",
         )
 
@@ -60,10 +69,18 @@ class FakeBackend:
         from core.domain.value_objects import GeoPoint, ImageRef, PostStatus, Reporter, Severity
 
         return self.posts.add(
-            Post(id=None, reporter=Reporter("R", "r@e.com", "x"), reporter_id=reporter_id,
-                 severity=Severity.MODERATE, image=ImageRef("fake", "i"),
-                 location=GeoPoint(23.8, 90.4), description="d", status=status, created=NOW,
-                 approved_at=approved_at if status is PostStatus.APPROVED else None)
+            Post(
+                id=None,
+                reporter=Reporter("R", "r@e.com", "x"),
+                reporter_id=reporter_id,
+                severity=Severity.MODERATE,
+                image=ImageRef("fake", "i"),
+                location=GeoPoint(23.8, 90.4),
+                description="d",
+                status=status,
+                created=NOW,
+                approved_at=approved_at if status is PostStatus.APPROVED else None,
+            )
         )
 
     def add_like(self, post_id, actor_id, created=NOW):
@@ -71,8 +88,13 @@ class FakeBackend:
         from core.domain.value_objects import EngagementType
 
         return self.engagements.add(
-            Engagement(id=None, post_id=post_id, type=EngagementType.LIKE,
-                       actor_id=actor_id, created=created)
+            Engagement(
+                id=None,
+                post_id=post_id,
+                type=EngagementType.LIKE,
+                actor_id=actor_id,
+                created=created,
+            )
         )
 
 
@@ -98,9 +120,18 @@ class DjangoBackend:
         from core.domain.entities import User
 
         return self.users.add(
-            User(id=None, username=username, email=f"{username}@e.com", first_name=username,
-                 last_name="T", phone="x", role=role, is_verified=True, is_active=True,
-                 date_joined=NOW),
+            User(
+                id=None,
+                username=username,
+                email=f"{username}@e.com",
+                first_name=username,
+                last_name="T",
+                phone="x",
+                role=role,
+                is_verified=True,
+                is_active=True,
+                date_joined=NOW,
+            ),
             password="x",
         )
 
@@ -109,10 +140,18 @@ class DjangoBackend:
         from core.domain.value_objects import GeoPoint, ImageRef, PostStatus, Reporter, Severity
 
         return self.posts.add(
-            Post(id=None, reporter=Reporter("R", "r@e.com", "x"), reporter_id=reporter_id,
-                 severity=Severity.MODERATE, image=ImageRef("fake", "i"),
-                 location=GeoPoint(23.8, 90.4), description="d", status=status, created=NOW,
-                 approved_at=approved_at if status is PostStatus.APPROVED else None)
+            Post(
+                id=None,
+                reporter=Reporter("R", "r@e.com", "x"),
+                reporter_id=reporter_id,
+                severity=Severity.MODERATE,
+                image=ImageRef("fake", "i"),
+                location=GeoPoint(23.8, 90.4),
+                description="d",
+                status=status,
+                created=NOW,
+                approved_at=approved_at if status is PostStatus.APPROVED else None,
+            )
         )
 
     def add_like(self, post_id, actor_id, created=NOW):
@@ -120,8 +159,13 @@ class DjangoBackend:
         from core.domain.value_objects import EngagementType
 
         return self.engagements.add(
-            Engagement(id=None, post_id=post_id, type=EngagementType.LIKE,
-                       actor_id=actor_id, created=created)
+            Engagement(
+                id=None,
+                post_id=post_id,
+                type=EngagementType.LIKE,
+                actor_id=actor_id,
+                created=created,
+            )
         )
 
 
@@ -212,8 +256,9 @@ class TestLeaderboardContract:
         from core.domain.value_objects import Period, PostStatus
 
         alice = backend.add_user("alice")
-        backend.add_post(alice.id, PostStatus.APPROVED,
-                         approved_at=datetime(2026, 1, 1, tzinfo=UTC))  # old
+        backend.add_post(
+            alice.id, PostStatus.APPROVED, approved_at=datetime(2026, 1, 1, tzinfo=UTC)
+        )  # old
 
         # The use case computes `since`; here we compute it the same way and pass it in.
         since = period_start(Period.WEEK, NOW)

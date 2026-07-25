@@ -22,7 +22,7 @@ from api.content.serializers import (
     UpdateSiteConfigSerializer,
 )
 from api.pagination import page_request, paginated_response
-from api.permissions import IsStaffOrAdmin
+from api.permissions import IsAdmin, IsStaffOrAdmin
 from config import container
 from core.application.content.contact_page import (
     GetContactPage,
@@ -58,8 +58,13 @@ class ContactPageView(APIView):
         s.is_valid(raise_exception=True)
         d = s.validated_data
         cmd = UpdateContactPageCommand(
-            heading=d["heading"], intro=d["intro"], email=d["email"], phone=d["phone"],
-            address=d["address"], map_lat=d.get("map_lat"), map_lon=d.get("map_lon"),
+            heading=d["heading"],
+            intro=d["intro"],
+            email=d["email"],
+            phone=d["phone"],
+            address=d["address"],
+            map_lat=d.get("map_lat"),
+            map_lon=d.get("map_lon"),
             socials=tuple(SocialLink(**link) for link in d["socials"]),
         )
         page = UpdateContactPage(
@@ -116,7 +121,8 @@ class FeedbackView(APIView):
 
 class SiteConfigView(APIView):
     def get_permissions(self):
-        return [AllowAny()] if self.request.method == "GET" else [IsStaffOrAdmin()]
+        # Read is public; editing site settings is admin-only (staff moderate, admins govern).
+        return [AllowAny()] if self.request.method == "GET" else [IsAdmin()]
 
     def get(self, request):
         cfg = GetSiteConfig(container.site_config()).execute()
@@ -130,8 +136,12 @@ class SiteConfigView(APIView):
             container.site_config(), container.unit_of_work(), container.clock()
         ).execute(
             UpdateSiteConfigCommand(
-                week_start=d["week_start"], site_name=d["site_name"], tagline=d["tagline"],
-                map_lat=d.get("map_lat"), map_lon=d.get("map_lon"), map_zoom=d["map_zoom"],
+                week_start=d["week_start"],
+                site_name=d["site_name"],
+                tagline=d["tagline"],
+                map_lat=d.get("map_lat"),
+                map_lon=d.get("map_lon"),
+                map_zoom=d["map_zoom"],
                 flags=d["flags"],
             ),
             actor_id(request),

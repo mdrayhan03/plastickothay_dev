@@ -55,8 +55,12 @@ class RegisterView(APIView):
     def post(self, request):
         data = _validated(RegisterSerializer, request)
         use_case = RegisterUser(
-            container.users(), container.otps(), MailjetNotifier(),
-            container.unit_of_work(), container.clock(),
+            container.users(),
+            container.otps(),
+            MailjetNotifier(),
+            container.unit_of_work(),
+            container.clock(),
+            container.image_storage(),
         )
         use_case.execute(RegisterCommand(**data))
         return Response(
@@ -99,9 +103,7 @@ class LoginView(APIView):
         user, pair = Login(container.users(), _tokens(), container.clock()).execute(
             LoginCommand(**data)
         )
-        response = Response(
-            {"access": pair.access, "user": UserSerializer(user).data}
-        )
+        response = Response({"access": pair.access, "user": UserSerializer(user).data})
         return set_refresh_cookie(response, pair.refresh)
 
 
@@ -143,8 +145,11 @@ class ResetPasswordView(APIView):
     def post(self, request):
         data = _validated(ResetPasswordSerializer, request)
         ResetPassword(
-            container.users(), container.otps(), _tokens(),
-            container.unit_of_work(), container.clock(),
+            container.users(),
+            container.otps(),
+            _tokens(),
+            container.unit_of_work(),
+            container.clock(),
         ).execute(ResetPasswordCommand(**data))
         return Response({"detail": "Password reset. You can now sign in."})
 
@@ -158,7 +163,7 @@ class MeView(APIView):
 
     def patch(self, request):
         data = _validated(UpdateProfileSerializer, request)
-        user = UpdateProfile(container.users(), container.unit_of_work()).execute(
-            UpdateProfileCommand(**data), actor_id(request)
-        )
+        user = UpdateProfile(
+            container.users(), container.unit_of_work(), container.image_storage()
+        ).execute(UpdateProfileCommand(**data), actor_id(request))
         return Response(UserSerializer(user).data)

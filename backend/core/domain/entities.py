@@ -44,6 +44,7 @@ class User:
     role: Role = Role.USER
     is_verified: bool = False  # completed OTP
     is_active: bool = True  # not banned — Django's meaning
+    avatar: ImageRef | None = None  # profile photo; None => show initials
     date_joined: datetime | None = None
     last_login: datetime | None = None
 
@@ -90,6 +91,7 @@ class Post:
     location: GeoPoint
     description: str
     status: PostStatus = PostStatus.PENDING
+    place_name: str = ""  # reverse-geocoded label, e.g. "Hatirjheel, Dhaka"; blank if none
     created: datetime | None = None
     approved_at: datetime | None = None  # first approval only — stable leaderboard bucket
     deleted_at: datetime | None = None

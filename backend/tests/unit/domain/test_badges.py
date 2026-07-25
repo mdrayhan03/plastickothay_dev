@@ -9,8 +9,14 @@ from core.domain.value_objects import BadgeCriteria
 
 def contribution(**over) -> Contribution:
     defaults = dict(
-        user_id=UserId(1), total_points=0, posts_approved=0, likes_received=0,
-        likes_given=0, level=1, level_title="Newcomer", points_to_next_level=100,
+        user_id=UserId(1),
+        total_points=0,
+        posts_approved=0,
+        likes_received=0,
+        likes_given=0,
+        level=1,
+        level_title="Newcomer",
+        points_to_next_level=100,
         progress_percentage=0.0,
     )
     defaults.update(over)

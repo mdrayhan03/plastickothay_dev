@@ -29,12 +29,15 @@ class LikeView(APIView):
         result = LikePost(
             container.posts(), container.engagements(), container.unit_of_work(), container.clock()
         ).execute(post_id, actor_id(request))
-        return Response({"post_id": result.post_id, "likes": result.likes,
-                         "liked_by_me": result.liked_by_me}, status=201)
+        return Response(
+            {"post_id": result.post_id, "likes": result.likes, "liked_by_me": result.liked_by_me},
+            status=201,
+        )
 
     def delete(self, request, post_id: int):
         result = UnlikePost(
             container.posts(), container.engagements(), container.unit_of_work()
         ).execute(post_id, actor_id(request))
-        return Response({"post_id": result.post_id, "likes": result.likes,
-                         "liked_by_me": result.liked_by_me})
+        return Response(
+            {"post_id": result.post_id, "likes": result.likes, "liked_by_me": result.liked_by_me}
+        )

@@ -25,21 +25,20 @@ Legend: ☐ = pending · frontend items are things we can do without the backend
 - ☐ **Notification system + bell** — the Home/notification bell stays a placeholder. Separate feature
       (backend model + endpoints + in-app list). Explicitly deferred.
 
-## 4. Backend-dependent (frontend built, degrades gracefully — unblocks when the endpoint ships)
+## 4. Backend — ✅ ALL DONE (BE-0..BE-11)
 
-Nothing to build on the frontend for these until the backend lands; each already has a fallback.
+Every documented backend endpoint/field is now implemented and tested (275 backend tests pass,
+import-linter clean). See `admin_backend_todo.md` and `user_portal_backend_todo.md`. The
+previously-degraded admin screens (Users, Audit, delete, all-status map, user stats, analytics)
+and user features (avatar, public profiles, `place_name`, `reporter_id`) are all live.
 
-- ☐ **BE-0** admin users API (list / activate / role) — Users screen shows a "needs API" notice.
-- ☐ **BE-1** audit log endpoint — Audit screen + dashboard activity show pending states.
-- ☐ **BE-2** delete user — button wired, notes pending.
-- ☐ **BE-3** admin all-status map — dashboard uses approved-only markers.
-- ☐ **BE-4** admin user detail + stats — profile drawer stats read "—".
-- ☐ **BE-5** dashboard analytics (over-time, active users) — chart omitted, KPI hidden.
-- ☐ **BE-7** tighten site-config write to superuser — client already hides it from staff.
-- ☐ **BE-8** `place_name` on reports — sent + displayed with a coordinate fallback.
-- ☐ **BE-9** user avatar field — picker works, photo dropped, initials shown until it lands.
-- ☐ **BE-10** public profile + user-posts endpoints — profile page shows a pending state.
-- ☐ **BE-11** `reporter_id` on public posts — needed before report→author links.
+**New frontend follow-ups these unlock** (small):
+- ☐ Wire the dashboard **over-time chart** to the new `GET /api/admin/analytics/` endpoint.
+- ☐ Return/render `avatar_url` on **leaderboard** rows (backend exposes it on profiles/me/admin;
+      leaderboard rows still render initials — needs `avatar_url` in the leaderboard serializer +
+      row type, then the frontend shows photos).
+- ☐ Link **report cards / detail sheet** to `/u/<reporter_id>` now that `reporter_id` is exposed
+      (skip the link when it's null for anonymous reports).
 
 ## 5. Optional polish (nice-to-have)
 

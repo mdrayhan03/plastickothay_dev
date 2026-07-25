@@ -7,7 +7,7 @@ contract suite checks the production SQL against.
 
 from __future__ import annotations  # `def list(...)` shadows the builtin in class bodies
 
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from core.domain.entities import (
     OTP,
@@ -42,11 +42,14 @@ from core.domain.points import (
     level_progress,
 )
 from core.domain.read_models import (
+    AdminMapMarker,
     Contribution,
     LeaderboardRow,
     MapMarker,
+    PostAnalytics,
     PostFilter,
     StatusCounts,
+    WeeklyPoint,
 )
 from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
@@ -130,6 +133,10 @@ class InMemoryUserRepository(UserRepository):
             raise UserNotFound()
         user.is_active = is_active
         return user
+
+    def delete(self, id: UserId) -> None:
+        self.rows.pop(id, None)
+        self.passwords.pop(id, None)
 
     def touch_last_login(self, id: UserId, at: datetime) -> None:
         if id in self.rows:
@@ -215,12 +222,48 @@ class InMemoryPostRepository(PostRepository):
             if p.is_public and p.id is not None
         ]
 
+    def list_admin_map_markers(self) -> list[AdminMapMarker]:
+        return [
+            AdminMapMarker(
+                id=p.id,
+                lat=p.location.lat,
+                lon=p.location.lon,
+                severity=p.severity,
+                status=p.status,
+            )
+            for p in self.rows.values()
+            if p.deleted_at is None and p.id is not None
+        ]
+
     def counts_by_status(self) -> StatusCounts:
         counts: dict[PostStatus, int] = {}
         for p in self.rows.values():
             if p.deleted_at is None or p.status is PostStatus.REJECTED:
                 counts[p.status] = counts.get(p.status, 0) + 1
         return StatusCounts(counts=counts)
+
+    def analytics(self, since: datetime) -> PostAnalytics:
+        def monday(dt: datetime) -> date:
+            d = dt.date()
+            return d - timedelta(days=d.weekday())
+
+        submitted: dict[date, int] = {}
+        approved: dict[date, int] = {}
+        active: set = set()
+        for p in self.rows.values():
+            if p.created and p.created >= since:
+                wk = monday(p.created)
+                submitted[wk] = submitted.get(wk, 0) + 1
+                if p.reporter_id is not None:
+                    active.add(p.reporter_id)
+            if p.approved_at and p.approved_at >= since:
+                wk = monday(p.approved_at)
+                approved[wk] = approved.get(wk, 0) + 1
+        over_time = [
+            WeeklyPoint(week=w, submitted=submitted.get(w, 0), approved=approved.get(w, 0))
+            for w in sorted(set(submitted) | set(approved))
+        ]
+        return PostAnalytics(over_time=over_time, active_users=len(active))
 
 
 class InMemoryEngagementRepository(EngagementRepository):
@@ -248,9 +291,7 @@ class InMemoryEngagementRepository(EngagementRepository):
             (
                 e
                 for e in self.rows
-                if e.post_id == post_id
-                and e.actor_id == actor_id
-                and e.type is EngagementType.LIKE
+                if e.post_id == post_id and e.actor_id == actor_id and e.type is EngagementType.LIKE
             ),
             None,
         )
@@ -428,6 +469,10 @@ class InMemoryModerationLogRepository(ModerationLogRepository):
     def list_for_post(self, post_id: PostId) -> list[PostModerationLog]:
         return [r for r in self.rows if r.post_id == post_id]
 
+    def list(self, page: PageRequest) -> Page[PostModerationLog]:
+        newest_first = sorted(self.rows, key=lambda r: r.id or 0, reverse=True)
+        return _paginate(newest_first, page)
+
 
 class InMemorySiteConfigRepository(SiteConfigRepository):
     def __init__(self) -> None:
@@ -462,6 +507,4 @@ class InMemoryBadgeRepository(BadgeRepository):
             self.earned.append(UserBadge(user_id=user_id, badge_code=code, earned_at=at))
 
     def list_earned(self, user_id: UserId) -> list[UserBadge]:
-        return sorted(
-            (b for b in self.earned if b.user_id == user_id), key=lambda b: b.earned_at
-        )
+        return sorted((b for b in self.earned if b.user_id == user_id), key=lambda b: b.earned_at)

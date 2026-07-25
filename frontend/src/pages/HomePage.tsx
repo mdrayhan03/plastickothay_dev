@@ -86,7 +86,7 @@ export function HomePage() {
       )}
 
       {posts.map((post) => (
-        <ReportCard key={post.id} post={post} />
+        <ReportCard key={post.id} post={post} onOpen={setSelected} />
       ))}
 
       {feed.hasNextPage && (

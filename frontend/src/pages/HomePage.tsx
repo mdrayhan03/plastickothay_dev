@@ -72,22 +72,24 @@ export function HomePage() {
       </div>
 
       {feed.isLoading && (
-        <div className="space-y-3">
+        <div className="grid gap-3 px-4.5 md:grid-cols-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="mx-4.5 h-25 animate-pulse rounded-[20px] bg-surface-2" />
+            <div key={i} className="h-25 animate-pulse rounded-[20px] bg-surface-2" />
           ))}
         </div>
       )}
 
       {!feed.isLoading && posts.length === 0 && (
         <p className="px-8 py-10 text-center text-sm text-ink-3">
-          No approved reports yet. Be the first — tap the + button.
+          No approved reports yet. Be the first - tap the + button.
         </p>
       )}
 
-      {posts.map((post) => (
-        <ReportCard key={post.id} post={post} onOpen={setSelected} />
-      ))}
+      <div className="grid gap-3 px-4.5 md:grid-cols-2">
+        {posts.map((post) => (
+          <ReportCard key={post.id} post={post} onOpen={setSelected} />
+        ))}
+      </div>
 
       {feed.hasNextPage && (
         <button

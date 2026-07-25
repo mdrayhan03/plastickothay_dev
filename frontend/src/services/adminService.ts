@@ -1,5 +1,7 @@
 import { api } from '@/lib/api'
 import type {
+  AdminAnalytics,
+  AdminMapMarker,
   AdminPost,
   AdminStats,
   AdminUser,
@@ -15,6 +17,14 @@ import type {
 export const adminService = {
   async reviewQueue(params: { status?: string; severity?: number; cursor?: string } = {}) {
     const { data } = await api.get<Page<AdminPost>>('/admin/posts/', { params })
+    return data
+  },
+  async map() {
+    const { data } = await api.get<AdminMapMarker[]>('/admin/map/')
+    return data
+  },
+  async analytics() {
+    const { data } = await api.get<AdminAnalytics>('/admin/analytics/')
     return data
   },
   /** All Reports — the review-list view accepts repeated ?status= filters. */

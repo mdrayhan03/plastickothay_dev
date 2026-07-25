@@ -148,6 +148,17 @@ class TestScoring:
         assert by_user["alice"] == 103  # post + like received
         assert by_user["bob"] == 1  # like given
 
+    def test_leaderboard_rows_carry_avatar_url(self):
+        c = APIClient()
+        access = auth(c, "bob")
+        approved_post(reporter_id=orm.User.objects.get(username="bob").id)
+        c.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        board = APIClient().get("/api/leaderboard/").data["results"]
+        assert board
+        # Field is always present; None when the user hasn't uploaded a photo (shows initials).
+        assert all("avatar_url" in r for r in board)
+        assert board[0]["avatar_url"] is None
+
     def test_contribution_requires_auth(self):
         assert APIClient().get("/api/me/contribution/").status_code == 401
 

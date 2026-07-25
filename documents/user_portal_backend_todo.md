@@ -70,6 +70,21 @@ frontend change (skip the link when it's `null`).
 
 ---
 
+## BE-12 · Avatar on leaderboard rows ✅ DONE
+
+**Why:** every other place returns `avatar_url` (me, admin, public profile), but the leaderboard
+serializer didn't — so leaderboard rows always fell back to initials even for users who uploaded
+a photo.
+
+- Added `avatar` to the `LeaderboardRow` read model; the leaderboard adapter (`top`) now selects
+  `avatar_provider` / `avatar_external_id` and the view returns `avatar_url` (null when none).
+- The fake leaderboard repo carries it too, so the contract stays honest.
+
+**Frontend:** already rendered `avatar_url` on leaderboard rows via the shared `Avatar` component
+— so uploaded photos now appear, and users without one keep their initials circle.
+
+---
+
 ## Summary
 
 | # | Endpoint / field | Public? | Frontend fallback today |
@@ -77,6 +92,7 @@ frontend change (skip the link when it's `null`).
 | BE-9 ✅ | `avatar` on register + `PATCH /me/`, `avatar_url` out | n/a | **Done** — stored via image storage |
 | BE-10 ✅ | `GET /api/users/<id>/` + `GET /api/users/<id>/posts/` (5/page) | yes | **Done** — public profile + posts live |
 | BE-11 ✅ | `reporter_id` (nullable) on `PublicPostSerializer` | yes | **Done** — exposed (null for anonymous) |
+| BE-12 ✅ | `avatar_url` on leaderboard rows | yes | **Done** — photo or initials, like everywhere |
 
 **STATUS: ALL DONE.** BE-9, BE-10 and BE-11 are implemented and tested. Avatars are stored through
 the existing `ImageStorage` (Google Drive in prod, local otherwise) as `avatar_provider` +

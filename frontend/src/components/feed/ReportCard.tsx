@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns'
-import { Clock, Heart, MapPin } from 'lucide-react'
+import { Clock, Heart, MapPin, User } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/auth-context'
 import { useLike } from '@/hooks/useLike'
 import { cn } from '@/lib/utils'
@@ -61,6 +62,15 @@ export function ReportCard({ post, onOpen }: { post: PublicPost; onOpen?: (id: n
             <Clock className="size-[15px]" />
             {formatDistanceToNow(new Date(post.created), { addSuffix: true })}
           </span>
+          {post.reporter_id && (
+            <Link
+              to={`/u/${post.reporter_id}`}
+              className="inline-flex min-w-0 items-center gap-1 text-brand hover:underline"
+            >
+              <User className="size-[14px] shrink-0" />
+              <span className="truncate">{post.reporter_name}</span>
+            </Link>
+          )}
         </div>
       </div>
     </article>

@@ -36,12 +36,12 @@ export interface RefreshResponse {
 export interface PublicPost {
   id: number
   reporter_name: string
+  reporter_id: number | null // the author's user id; null for anonymous reports
   severity: Severity
   image_url: string
   lat: number
   lon: number
-  // Reverse-geocoded label (e.g. "Hatirjheel, Dhaka"). Optional until the backend
-  // `place_name` field ships — see admin_backend_todo.md (BE-8). Falls back to coords.
+  // Reverse-geocoded label (e.g. "Hatirjheel, Dhaka"). Falls back to coords when blank.
   place_name?: string
   description: string
   created: string
@@ -63,9 +63,28 @@ export interface MapMarker {
 export interface AdminPost extends PublicPost {
   reporter_email: string
   reporter_phone: string
-  reporter_id: number | null
   status: PostStatus
   approved_at: string | null
+}
+
+/** Admin density-map marker — all statuses, unlike the approved-only public map (BE-3). */
+export interface AdminMapMarker {
+  id: number
+  lat: number
+  lon: number
+  severity: Severity
+  status: PostStatus
+}
+
+/** Dashboard analytics (BE-5): weekly submissions vs approvals + active contributors. */
+export interface WeeklyPoint {
+  week: string // ISO date, the Monday the week starts on
+  submitted: number
+  approved: number
+}
+export interface AdminAnalytics {
+  over_time: WeeklyPoint[]
+  active_users: number
 }
 
 export type ModerationAction = 'approve' | 'reject' | 'hide' | 'unhide'

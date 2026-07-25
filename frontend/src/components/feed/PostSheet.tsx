@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns'
-import { Clock, Heart, MapPin, Navigation, X } from 'lucide-react'
+import { Clock, Heart, MapPin, Navigation, User, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/auth-context'
 import { useLike } from '@/hooks/useLike'
 import { usePost } from '@/hooks/usePosts'
@@ -67,6 +68,21 @@ export function PostSheet({ postId, onClose }: { postId: number | null; onClose:
                 {severityLabel[post.severity]}
               </span>
             </div>
+
+            {post.reporter_name &&
+              (post.reporter_id ? (
+                <Link
+                  to={`/u/${post.reporter_id}`}
+                  onClick={onClose}
+                  className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand"
+                >
+                  <User className="size-4" /> {post.reporter_name}
+                </Link>
+              ) : (
+                <div className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-3">
+                  <User className="size-4" /> {post.reporter_name}
+                </div>
+              ))}
 
             {post.description && <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{post.description}</p>}
 

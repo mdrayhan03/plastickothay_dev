@@ -1,6 +1,6 @@
 """Default rule seed data.
 
-Point values are the agreed scheme (LLD §5.2). Comment rules are seeded INACTIVE — the
+Point values are the agreed scheme (LLD §5.2). Comment rules are seeded INACTIVE - the
 model supports comments so shipping them later is a flag flip, not a migration.
 """
 
@@ -22,7 +22,7 @@ DEFAULT_POINT_RULES = {
     RULE_COMMENT_GIVEN: 0,  # inactive
 }
 
-# PLACEHOLDER — needs a product decision. The legacy code used "every 5 points = 1 level",
+# PLACEHOLDER - needs a product decision. The legacy code used "every 5 points = 1 level",
 # which is meaningless now that one approved post is worth 100. These thresholds are a
 # guess; they are table-driven precisely so they can be changed without code.
 DEFAULT_LEVEL_RULES = [

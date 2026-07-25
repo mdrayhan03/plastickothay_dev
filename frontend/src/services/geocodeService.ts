@@ -1,5 +1,5 @@
 /**
- * Reverse geocoding via Nominatim (OpenStreetMap) — free, no API key, matches the OSM/Carto
+ * Reverse geocoding via Nominatim (OpenStreetMap) - free, no API key, matches the OSM/Carto
  * map stack. Policy: ~1 req/sec, identify via a descriptive request, attribute OSM. We only call
  * it once per report submission (a human action), which stays well within that limit.
  *

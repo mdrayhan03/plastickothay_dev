@@ -8,7 +8,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q --strict-markers"
 # Integration/API tests use this; unit tests never touch the DB (guaranteed by import-linter,
-# not by Django's absence — Django is now a project dependency).
+# not by Django's absence - Django is now a project dependency).
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 markers = [
     "integration: exercises the Django ORM; needs a database",

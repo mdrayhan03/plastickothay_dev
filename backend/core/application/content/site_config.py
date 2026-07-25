@@ -1,4 +1,4 @@
-"""Site configuration use cases — admin-editable application settings."""
+"""Site configuration use cases - admin-editable application settings."""
 
 from dataclasses import dataclass, field
 

@@ -48,11 +48,11 @@ public map/report, then the data screens, then admin, then PWA hardening.
 | 2 | Tailwind v4 + shadcn/ui init (`components.json`, base tokens, dark mode) |
 | 3 | Install: `@tanstack/react-query`, `react-router-dom`, `axios`, `react-hook-form`, `zod`, `react-leaflet leaflet`, `recharts`, `vite-plugin-pwa`, `lucide-react`, `date-fns` |
 | 4 | `vite.config.ts`: `/api` proxy → `localhost:8000`; PWA plugin (dev-friendly) |
-| 5 | `src/lib/api.ts` — Axios instance + **request/refresh interceptors** (§5 of plan), with the concurrent-401 queue |
-| 6 | `src/lib/queryClient.ts` — QueryClient + defaults; `main.tsx` providers |
-| 7 | `src/types/**` — API contract types mirroring the serializers |
-| 8 | `src/services/**` — typed API functions (auth, posts, engagement, scoring, content, admin) |
-| 9 | `src/components/layout/` — `PhoneFrame`, `AppShell`, `BottomNav`, `TopBar` (static) |
+| 5 | `src/lib/api.ts` - Axios instance + **request/refresh interceptors** (§5 of plan), with the concurrent-401 queue |
+| 6 | `src/lib/queryClient.ts` - QueryClient + defaults; `main.tsx` providers |
+| 7 | `src/types/**` - API contract types mirroring the serializers |
+| 8 | `src/services/**` - typed API functions (auth, posts, engagement, scoring, content, admin) |
+| 9 | `src/components/layout/` - `PhoneFrame`, `AppShell`, `BottomNav`, `TopBar` (static) |
 | 10 | Route tree in `App.tsx`: tab shell routes + placeholders; `site-config` fetched on boot |
 | 11 | ESLint + Prettier; `npm run build` clean |
 
@@ -72,11 +72,11 @@ public map/report, then the data screens, then admin, then PWA hardening.
 ### Tasks
 | # | Task |
 |---|---|
-| 1 | `AuthContext` — in-memory access token, current user, `login`/`logout`/`refreshOnBoot` |
+| 1 | `AuthContext` - in-memory access token, current user, `login`/`logout`/`refreshOnBoot` |
 | 2 | `useAuth` hook |
 | 3 | Auth pages (full-screen, outside the tab shell): **Login, Register, OTP Verify, Forgot/Reset Password** |
 | 4 | Forms with react-hook-form + zod; map API error envelope → field/toast messages |
-| 5 | `ProtectedRoute` — redirects anonymous users from `/me` etc. to login |
+| 5 | `ProtectedRoute` - redirects anonymous users from `/me` etc. to login |
 | 6 | Wire the real BottomNav + TopBar; active-tab state; More menu (with Admin entry for staff) |
 | 7 | Toast system (shadcn) for success/error |
 | 8 | Boot sequence: refresh → hydrate user → render |
@@ -92,7 +92,7 @@ public map/report, then the data screens, then admin, then PWA hardening.
 
 # F2 · Map & report submission  (#18, #19)
 
-**Goal:** the core loop — see reports on a map, file a new one with photo + location.
+**Goal:** the core loop - see reports on a map, file a new one with photo + location.
 
 ### Tasks
 | # | Task |
@@ -102,14 +102,14 @@ public map/report, then the data screens, then admin, then PWA hardening.
 | 3 | `useInfiniteQuery` feed of approved posts under/beside the map |
 | 4 | Report flow (FAB → full screen): **camera capture** (getUserMedia / `react-webcam`) with gallery fallback |
 | 5 | **HTML5 Geolocation** for lat/lon; manual pin-adjust on a mini map |
-| 6 | Form (severity, description, + name/email/phone when anonymous) — rhf + zod |
+| 6 | Form (severity, description, + name/email/phone when anonymous) - rhf + zod |
 | 7 | Base64-encode the photo; `POST /api/posts/`; success sheet + invalidate map/feed |
 | 8 | Anonymous vs authenticated: hide contact fields when logged in (backend uses the profile) |
 | 9 | Permission/error states: camera denied, geolocation denied, offline |
 
 ### Exit criteria
 - [ ] Map shows approved markers; tapping one opens details with photo
-- [ ] A user can capture a photo, get their location, and submit — anonymously or signed in
+- [ ] A user can capture a photo, get their location, and submit - anonymously or signed in
 - [ ] Submitted report appears once approved; pending is not publicly visible
 - [ ] Graceful handling when camera or location permission is denied
 
@@ -123,7 +123,7 @@ public map/report, then the data screens, then admin, then PWA hardening.
 | # | Task |
 |---|---|
 | 1 | Leaderboard screen with period tabs (all/year/month/week); rank list; your row highlighted |
-| 2 | Like/unlike on posts — **optimistic** via React Query mutation |
+| 2 | Like/unlike on posts - **optimistic** via React Query mutation |
 | 3 | `Me` profile: level ring (points → next level), contribution stats |
 | 4 | Badges grid from `GET /api/me/badges/` (earned vs locked, icons) |
 | 5 | My Reports list (`/api/me/posts/`) with status chips (pending/approved/hidden) |
@@ -146,13 +146,13 @@ public map/report, then the data screens, then admin, then PWA hardening.
 | # | Task |
 |---|---|
 | 1 | Admin section under More → Admin, guarded by role (staff/admin) |
-| 2 | Review queue: pending reports with full detail (admin serializer — contact info visible) |
+| 2 | Review queue: pending reports with full detail (admin serializer - contact info visible) |
 | 3 | Approve / reject / hide / unhide actions with confirm sheets; optimistic queue removal |
 | 4 | Stats dashboard: status counts + Recharts (approved vs pending, weekly trend) |
 | 5 | Contact messages list + mark read/replied; feedback list |
 | 6 | **Site-config editor**: week start, site name, tagline, map center/zoom, flags, logo |
 | 7 | (If logo upload endpoint exists) upload; else URL/ref field |
-| 8 | Point/level/badge rules are edited in Django admin — link out, don't rebuild here |
+| 8 | Point/level/badge rules are edited in Django admin - link out, don't rebuild here |
 
 ### Exit criteria
 - [ ] Non-staff can't reach admin (guarded client + enforced server-side)

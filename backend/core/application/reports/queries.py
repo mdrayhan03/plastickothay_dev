@@ -1,6 +1,6 @@
 """Report read use cases.
 
-Public listing pins ``statuses`` to APPROVED HERE, in the use case — not in the view, and
+Public listing pins ``statuses`` to APPROVED HERE, in the use case - not in the view, and
 never from a query parameter. The legacy `posts()` view defaulted to every post regardless
 of status, which combined with a serializer exposing email and phone would have published
 the contact details of everyone who ever filed a report (LLD §8.3).
@@ -83,7 +83,7 @@ class ListOwnReports:
 
 
 class ListUserReports:
-    """A user's public reports — approved only (never another user's pending/hidden)."""
+    """A user's public reports - approved only (never another user's pending/hidden)."""
 
     def __init__(self, posts: PostRepository) -> None:
         self.posts = posts

@@ -1,7 +1,7 @@
 """Cookie/header-aware JWT authentication.
 
 Access token arrives as `Authorization: Bearer <token>`. Critically, when NO token is present
-this returns None rather than raising — so anonymous requests reach AllowAny endpoints (the
+this returns None rather than raising - so anonymous requests reach AllowAny endpoints (the
 public map, report submission) instead of being 401'd at the door (LLD §8.1, §8.2).
 
 request.user is a lightweight DomainUser carrying id and role from the token claims; it does
@@ -57,7 +57,7 @@ class JWTCookieAuthentication(BaseAuthentication):
     def authenticate(self, request):
         header = get_authorization_header(request).split()
         if not header or header[0].lower() != self.keyword:
-            return None  # anonymous — not an error
+            return None  # anonymous - not an error
         if len(header) != 2:
             from rest_framework.exceptions import AuthenticationFailed
 

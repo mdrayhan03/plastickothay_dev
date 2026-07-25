@@ -1,4 +1,4 @@
-"""Moderation API — admin-only approve/reject/hide/unhide and stats."""
+"""Moderation API - admin-only approve/reject/hide/unhide and stats."""
 
 import base64
 import re
@@ -140,7 +140,7 @@ class TestRejectHideUnhide:
         admin_client.post(f"/api/admin/posts/{pid}/unhide/")
         row = orm.Post.objects.get(pk=pid)
         assert row.status == int(PostStatus.APPROVED)
-        assert row.approved_at == original  # not reset — would shift the leaderboard week
+        assert row.approved_at == original  # not reset - would shift the leaderboard week
 
     def test_hide_requires_approved(self, admin_client):
         pid = submit(admin_client)  # pending
@@ -177,7 +177,7 @@ class TestAnalytics:
         data = admin_client.get("/api/admin/analytics/").data
         assert sum(w["submitted"] for w in data["over_time"]) == 2
         assert sum(w["approved"] for w in data["over_time"]) == 1
-        # Both reports were submitted by the authenticated admin — one distinct contributor.
+        # Both reports were submitted by the authenticated admin - one distinct contributor.
         assert data["active_users"] == 1
 
 

@@ -1,4 +1,4 @@
-"""Badge API — award-on-read, idempotency, permanence."""
+"""Badge API - award-on-read, idempotency, permanence."""
 
 import re
 
@@ -95,5 +95,5 @@ class TestBadges:
         from django.contrib import admin
 
         registered = {m.__name__ for m in admin.site._registry}
-        assert "BadgeRule" in registered  # config table — editable
-        assert "UserBadge" not in registered  # earned records — not hand-edited
+        assert "BadgeRule" in registered  # config table - editable
+        assert "UserBadge" not in registered  # earned records - not hand-edited

@@ -1,6 +1,6 @@
 """Like / unlike endpoints.
 
-Liking is open to anyone (AllowAny) — anonymous likes are recorded and counted but award
+Liking is open to anyone (AllowAny) - anonymous likes are recorded and counted but award
 nobody (DEC-1, enforced in the domain). Unliking requires auth (an anonymous caller has no
 identity to match). Both are throttled.
 """

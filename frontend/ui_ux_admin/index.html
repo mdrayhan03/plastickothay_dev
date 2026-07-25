@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PlasticKothay — Admin Portal Prototype</title>
+<title>PlasticKothay - Admin Portal Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -405,7 +405,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand);cursor:poi
 
       <!-- ============ AUDIT ============ -->
       <section class="view" id="v-audit">
-        <div class="page-h"><div><h1>Audit Log</h1><p>Every moderation action — who did what, and when.</p></div></div>
+        <div class="page-h"><div><h1>Audit Log</h1><p>Every moderation action - who did what, and when.</p></div></div>
         <div class="card log" id="log"></div>
       </section>
 
@@ -558,7 +558,7 @@ for(let i=0;i<8;i++){const n=pick(names,i);const rl=roles[i===0?2:(i%3===0?1:0)]
    <td><span class="chip ${rl[1]} s">${rl[0]}</span></td>
    <td>${active?'<span class="chip st-approved s">Active</span>':'<span class="chip st-rejected s">Inactive</span>'}</td>
    <td class="tnum">${i*3+2}</td><td style="color:var(--ink-3)">Jul ${10+i}, 2026</td>
-   <td style="text-align:right" onclick="event.stopPropagation()">${rl[0]!=='Admin'?`<button class="btn out sm">${active?'Deactivate':'Activate'}</button>`:'<span style="color:var(--ink-3);font-size:12px">—</span>'}</td></tr>`;}
+   <td style="text-align:right" onclick="event.stopPropagation()">${rl[0]!=='Admin'?`<button class="btn out sm">${active?'Deactivate':'Activate'}</button>`:'<span style="color:var(--ink-3);font-size:12px">-</span>'}</td></tr>`;}
 document.getElementById('userrows').innerHTML=ur;
 
 /* user drawer */
@@ -579,7 +579,7 @@ function openUser(u){
 function closeUser(){document.getElementById('userdrawer').classList.remove('show');document.getElementById('scrim').classList.remove('show')}
 
 /* feedback */
-let fb='';const comments=['Helped our neighborhood get a canal cleaned. Amazing!','Love the map — so easy to report.','Would be great to add Bangla language.','The camera flow is smooth.','Cleaned up Dhanmondi lake thanks to this.','Needs a dark mode... oh wait it has one!'];
+let fb='';const comments=['Helped our neighborhood get a canal cleaned. Amazing!','Love the map - so easy to report.','Would be great to add Bangla language.','The camera flow is smooth.','Cleaned up Dhanmondi lake thanks to this.','Needs a dark mode... oh wait it has one!'];
 for(let i=0;i<6;i++){const n=pick(names,i);const r=5-(i%3);
   let stars='';for(let s=0;s<5;s++)stars+=`<svg viewBox="0 0 24 24" fill="${s<r?'var(--gold)':'none'}" stroke="${s<r?'var(--gold)':'var(--line-2)'}" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18l-5.8 3 1.1-6.5L2.6 9.8l6.5-.9Z"/></svg>`;
   fb+=`<div class="card fb"><div class="stars">${stars}</div><p>${pick(comments,i)}</p><div class="by">${n[0]}</div></div>`;}
@@ -589,7 +589,7 @@ document.getElementById('fb').innerHTML=fb;
 let lg='';const acts=[['approve','approved','var(--approved)','var(--brand-soft)'],['reject','rejected','var(--rejected)','color-mix(in srgb,var(--sev-5) 15%,transparent)'],['hide','hid','var(--hidden)','var(--surface-2)'],['unhide','unhid','var(--brand)','var(--brand-soft)']];
 for(let i=0;i<8;i++){const a=pick(acts,i);const n=pick(names,i%3+1);
   lg+=`<div class="item"><span class="ic" style="background:${a[3]};color:${a[2]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
-   <div><div><span class="who">${n[0]}</span> ${a[1]} report <b>#${1284-i}</b> at ${pick(places,i)}</div><div class="meta">${a[0]==='reject'?'Reason: spam / not plastic':'—'}</div></div>
+   <div><div><span class="who">${n[0]}</span> ${a[1]} report <b>#${1284-i}</b> at ${pick(places,i)}</div><div class="meta">${a[0]==='reject'?'Reason: spam / not plastic':'-'}</div></div>
    <div class="when">${pick(ago,i)}</div></div>`;}
 document.getElementById('log').innerHTML=lg;
 

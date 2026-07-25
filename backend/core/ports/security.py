@@ -1,4 +1,4 @@
-"""Security ports — tokens and password hashing.
+"""Security ports - tokens and password hashing.
 
 Implemented by SimpleJWT and Django's hashers respectively. The domain knows a token is an
 opaque string with claims; it does not know what JWT is.
@@ -46,7 +46,7 @@ class TokenService(ABC):
 
     @abstractmethod
     def revoke(self, refresh_token: str) -> None:
-        """Blacklist a refresh token. Idempotent — revoking twice is not an error."""
+        """Blacklist a refresh token. Idempotent - revoking twice is not an error."""
 
 
 class PasswordHasher(ABC):

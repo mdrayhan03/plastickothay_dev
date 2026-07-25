@@ -26,7 +26,7 @@ class TestLiking:
         assert result.liked_by_me is True
 
     def test_anonymous_user_can_like(self, like, make_user, make_post):
-        """DEC-1: recorded and counted — it just pays nobody (see test_points)."""
+        """DEC-1: recorded and counted - it just pays nobody (see test_points)."""
         alice = make_user("alice")
         post = make_post(reporter_id=alice.id)
 
@@ -55,7 +55,7 @@ class TestLiking:
     def test_anonymous_likes_are_not_deduplicated(self, like, make_user, make_post):
         """Anonymous callers have no stable identity, so nothing can bind them.
 
-        This is precisely why DEC-1 makes them worth zero points — the constraint that
+        This is precisely why DEC-1 makes them worth zero points - the constraint that
         stops abuse for authenticated users cannot exist here.
         """
         alice = make_user("alice")

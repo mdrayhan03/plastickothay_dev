@@ -50,7 +50,7 @@ export function AboutPage() {
           <h2 className="font-display text-base font-bold">Our mission</h2>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-2">
             Dhaka generates more plastic waste than its systems can clear. {name} turns everyday
-            people into the eyes of the city — a shared, verified map of where plastic pollution is
+            people into the eyes of the city - a shared, verified map of where plastic pollution is
             worst, so communities and authorities can act where it matters most.
           </p>
         </section>

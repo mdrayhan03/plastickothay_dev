@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 /**
- * Brand mark — the map-pin-made-of-a-plastic-bottle, drawn with currentColor so it takes on
+ * Brand mark - the map-pin-made-of-a-plastic-bottle, drawn with currentColor so it takes on
  * whatever text color it sits in (brand green on light surfaces, white on a brand tile).
  */
 export function LogoMark({ className }: { className?: string }) {

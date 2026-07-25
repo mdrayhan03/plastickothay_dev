@@ -1,7 +1,7 @@
 """Email notifier via Django's mail layer.
 
 Two-layer design (LLD §6): this adapter speaks the domain's Notifier intent (send_otp,
-send_post_approved). The transport — Mailjet in prod via Anymail, console in dev — is Django's
+send_post_approved). The transport - Mailjet in prod via Anymail, console in dev - is Django's
 EMAIL_BACKEND, chosen in settings. The domain never sees a subject line or an HTML body.
 
 No Celery, so send() is synchronous inside the request. A short timeout is enforced by the
@@ -40,7 +40,7 @@ class MailjetNotifier(Notifier):
         self._send(
             to,
             "Your PlasticKothay report was approved",
-            "Thank you — your report is now visible on the public map.",
+            "Thank you - your report is now visible on the public map.",
         )
 
     def send_post_rejected(self, to: str, post: Post, reason: str) -> None:

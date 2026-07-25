@@ -1,4 +1,4 @@
-"""Auth API views — thin: validate → use case → serialize.
+"""Auth API views - thin: validate → use case → serialize.
 
 No business logic here. Domain errors propagate to the exception handler (LLD §8.5).
 """
@@ -83,7 +83,7 @@ class VerifyOTPView(APIView):
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "otp_resend"  # 3/hour — OTP emails cost money and enable spam
+    throttle_scope = "otp_resend"  # 3/hour - OTP emails cost money and enable spam
 
     def post(self, request):
         data = _validated(ResendOTPSerializer, request)
@@ -96,7 +96,7 @@ class ResendOTPView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "login"  # 10/hour/IP — blunts credential stuffing
+    throttle_scope = "login"  # 10/hour/IP - blunts credential stuffing
 
     def post(self, request):
         data = _validated(LoginSerializer, request)

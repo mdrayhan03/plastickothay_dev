@@ -2,7 +2,7 @@
 
 Speaks domain intent ("send an OTP"), not transport ("send this HTML with this subject").
 The transport strategy is Django's EMAIL_BACKEND, which lives *inside* the Mailjet adapter
-— two layers, deliberately: this port is what lets tests fake email entirely, and it stops
+- two layers, deliberately: this port is what lets tests fake email entirely, and it stops
 subjects and templates leaking into use cases.
 """
 

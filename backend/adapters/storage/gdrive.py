@@ -1,8 +1,8 @@
-"""Google Drive image storage — the production ImageStorage adapter.
+"""Google Drive image storage - the production ImageStorage adapter.
 
 Ports the legacy backend_old/fileupload.py behind the port, with two changes:
   - takes decoded bytes, not a base64 string (base64 is decoded at the serializer, LLD §7.1)
-  - the Drive client is built lazily, so importing this module needs no credentials — the
+  - the Drive client is built lazily, so importing this module needs no credentials - the
     container only instantiates it when GOOGLE_CREDENTIALS is configured.
 
 Auth: a service-account JSON file (GOOGLE_SERVICE_ACCOUNT_FILE) or base64 JSON in the
@@ -21,7 +21,7 @@ from core.ports.storage import ImageStorage
 PROVIDER = "gdrive"
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "143-8VgTr2KPveoPtcJ4s2SZGrT1w8Vth")
-TIMEOUT = int(os.getenv("GOOGLE_DRIVE_TIMEOUT", "30"))  # seconds — no Celery, so cap the hang
+TIMEOUT = int(os.getenv("GOOGLE_DRIVE_TIMEOUT", "30"))  # seconds - no Celery, so cap the hang
 
 
 def _credentials():

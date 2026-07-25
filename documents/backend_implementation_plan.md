@@ -29,8 +29,8 @@ graph TD
 
     B0 --> B1 --> B2 --> B3 --> B4 --> B5 --> B6 --> B7
     DB ==>|"HARD BLOCKER"| B1
-    MAIL -.->|"soft — console<br/>backend stubs it"| B2
-    DRIVE -.->|"soft — fake adapter<br/>stubs it"| B3
+    MAIL -.->|"soft - console<br/>backend stubs it"| B2
+    DRIVE -.->|"soft - fake adapter<br/>stubs it"| B3
 
     style B0 fill:#1b5e20,stroke:#4caf50,stroke-width:3px,color:#fff
     style DB fill:#b71c1c,stroke:#f44336,stroke-width:2px,color:#fff
@@ -44,7 +44,7 @@ paying rent, not a workaround.
 
 ---
 
-## 2. What "done" looks like — the target request flow
+## 2. What "done" looks like - the target request flow
 
 Every milestone from B2 onward adds one vertical slice through these layers. Nothing skips a layer.
 
@@ -84,14 +84,14 @@ concerns die at the port. `core/` sees neither.
 
 ---
 
-## 3. B0 in detail — starting now
+## 3. B0 in detail - starting now
 
 B0 builds the hexagon and nothing else. No Django settings changes, no migrations, no `pip install`
 beyond dev tooling.
 
 ```mermaid
 graph LR
-    subgraph core ["core/ — pure Python"]
+    subgraph core ["core/ - pure Python"]
         direction TB
         D["<b>domain/</b><br/>entities.py<br/>value_objects.py<br/>errors.py<br/>points.py"]
         P["<b>ports/</b><br/>repositories.py<br/>storage.py · notifications.py<br/>security.py · unit_of_work.py<br/>clock.py"]
@@ -99,7 +99,7 @@ graph LR
         A --> D
         A --> P
     end
-    subgraph tests ["tests/ — no DB required"]
+    subgraph tests ["tests/ - no DB required"]
         F["<b>fakes/</b><br/>InMemoryPostRepo<br/>InMemoryUserRepo<br/>FakeClock · FakeStorage<br/>FakeNotifier · FakeUoW"]
         T["<b>unit/</b><br/>use case tests<br/>domain tests"]
         T --> F
@@ -121,17 +121,17 @@ graph LR
 | # | Task |
 |---|---|
 | 1 | Create `core/`, `adapters/`, `api/`, `config/` skeleton alongside the existing apps (old apps untouched until B7) |
-| 2 | `core/domain/value_objects.py` — `Severity`, `PostStatus`, `EngagementType`, `Role`, `Reporter`, `GeoPoint`, `ImageRef` |
-| 3 | `core/domain/entities.py` — `User`, `Post`, `Engagement`, `PointRule`, `LevelRule`, `Feedback`, `ContactMessage`, `ContactPage`, `PostModerationLog` |
-| 4 | `core/domain/errors.py` — the `DomainError` tree (§4.3 of the LLD) |
-| 5 | `core/domain/points.py` — the four counting rules (§5.3), pure functions |
-| 6 | `core/ports/*.py` — all ABCs from §6, including `UnitOfWork` and `Clock` |
-| 7 | `core/application/**` — every use case from §7, ports injected, no framework imports |
-| 8 | `tests/fakes/` — in-memory repos, `FakeClock`, `FakeStorage`, `FakeNotifier`, `FakeUnitOfWork` |
-| 9 | `tests/unit/` — use case + domain tests |
+| 2 | `core/domain/value_objects.py` - `Severity`, `PostStatus`, `EngagementType`, `Role`, `Reporter`, `GeoPoint`, `ImageRef` |
+| 3 | `core/domain/entities.py` - `User`, `Post`, `Engagement`, `PointRule`, `LevelRule`, `Feedback`, `ContactMessage`, `ContactPage`, `PostModerationLog` |
+| 4 | `core/domain/errors.py` - the `DomainError` tree (§4.3 of the LLD) |
+| 5 | `core/domain/points.py` - the four counting rules (§5.3), pure functions |
+| 6 | `core/ports/*.py` - all ABCs from §6, including `UnitOfWork` and `Clock` |
+| 7 | `core/application/**` - every use case from §7, ports injected, no framework imports |
+| 8 | `tests/fakes/` - in-memory repos, `FakeClock`, `FakeStorage`, `FakeNotifier`, `FakeUnitOfWork` |
+| 9 | `tests/unit/` - use case + domain tests |
 | 10 | `.importlinter` config + CI wiring |
 
-### B0 exit criteria — the architecture's acceptance test
+### B0 exit criteria - the architecture's acceptance test
 
 ```
 pytest tests/unit/          # green, with PostgreSQL not installed and not running
@@ -169,7 +169,7 @@ Those are the rules the whole product rests on, and every one is testable before
 | **B3** | Reports | The PII leak (§8.3) | anon + auth submit; public list is APPROVED-only; map endpoint separate; cursor pagination; **reporter email/phone unreachable without admin token** |
 | **B4** | Moderation | Domain logic bypass | approve/reject/hide/unhide; Drive delete on reject; Mailjet notify; moderation log; soft delete |
 | **B5** | Engagement & scoring | Point-farming; leaderboard perf | partial unique constraint holds under concurrent double-like; 4 leaderboard periods; §3 rules green against real SQL |
-| **B6** | Content | — | contact page CRUD, messages, feedback; Django admin on config tables **only** |
+| **B6** | Content | - | contact page CRUD, messages, feedback; Django admin on config tables **only** |
 | **B7** | Hardening & cutover | Silent perm gaps | throttles on `DatabaseCache`; Drive/Mailjet timeouts; **permission matrix test per endpoint**; old apps + templates deleted; Whitenoise serves `dist/` |
 
 ### Sequencing rationale
@@ -198,7 +198,7 @@ graph LR
 
 B0→B1 first because both are near-irreversible: the import rule shapes every later file, and
 `AUTH_USER_MODEL` cannot be changed after the first migration runs. B2→B3 next because they retire the
-two design bets most likely to be wrong in practice — the httpOnly/same-origin cookie flow, and the
+two design bets most likely to be wrong in practice - the httpOnly/same-origin cookie flow, and the
 public/admin serializer split that closes the live PII leak. Everything after that is additive.
 
 ---
@@ -226,11 +226,11 @@ and the Mongo dependencies. All recoverable from git.
 
 | When | What | Status |
 |---|---|---|
-| now | nothing — B0 is unblocked | ✅ starting |
+| now | nothing - B0 is unblocked | ✅ starting |
 | before B1 | **Supabase `DATABASE_URL`** | ⛔ hard blocker |
 | before B1 | Pooler (6543) or direct (5432)? Pooler needs `DISABLE_SERVER_SIDE_CURSORS=True` + `CONN_MAX_AGE=0` | ⛔ settings decision |
 | before B2 (soft) | Mailjet keys + `DEFAULT_FROM_EMAIL` | console backend stubs it |
 | before B3 (soft) | Drive service account (`file.json` or `GOOGLE_CREDENTIALS` b64) | fake adapter stubs it |
-| ongoing | Review cadence — per milestone recommended | your call |
+| ongoing | Review cadence - per milestone recommended | your call |
 
 `DJANGO_KEY` I'll generate for dev. `FOLDER_ID` is already in `fileupload.py:13`.

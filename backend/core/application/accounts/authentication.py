@@ -1,7 +1,7 @@
 """Login, token refresh, and logout.
 
 Sessions are gone: the legacy flow set `request.session['user_id']` plus a `remember_me`
-cookie. Tokens replace both. Logout is real here — revoking the refresh token is server-side
+cookie. Tokens replace both. Logout is real here - revoking the refresh token is server-side
 state, without which "logout" would only mean "the client forgot" (LLD §8.1).
 """
 

@@ -10,7 +10,7 @@ class ModerateSerializer(serializers.Serializer):
 
 
 class AdminUserSerializer(serializers.Serializer):
-    """Full user row for staff/admin — no password, but role and active state included."""
+    """Full user row for staff/admin - no password, but role and active state included."""
 
     id = serializers.IntegerField()
     username = serializers.CharField()

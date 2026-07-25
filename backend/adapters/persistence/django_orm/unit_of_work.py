@@ -1,12 +1,12 @@
 """Django transaction adapter for the UnitOfWork port.
 
-This is the one place transaction.atomic() lives on the write path — the reason the port
+This is the one place transaction.atomic() lives on the write path - the reason the port
 exists is to keep that Django import out of core/ while still letting use cases declare
 all-or-nothing boundaries (LLD §6).
 
 Implementation note: atomic() is entered lazily on __enter__ and committed by leaving the
 block cleanly; an exception (or a missing commit()) triggers atomic()'s own rollback. commit()
-is a marker that the work should stand — the actual COMMIT is Django's on block exit.
+is a marker that the work should stand - the actual COMMIT is Django's on block exit.
 """
 
 from types import TracebackType

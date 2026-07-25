@@ -1,4 +1,4 @@
-"""Badge award rules — pure, no DB."""
+"""Badge award rules - pure, no DB."""
 
 from core.domain.badges import newly_earned, qualifies
 from core.domain.entities import BadgeRule

@@ -104,7 +104,7 @@ class TestLikePoints:
         Otherwise a five-line script with no account prints unlimited points.
         """
         result = score([make_post(1, ALICE)], [like(1, None)])
-        assert result[ALICE].points == 100  # post only — no like points
+        assert result[ALICE].points == 100  # post only - no like points
         assert result[ALICE].likes_received == 0
 
     def test_self_like_awards_zero_to_both_sides(self):
@@ -168,7 +168,7 @@ class TestRuleChanges:
         rules = {**DEFAULT_POINT_RULES, RULE_LIKE_RECEIVED: 0, RULE_LIKE_GIVEN: 0}
         result = score([make_post(1, ALICE)], [like(1, BOB)], rules)
 
-        assert result[ALICE].points == 100  # post only — the like no longer pays
+        assert result[ALICE].points == 100  # post only - the like no longer pays
         assert result[ALICE].likes_received == 1  # but is still counted
         assert result[BOB].points == 0
         assert result[BOB].likes_given == 1

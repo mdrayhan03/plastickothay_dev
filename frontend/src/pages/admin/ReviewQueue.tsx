@@ -202,7 +202,7 @@ function IconBtn({
   )
 }
 
-/** Shared dense report table — reused by Review Queue and All Reports. */
+/** Shared dense report table - reused by Review Queue and All Reports. */
 export function ReportTable({
   posts,
   loading,

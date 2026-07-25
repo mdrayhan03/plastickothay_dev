@@ -1,4 +1,4 @@
-# Backend Milestones B1–B7 — detailed breakdown
+# Backend Milestones B1–B7 - detailed breakdown
 
 **Branch:** `backend`
 **Companion to:** `backend_implementation_plan.md` (§4 has the summary table this expands)
@@ -58,7 +58,7 @@ adapters carry the work and the real ones drop in when keys arrive.
 **Goal:** Django enters the project. Domain entities gain a database.
 **Blocker (resolved):** built with a SQLite fallback so no credential was needed; real-Postgres
 validation against Supabase still pends `DATABASE_URL` + the pooler/direct choice.
-**Risk retired:** `AUTH_USER_MODEL` set before the first migration — locked in correctly.
+**Risk retired:** `AUTH_USER_MODEL` set before the first migration - locked in correctly.
 **Full detail:** `b1_implementation_report.md`.
 
 ### Tasks
@@ -68,16 +68,16 @@ validation against Supabase still pends `DATABASE_URL` + the pooler/direct choic
 | 1 | Django + DRF + SimpleJWT + psycopg → `requirements.txt` (+ `requirements-dev.txt`) | ✅ |
 | 2 | `manage.py`, `config/settings/{base,dev,prod,test}.py`, `config/urls.py`, `config/wsgi.py` | ✅ |
 | 3 | **`AUTH_USER_MODEL` set before any migration** ⚠️ | ✅ |
-| 4 | `models.py` — all 12 tables (LLD §9.2) | ✅ |
+| 4 | `models.py` - all 12 tables (LLD §9.2) | ✅ |
 | 5 | Constraints & indexes: partial unique on likes, severity/lat/lon checks, `ContactPage` singleton | ✅ |
-| 6 | `mappers.py` — row ↔ domain, both directions | ✅ |
-| 7 | `repositories.py` — every port except `LeaderboardRepository` (B5) | ✅ |
-| 8 | `unit_of_work.py` — wraps `transaction.atomic()` | ✅ |
+| 6 | `mappers.py` - row ↔ domain, both directions | ✅ |
+| 7 | `repositories.py` - every port except `LeaderboardRepository` (B5) | ✅ |
+| 8 | `unit_of_work.py` - wraps `transaction.atomic()` | ✅ |
 | 9 | `adapters/security/password_hasher.py`, `adapters/system/clock.py` | ✅ |
-| 10 | `config/container.py` — composition root | ✅ |
-| 11 | `manage.py seed_rules` — point + level rules, idempotent | ✅ |
-| 12 | `tests/integration/` — repository tests (SQLite now, Postgres in CI) | ✅ |
-| 13 | CI: `pytest` + `lint-imports` + `ruff` | ⬜ **carried to B2** — gates run locally; not yet wired in CI |
+| 10 | `config/container.py` - composition root | ✅ |
+| 11 | `manage.py seed_rules` - point + level rules, idempotent | ✅ |
+| 12 | `tests/integration/` - repository tests (SQLite now, Postgres in CI) | ✅ |
+| 13 | CI: `pytest` + `lint-imports` + `ruff` | ⬜ **carried to B2** - gates run locally; not yet wired in CI |
 
 ### Design notes
 
@@ -86,33 +86,33 @@ accounts, conflating "not yet verified" with "banned". Kept separate: `is_verifi
 sign-in, `is_active` (Django's, defaults `True`) means not banned.
 
 **Role mapping.** `user_type` 1/2/3 → `is_superuser` / `is_staff` / neither, derived in the
-mapper (`role_from_flags` / `flags_from_role`). There is no role column — Django's permission
+mapper (`role_from_flags` / `flags_from_role`). There is no role column - Django's permission
 system stays authoritative, and "make staff/admin" is just flipping flags.
 
 **Supabase pooler (6543)** runs pgBouncer in transaction mode → `DISABLE_SERVER_SIDE_CURSORS`
 + `CONN_MAX_AGE=0`, toggled by the `DB_POOLED` env var in `base.py`. Direct (5432) needs
 neither. Both are wired; the choice is just which URL you supply.
 
-**`def list()` shadowing** — pre-empted with `from __future__ import annotations` in
+**`def list()` shadowing** - pre-empted with `from __future__ import annotations` in
 `repositories.py`, as flagged in the B0 report.
 
 ### Findings (see `b1_implementation_report.md` §3)
 
 **A real transaction bug, caught by an integration test.** An `IntegrityError` raised *inside*
-an atomic block marks the whole transaction broken — every later query then raises
+an atomic block marks the whole transaction broken - every later query then raises
 `TransactionManagementError`. `LikePost` catches `AlreadyLiked` then reads `count()` in the
 same request, so this would turn a duplicate-like (409) into a 500 in production. Fixed by
 wrapping each constraint-bearing insert (`User.add`, `Engagement.add`) in its own savepoint.
-This is the class of bug the fakes cannot surface — the reason integration tests exist.
+This is the class of bug the fakes cannot surface - the reason integration tests exist.
 
 ### Decisions taken during B1
 
-- **SQLite fallback** when `DATABASE_URL` is unset — unblocks local dev and matches the
+- **SQLite fallback** when `DATABASE_URL` is unset - unblocks local dev and matches the
   test-SQLite / prod-Postgres strategy. Postgres-only behaviour (concurrency) deferred to B5.
-- **Denormalised `post_owner_user` on `Engagement`** — the B5 leaderboard SQL filters likes by
+- **Denormalised `post_owner_user` on `Engagement`** - the B5 leaderboard SQL filters likes by
   the post owner; storing it (immutable) avoids a self-join. Captured on insert, tested.
-- **`requirements.txt` split** — runtime vs dev tooling, so prod images skip pytest/ruff.
-- **Supabase transaction pooler (6543) needs two psycopg3 fixes** — `DISABLE_SERVER_SIDE_CURSORS`
+- **`requirements.txt` split** - runtime vs dev tooling, so prod images skip pytest/ruff.
+- **Supabase transaction pooler (6543) needs two psycopg3 fixes** - `DISABLE_SERVER_SIDE_CURSORS`
   and `OPTIONS={"prepare_threshold": None}`. Each transaction gets a different backend, so
   server-side cursors and prepared statements break without these. Toggled by `DB_POOLED` in
   `base.py`. (Session pooler on 5432 needs neither, but both are harmless.)
@@ -123,13 +123,13 @@ This is the class of bug the fakes cannot surface — the reason integration tes
 
 ### Exit criteria
 
-- [x] `migrate` applies cleanly — ✅ **Supabase Postgres 17.6** (transaction pooler) and SQLite
-- [x] Repository integration tests green against **real Postgres** — **15 passed** on Supabase
-- [x] `pytest tests/unit/` still green with no DB — **76 passed**, fakes unaffected
-- [x] `lint-imports` still 4/4 — Django did not leak into `core/`
-- [x] Partial unique index rejects a duplicate like — verified in real Postgres (`pg_indexes`)
+- [x] `migrate` applies cleanly - ✅ **Supabase Postgres 17.6** (transaction pooler) and SQLite
+- [x] Repository integration tests green against **real Postgres** - **15 passed** on Supabase
+- [x] `pytest tests/unit/` still green with no DB - **76 passed**, fakes unaffected
+- [x] `lint-imports` still 4/4 - Django did not leak into `core/`
+- [x] Partial unique index rejects a duplicate like - verified in real Postgres (`pg_indexes`)
 - [x] All 5 check constraints materialised in Postgres (`pg_constraint`)
-- [ ] CI runs all three gates — **carried to B2**
+- [ ] CI runs all three gates - **carried to B2**
 
 **B1 is fully validated.** Connected to Supabase, migrated, seeded, and ran the integration
 suite against real Postgres. The transaction pooler needed two psycopg3 fixes (below).
@@ -139,7 +139,7 @@ suite against real Postgres. The transaction pooler needed two psycopg3 fixes (b
 # B2 · Auth vertical slice ⏳ next
 
 **Goal:** register → OTP → verify → login → refresh → logout, end to end.
-**Blocker:** none hard. Mailjet is soft — Django's console backend stubs it.
+**Blocker:** none hard. Mailjet is soft - Django's console backend stubs it.
 **Risk retired:** the httpOnly cookie + same-origin design actually works.
 **Inherited from B1:** the `token_blacklist` app is already installed and migrated; the
 `REST_FRAMEWORK` auth/exception/pagination hooks were left unset in `base.py` and are wired
@@ -151,13 +151,13 @@ B1-carried CI task (task 13) as part of this milestone.
 | # | Task |
 |---|---|
 | 0 | **CI wiring** (carried from B1): `pytest` + `lint-imports` + `ruff` on every push |
-| 1 | `adapters/security/jwt_service.py` — SimpleJWT behind the `TokenService` port |
+| 1 | `adapters/security/jwt_service.py` - SimpleJWT behind the `TokenService` port |
 | 2 | Wire `REST_FRAMEWORK` `DEFAULT_AUTHENTICATION_CLASSES`, `EXCEPTION_HANDLER`, `DEFAULT_PAGINATION_CLASS` (stubbed out in B1's `base.py`) |
-| 3 | `api/authentication.py` — **returns `None`, not 401, when no token**, so anonymous reaches `AllowAny` |
-| 4 | `api/permissions.py` — `IsAdmin`, `IsStaffOrAdmin` |
-| 5 | `api/exception_handler.py` — `DomainError` → HTTP, one place (LLD §8.5) |
-| 6 | `api/pagination.py` — cursor over `(created DESC, id DESC)` (the repo already emits these cursors) |
-| 7 | `api/auth/` — serializers, views, urls for all 8 endpoints |
+| 3 | `api/authentication.py` - **returns `None`, not 401, when no token**, so anonymous reaches `AllowAny` |
+| 4 | `api/permissions.py` - `IsAdmin`, `IsStaffOrAdmin` |
+| 5 | `api/exception_handler.py` - `DomainError` → HTTP, one place (LLD §8.5) |
+| 6 | `api/pagination.py` - cursor over `(created DESC, id DESC)` (the repo already emits these cursors) |
+| 7 | `api/auth/` - serializers, views, urls for all 8 endpoints |
 | 8 | Refresh cookie: `HttpOnly; Secure; SameSite=Lax; Path=/api/auth/` |
 | 9 | `adapters/notifications/mailjet.py` (console backend in dev) |
 | 10 | API + permission tests |
@@ -185,17 +185,17 @@ ties up a Gunicorn worker until it dies.
 # B3 · Reports
 
 **Goal:** submit, list, map, detail.
-**Blocker:** none hard. Drive is soft — a fake `ImageStorage` covers dev.
+**Blocker:** none hard. Drive is soft - a fake `ImageStorage` covers dev.
 **Risk retired:** ⚠️ **the live PII leak.**
 
 ### Tasks
 
 | # | Task |
 |---|---|
-| 1 | `adapters/storage/gdrive.py` — wrap `backend_old/fileupload.py` behind `ImageStorage` |
-| 2 | `api/reports/serializers.py` — **the public/admin split** |
+| 1 | `adapters/storage/gdrive.py` - wrap `backend_old/fileupload.py` behind `ImageStorage` |
+| 2 | `api/reports/serializers.py` - **the public/admin split** |
 | 3 | Base64 decode at the serializer (never in a use case) |
-| 4 | `api/reports/views.py` — list, create, detail, patch, map |
+| 4 | `api/reports/views.py` - list, create, detail, patch, map |
 | 5 | Cursor pagination implementation |
 | 6 | Throttle: `anon_post_submit` 5/hour/IP |
 | 7 | **PII regression test** |
@@ -204,12 +204,12 @@ ties up a Gunicorn worker until it dies.
 
 | Serializer | Exposes |
 |---|---|
-| `PublicPostSerializer` | `reporter.name` only — **never email/phone** |
+| `PublicPostSerializer` | `reporter.name` only - **never email/phone** |
 | `MapMarkerSerializer` | id, lat, lon, severity |
 | `AdminPostSerializer` | everything, admin token required |
 | `OwnPostSerializer` | public fields + own status |
 
-Legacy `posts()` defaulted to `Post.objects()` — every post, any status — and the planned
+Legacy `posts()` defaulted to `Post.objects()` - every post, any status - and the planned
 serializer exposed `email` and `pN`. Ported as-is, `/api/posts/` would have published the
 name, email and phone of everyone who ever filed a report. The use case now pins
 `statuses=(APPROVED,)`; status is not a public query parameter.
@@ -234,7 +234,7 @@ name, email and phone of everyone who ever filed a report. The use case now pins
 
 | # | Task |
 |---|---|
-| 1 | `api/admin/views.py` — approve, reject, hide, unhide, review list, stats |
+| 1 | `api/admin/views.py` - approve, reject, hide, unhide, review list, stats |
 | 2 | `IsStaffOrAdmin` on every route |
 | 3 | Drive delete on reject; Mailjet notify on approve/reject |
 | 4 | Moderation log written on every action |
@@ -266,24 +266,24 @@ rejected reporter resubmit the same thing.
 # B5 · Engagement & scoring
 
 **Goal:** likes, points, leaderboard.
-**Blocker:** docker (or a Supabase test schema) — see open question 3.
+**Blocker:** docker (or a Supabase test schema) - see open question 3.
 **Risk retired:** point farming; leaderboard performance; **SQL/Python rule drift.**
 
 ### Tasks
 
 | # | Task |
 |---|---|
-| 1 | `api/engagement/views.py` — like / unlike |
+| 1 | `api/engagement/views.py` - like / unlike |
 | 2 | Repository translates `IntegrityError` → `AlreadyLiked` (**never check-then-act**) |
-| 3 | `PostgresLeaderboardRepository` — the raw SQL from LLD §5.4 |
-| 4 | **`tests/contract/` — the shared suite, parametrized over fake AND Postgres** |
+| 3 | `PostgresLeaderboardRepository` - the raw SQL from LLD §5.4 |
+| 4 | **`tests/contract/` - the shared suite, parametrized over fake AND Postgres** |
 | 5 | Concurrency test: two simultaneous likes → exactly one row |
-| 6 | `api/scoring/views.py` — leaderboard (4 periods), contribution |
+| 6 | `api/scoring/views.py` - leaderboard (4 periods), contribution |
 | 7 | Throttles: `anon_like` 30/hour/IP, `auth_like` 200/day/user |
 
 ### The contract suite is the point of this milestone
 
-The rules now live in **two** places — `core/domain/points.py` (spec, used by the fake) and
+The rules now live in **two** places - `core/domain/points.py` (spec, used by the fake) and
 raw SQL (production). They can drift silently: tweak the self-like exclusion in Python, the
 SQL keeps counting it, unit tests stay green, and the live leaderboard is wrong.
 
@@ -319,10 +319,10 @@ makes the swap-later plan real rather than aspirational.
 
 | # | Task |
 |---|---|
-| 1 | `api/content/views.py` — contact page GET (public) / PUT (admin) |
+| 1 | `api/content/views.py` - contact page GET (public) / PUT (admin) |
 | 2 | Contact messages: POST (public), list + PATCH status (admin) |
 | 3 | Feedback: POST (public), list (admin) |
-| 4 | Django admin — **config tables only** |
+| 4 | Django admin - **config tables only** |
 | 5 | Sanitize `ContactPage.intro` on write if it becomes rich text |
 
 ### Django admin, narrowly
@@ -355,7 +355,7 @@ even this later.
 
 | # | Task |
 |---|---|
-| 1 | `DatabaseCache` + `createcachetable` — **not** `LocMemCache` |
+| 1 | `DatabaseCache` + `createcachetable` - **not** `LocMemCache` |
 | 2 | All throttle scopes from LLD §8.6 |
 | 3 | Timeouts verified on Drive and Mailjet |
 | 4 | **Permission matrix test: every endpoint × anonymous/auth/staff/superuser** |
@@ -366,12 +366,12 @@ even this later.
 
 ### Design notes
 
-**`LocMemCache` is per-process** — with 4 Gunicorn workers a "10/hour" throttle becomes
+**`LocMemCache` is per-process** - with 4 Gunicorn workers a "10/hour" throttle becomes
 ~40/hour and drifts by whichever worker serves the request. `DatabaseCache` is shared and
 correct; slower than Redis, fine at this scale.
 
 **Same-origin is load-bearing, not a preference.** The httpOnly refresh cookie only works
-first-party. Django serving `dist/` is the only way to get that without nginx — and it means
+first-party. Django serving `dist/` is the only way to get that without nginx - and it means
 **CORS is not needed in production**.
 
 **The permission matrix is not optional.** The design is "`IsAuthenticated` by default + 12
@@ -393,15 +393,15 @@ either breaks the public map or leaks reporter PII, silently.
 
 | # | Question | Needed by | Status |
 |---|---|---|---|
-| 1 | **Supabase `DATABASE_URL`** — validate B1 against real Postgres | B1 | ✅ done — migrated + 15 tests green on Supabase |
-| 2 | Pooler or direct? | B1 | ✅ resolved — transaction pooler (6543), fixes applied |
-| 3 | **Docker** for a *local* Postgres in tests/CI (`TEST_DATABASE_URL`) — the remote pooler is unfit for the test suite | B5 | 🟡 open, now recommended |
-| 4 | **Level thresholds** — `seed.py` uses 0/100/300/700/1500. A guess, not your decision | B5 | 🟡 open |
+| 1 | **Supabase `DATABASE_URL`** - validate B1 against real Postgres | B1 | ✅ done - migrated + 15 tests green on Supabase |
+| 2 | Pooler or direct? | B1 | ✅ resolved - transaction pooler (6543), fixes applied |
+| 3 | **Docker** for a *local* Postgres in tests/CI (`TEST_DATABASE_URL`) - the remote pooler is unfit for the test suite | B5 | 🟡 open, now recommended |
+| 4 | **Level thresholds** - `seed.py` uses 0/100/300/700/1500. A guess, not your decision | B5 | 🟡 open |
 | 5 | **Week starts Monday** (ISO) or Sunday (common in BD)? Reshapes every weekly leaderboard | B5 | 🟡 open |
-| 6 | Mailjet keys | B2 | 🟢 soft — console backend stubs it |
-| 7 | Drive service account | B3 | 🟢 soft — fake `ImageStorage` stubs it |
-| 8 | `ContactPage.intro` — plain text or rich text? Rich text needs sanitization | B6 | 🟡 open |
+| 6 | Mailjet keys | B2 | 🟢 soft - console backend stubs it |
+| 7 | Drive service account | B3 | 🟢 soft - fake `ImageStorage` stubs it |
+| 8 | `ContactPage.intro` - plain text or rich text? Rich text needs sanitization | B6 | 🟡 open |
 
 **Nothing blocks starting B2.** #1 is a validation step best cleared before B2 is considered
-shippable, but it does not gate writing B2 — the auth API runs on the repositories against
+shippable, but it does not gate writing B2 - the auth API runs on the repositories against
 SQLite for development.

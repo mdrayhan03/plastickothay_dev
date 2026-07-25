@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { Avatar } from '@/components/Avatar'
 import { readImageAsDataUrl } from '@/lib/image'
 
-/** Circular avatar with a camera overlay — tap to pick and downscale a profile photo. */
+/** Circular avatar with a camera overlay - tap to pick and downscale a profile photo. */
 export function AvatarPicker({
   name,
   value,

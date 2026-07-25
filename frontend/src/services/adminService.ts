@@ -27,7 +27,7 @@ export const adminService = {
     const { data } = await api.get<AdminAnalytics>('/admin/analytics/')
     return data
   },
-  /** All Reports — the review-list view accepts repeated ?status= filters. */
+  /** All Reports - the review-list view accepts repeated ?status= filters. */
   async reports(params: { statuses?: string[]; severity?: number; cursor?: string } = {}) {
     const { data } = await api.get<Page<AdminPost>>('/admin/posts/', {
       params: { status: params.statuses, severity: params.severity, cursor: params.cursor },

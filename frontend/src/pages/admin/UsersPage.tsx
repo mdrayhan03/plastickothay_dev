@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, BadgeCheck, Mail, Phone, Trash2 } from 'lucide-react'
+import { AlertTriangle, BadgeCheck, Mail, Phone, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { RoleChip } from '@/components/admin/Chips'
 import { Drawer } from '@/components/admin/Drawer'
@@ -26,6 +27,8 @@ export function UsersPage() {
   const [roleTab, setRoleTab] = useState<(typeof ROLE_TABS)[number]['key']>('all')
   const [activeOnly, setActiveOnly] = useState<'all' | 'active' | 'inactive'>('all')
   const [openId, setOpenId] = useState<number | null>(null)
+  const [params, setParams] = useSearchParams()
+  const q = params.get('q')?.trim().toLowerCase() ?? ''
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: qk.adminUsers,
@@ -45,12 +48,29 @@ export function UsersPage() {
   const users = (data?.results ?? [])
     .filter((u) => (roleTab === 'all' ? true : u.role === roleTab))
     .filter((u) => (activeOnly === 'all' ? true : activeOnly === 'active' ? u.is_active : !u.is_active))
+    .filter((u) =>
+      q ? `${u.first_name} ${u.last_name} ${u.username} ${u.email}`.toLowerCase().includes(q) : true,
+    )
 
   const open = data?.results.find((u) => u.id === openId) ?? null
 
   return (
     <div className="space-y-5">
       <h1 className="font-display text-2xl font-extrabold">Users</h1>
+
+      {q && (
+        <div className="flex items-center gap-2 text-sm text-ink-2">
+          <span>
+            Search results for <b className="text-ink">“{params.get('q')}”</b>
+          </span>
+          <button
+            onClick={() => setParams({}, { replace: true })}
+            className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-[12px] font-bold text-ink-2 hover:bg-surface"
+          >
+            <X className="size-3.5" /> Clear
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex gap-1 rounded-xl border border-line bg-surface-2 p-1">

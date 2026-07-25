@@ -6,6 +6,7 @@ export interface AuthState {
   status: 'loading' | 'authed' | 'anon'
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  setUser: (user: AuthUser) => void
   isStaff: boolean
 }
 

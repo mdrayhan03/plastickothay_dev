@@ -17,7 +17,14 @@ vi.mock('@/services/contentService', () => ({
   },
 }))
 
-const anon = { user: null, status: 'anon' as const, login: vi.fn(), logout: vi.fn(), isStaff: false }
+const anon = {
+  user: null,
+  status: 'anon' as const,
+  login: vi.fn(),
+  logout: vi.fn(),
+  setUser: vi.fn(),
+  isStaff: false,
+}
 
 function renderPage(ui: ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })

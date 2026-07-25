@@ -31,9 +31,11 @@ from core.domain.ids import ContactMessageId, PostId, UserId
 from core.domain.pagination import Page, PageRequest
 from core.domain.points import Rules
 from core.domain.read_models import (
+    AdminMapMarker,
     Contribution,
     LeaderboardRow,
     MapMarker,
+    PostAnalytics,
     PostFilter,
     StatusCounts,
 )
@@ -68,6 +70,10 @@ class UserRepository(ABC):
 
     @abstractmethod
     def set_active(self, id: UserId, is_active: bool) -> User: ...
+
+    @abstractmethod
+    def delete(self, id: UserId) -> None:
+        """Hard delete. Their posts' reporter FK is SET_NULL (kept, anonymised)."""
 
     @abstractmethod
     def touch_last_login(self, id: UserId, at: datetime) -> None: ...
@@ -110,7 +116,16 @@ class PostRepository(ABC):
         """Approved posts only, thin projection — never the full record (LLD §8.4)."""
 
     @abstractmethod
+    def list_admin_map_markers(self) -> list[AdminMapMarker]:
+        """All non-deleted posts (any status), thin projection — for the admin density map."""
+
+    @abstractmethod
     def counts_by_status(self) -> StatusCounts: ...
+
+    @abstractmethod
+    def analytics(self, since: datetime) -> PostAnalytics:
+        """Weekly submitted/approved series since `since`, plus the count of distinct
+        authenticated contributors in that window — for the admin dashboard."""
 
 
 class EngagementRepository(ABC):
@@ -163,9 +178,7 @@ class LeaderboardRepository(ABC):
     """
 
     @abstractmethod
-    def top(
-        self, since: datetime | None, rules: Rules, page: PageRequest
-    ) -> Page[LeaderboardRow]:
+    def top(self, since: datetime | None, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
         """`since` is the inclusive period lower bound (None = all-time), already computed by
         the use case from the period, the clock, and the configured week-start. The adapter
         only filters by it — no time/timezone/period logic lives in the adapter."""
@@ -213,6 +226,10 @@ class ModerationLogRepository(ABC):
 
     @abstractmethod
     def list_for_post(self, post_id: PostId) -> list[PostModerationLog]: ...
+
+    @abstractmethod
+    def list(self, page: PageRequest) -> Page[PostModerationLog]:
+        """All actions, newest first — for the admin audit screen."""
 
 
 class SiteConfigRepository(ABC):

@@ -14,6 +14,7 @@ from datetime import datetime
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
+from django.db.models.functions import TruncWeek
 
 from adapters.persistence.django_orm import mappers
 from adapters.persistence.django_orm import models as orm
@@ -37,7 +38,14 @@ from core.domain.errors import (
 from core.domain.ids import ContactMessageId, PostId, UserId
 from core.domain.pagination import Page, PageRequest
 from core.domain.points import Rules
-from core.domain.read_models import MapMarker, PostFilter, StatusCounts
+from core.domain.read_models import (
+    AdminMapMarker,
+    MapMarker,
+    PostAnalytics,
+    PostFilter,
+    StatusCounts,
+    WeeklyPoint,
+)
 from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
     BadgeRepository,
@@ -111,6 +119,8 @@ class DjangoUserRepository(UserRepository):
                     is_staff=is_staff,
                     is_verified=user.is_verified,
                     is_active=user.is_active,
+                    avatar_provider=user.avatar.provider if user.avatar else "",
+                    avatar_external_id=user.avatar.external_id if user.avatar else "",
                     date_joined=user.date_joined,
                 )
         except IntegrityError as exc:
@@ -135,6 +145,8 @@ class DjangoUserRepository(UserRepository):
         row.is_staff = is_staff
         row.is_verified = user.is_verified
         row.is_active = user.is_active
+        row.avatar_provider = user.avatar.provider if user.avatar else ""
+        row.avatar_external_id = user.avatar.external_id if user.avatar else ""
         row.save()
         return mappers.user_to_domain(row)
 
@@ -164,6 +176,10 @@ class DjangoUserRepository(UserRepository):
         row.is_active = is_active
         row.save(update_fields=["is_active"])
         return mappers.user_to_domain(row)
+
+    def delete(self, id: UserId) -> None:
+        # Posts' reporter_user is SET_NULL, so their reports survive (anonymised).
+        orm.User.objects.filter(pk=id).delete()
 
     def touch_last_login(self, id: UserId, at: datetime) -> None:
         orm.User.objects.filter(pk=id).update(last_login=at)
@@ -253,6 +269,23 @@ class DjangoPostRepository(PostRepository):
             for r in rows
         ]
 
+    def list_admin_map_markers(self) -> list[AdminMapMarker]:
+        from core.domain.value_objects import Severity
+
+        rows = orm.Post.objects.filter(deleted_at__isnull=True).values(
+            "pk", "lat", "lon", "severity", "status"
+        )
+        return [
+            AdminMapMarker(
+                id=PostId(r["pk"]),
+                lat=r["lat"],
+                lon=r["lon"],
+                severity=Severity(r["severity"]),
+                status=PostStatus(r["status"]),
+            )
+            for r in rows
+        ]
+
     def counts_by_status(self) -> StatusCounts:
         rows = (
             orm.Post.objects.filter(deleted_at__isnull=True)
@@ -265,6 +298,33 @@ class DjangoPostRepository(PostRepository):
         if rejected:
             counts[PostStatus.REJECTED] = rejected
         return StatusCounts(counts=counts)
+
+    def analytics(self, since: datetime) -> PostAnalytics:
+        submitted = {
+            r["w"].date(): r["n"]
+            for r in orm.Post.objects.filter(created__gte=since)
+            .annotate(w=TruncWeek("created"))
+            .values("w")
+            .annotate(n=Count("pk"))
+        }
+        approved = {
+            r["w"].date(): r["n"]
+            for r in orm.Post.objects.filter(approved_at__gte=since)
+            .annotate(w=TruncWeek("approved_at"))
+            .values("w")
+            .annotate(n=Count("pk"))
+        }
+        over_time = [
+            WeeklyPoint(week=w, submitted=submitted.get(w, 0), approved=approved.get(w, 0))
+            for w in sorted(set(submitted) | set(approved))
+        ]
+        active_users = (
+            orm.Post.objects.filter(created__gte=since, reporter_user__isnull=False)
+            .values("reporter_user")
+            .distinct()
+            .count()
+        )
+        return PostAnalytics(over_time=over_time, active_users=active_users)
 
 
 class DjangoEngagementRepository(EngagementRepository):
@@ -419,12 +479,21 @@ class DjangoModerationLogRepository(ModerationLogRepository):
             for r in orm.PostModerationLog.objects.filter(post_id=post_id).order_by("at")
         ]
 
+    def list(self, page: PageRequest) -> Page[PostModerationLog]:
+        start = int(page.cursor) if page.cursor else 0
+        qs = orm.PostModerationLog.objects.order_by("-at", "-pk")
+        rows = list(qs[start : start + page.limit + 1])
+        has_next = len(rows) > page.limit
+        rows = rows[: page.limit]
+        next_cursor = str(start + page.limit) if has_next else None
+        return Page(
+            items=[mappers.moderation_log_to_domain(r) for r in rows], next_cursor=next_cursor
+        )
+
 
 class DjangoBadgeRepository(BadgeRepository):
     def active_rules(self):
-        return [
-            mappers.badge_rule_to_domain(r) for r in orm.BadgeRule.objects.filter(active=True)
-        ]
+        return [mappers.badge_rule_to_domain(r) for r in orm.BadgeRule.objects.filter(active=True)]
 
     def rules_by_code(self):
         return {r.code: mappers.badge_rule_to_domain(r) for r in orm.BadgeRule.objects.all()}

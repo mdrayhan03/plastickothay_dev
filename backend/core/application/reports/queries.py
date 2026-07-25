@@ -11,7 +11,7 @@ from core.domain.entities import Post
 from core.domain.errors import NotAuthorized, PostNotFound
 from core.domain.ids import PostId, UserId
 from core.domain.pagination import Page, PageRequest
-from core.domain.read_models import MapMarker, PostFilter
+from core.domain.read_models import AdminMapMarker, MapMarker, PostFilter
 from core.domain.value_objects import PostStatus, Severity
 from core.ports.repositories import PostRepository
 from core.ports.unit_of_work import UnitOfWork
@@ -60,6 +60,16 @@ class ListMapMarkers:
         return self.posts.list_map_markers()
 
 
+class ListAdminMapMarkers:
+    """All non-deleted reports (any status) for the admin density map."""
+
+    def __init__(self, posts: PostRepository) -> None:
+        self.posts = posts
+
+    def execute(self) -> list[AdminMapMarker]:
+        return self.posts.list_admin_map_markers()
+
+
 class ListOwnReports:
     def __init__(self, posts: PostRepository) -> None:
         self.posts = posts
@@ -69,6 +79,17 @@ class ListOwnReports:
             statuses=(PostStatus.APPROVED, PostStatus.PENDING, PostStatus.HIDDEN),
             reporter_id=actor_id,
         )
+        return self.posts.list(filter, page)
+
+
+class ListUserReports:
+    """A user's public reports — approved only (never another user's pending/hidden)."""
+
+    def __init__(self, posts: PostRepository) -> None:
+        self.posts = posts
+
+    def execute(self, user_id: UserId, page: PageRequest) -> Page[Post]:
+        filter = PostFilter(statuses=PUBLIC_STATUSES, reporter_id=user_id)
         return self.posts.list(filter, page)
 
 

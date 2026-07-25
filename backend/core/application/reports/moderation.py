@@ -7,16 +7,18 @@ the entire reason the derived model was chosen over a ledger.
 """
 
 import contextlib
+from datetime import timedelta
 
 from core.application.reports.dto import ModerateCommand
 from core.domain.entities import Post, PostModerationLog
 from core.domain.errors import ConflictError, PostNotFound
+from core.domain.ids import UserId
 from core.domain.pagination import Page, PageRequest
-from core.domain.read_models import PostFilter, StatusCounts
+from core.domain.read_models import AuditLogEntry, PostAnalytics, PostFilter, StatusCounts
 from core.domain.value_objects import ModerationAction, PostStatus, Severity
 from core.ports.clock import Clock
 from core.ports.notifications import Notifier
-from core.ports.repositories import ModerationLogRepository, PostRepository
+from core.ports.repositories import ModerationLogRepository, PostRepository, UserRepository
 from core.ports.storage import ImageStorage
 from core.ports.unit_of_work import UnitOfWork
 
@@ -153,3 +155,47 @@ class GetPostStats:
 
     def execute(self) -> StatusCounts:
         return self.posts.counts_by_status()
+
+
+class GetPostAnalytics:
+    """Dashboard time-series over a trailing window (default 8 weeks)."""
+
+    def __init__(self, posts: PostRepository, clock: Clock, weeks: int = 8) -> None:
+        self.posts = posts
+        self.clock = clock
+        self.weeks = weeks
+
+    def execute(self) -> PostAnalytics:
+        since = self.clock.now() - timedelta(weeks=self.weeks)
+        return self.posts.analytics(since)
+
+
+class ListAuditLog:
+    """The moderation audit trail with each action's admin name resolved."""
+
+    def __init__(self, log: ModerationLogRepository, users: UserRepository) -> None:
+        self.log = log
+        self.users = users
+
+    def execute(self, page: PageRequest) -> Page[AuditLogEntry]:
+        entries = self.log.list(page)
+        names: dict[UserId, str] = {}
+
+        def name_of(admin_id: UserId) -> str:
+            if admin_id not in names:
+                u = self.users.get(admin_id)
+                names[admin_id] = u.full_name if u else "—"
+            return names[admin_id]
+
+        items = [
+            AuditLogEntry(
+                id=e.id,
+                post_id=e.post_id,
+                admin_name=name_of(e.admin_id),
+                action=e.action,
+                reason=e.reason,
+                at=e.at,
+            )
+            for e in entries.items
+        ]
+        return Page(items=items, next_cursor=entries.next_cursor)

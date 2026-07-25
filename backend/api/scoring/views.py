@@ -22,16 +22,24 @@ class LeaderboardView(APIView):
         except ValueError:
             period = Period.ALL
         page = GetLeaderboard(
-            container.leaderboard(), container.point_rules(),
-            container.site_config(), container.clock(),
+            container.leaderboard(),
+            container.point_rules(),
+            container.site_config(),
+            container.clock(),
         ).execute(period, page_request(request))
         results = [
-            {"rank": r.rank, "user_id": r.user_id, "username": r.username,
-             "full_name": r.full_name, "points": r.points}
+            {
+                "rank": r.rank,
+                "user_id": r.user_id,
+                "username": r.username,
+                "full_name": r.full_name,
+                "points": r.points,
+            }
             for r in page.items
         ]
-        return Response({"period": period.value, "results": results,
-                         "next_cursor": page.next_cursor})
+        return Response(
+            {"period": period.value, "results": results, "next_cursor": page.next_cursor}
+        )
 
 
 class ContributionView(APIView):
@@ -41,17 +49,19 @@ class ContributionView(APIView):
         c = GetContribution(
             container.leaderboard(), container.point_rules(), container.level_rules()
         ).execute(actor_id(request))
-        return Response({
-            "total_points": c.total_points,
-            "posts_approved": c.posts_approved,
-            "likes_received": c.likes_received,
-            "likes_given": c.likes_given,
-            "level": c.level,
-            "level_title": c.level_title,
-            "points_to_next_level": c.points_to_next_level,
-            "progress_percentage": c.progress_percentage,
-            "referrals": c.referrals,
-        })
+        return Response(
+            {
+                "total_points": c.total_points,
+                "posts_approved": c.posts_approved,
+                "likes_received": c.likes_received,
+                "likes_given": c.likes_given,
+                "level": c.level,
+                "level_title": c.level_title,
+                "points_to_next_level": c.points_to_next_level,
+                "progress_percentage": c.progress_percentage,
+                "referrals": c.referrals,
+            }
+        )
 
 
 class MyBadgesView(APIView):
@@ -59,11 +69,22 @@ class MyBadgesView(APIView):
 
     def get(self, request):
         badges = GetUserBadges(
-            container.badges(), container.leaderboard(), container.point_rules(),
-            container.level_rules(), container.unit_of_work(), container.clock(),
+            container.badges(),
+            container.leaderboard(),
+            container.point_rules(),
+            container.level_rules(),
+            container.unit_of_work(),
+            container.clock(),
         ).execute(actor_id(request))
-        return Response([
-            {"code": b.code, "name": b.name, "description": b.description,
-             "icon": b.icon, "earned_at": b.earned_at}
-            for b in badges
-        ])
+        return Response(
+            [
+                {
+                    "code": b.code,
+                    "name": b.name,
+                    "description": b.description,
+                    "icon": b.icon,
+                    "earned_at": b.earned_at,
+                }
+                for b in badges
+            ]
+        )

@@ -74,9 +74,16 @@ frontend change (skip the link when it's `null`).
 
 | # | Endpoint / field | Public? | Frontend fallback today |
 |---|---|---|---|
-| BE-9 | `avatar` on register + `PATCH /me/`, `avatar_url` out | n/a | picker works, sent but dropped; initials shown |
-| BE-10 | `GET /api/users/<id>/` + `GET /api/users/<id>/posts/` (5/page) | yes | profile page shows a pending state |
-| BE-11 | `reporter_id` (nullable) on `PublicPostSerializer` | yes | posts don't link to their author yet |
+| BE-9 ✅ | `avatar` on register + `PATCH /me/`, `avatar_url` out | n/a | **Done** — stored via image storage |
+| BE-10 ✅ | `GET /api/users/<id>/` + `GET /api/users/<id>/posts/` (5/page) | yes | **Done** — public profile + posts live |
+| BE-11 ✅ | `reporter_id` (nullable) on `PublicPostSerializer` | yes | **Done** — exposed (null for anonymous) |
+
+**STATUS: ALL DONE.** BE-9, BE-10 and BE-11 are implemented and tested. Avatars are stored through
+the existing `ImageStorage` (Google Drive in prod, local otherwise) as `avatar_provider` +
+`avatar_external_id`, with `avatar_url` derived on read. The public profile is read-only (it never
+awards badges for the viewed user). Frontend follow-up: the app already sends `avatar` and renders
+`avatar_url`/profiles, but the leaderboard rows don't yet return `avatar_url` (they still show
+initials) and report cards can now be linked to `/u/<reporter_id>` since `reporter_id` is exposed.
 
 Both are additive. BE-9 should land before or with BE-10 so avatars appear on the profile; until
 then everything falls back to initials and pending states, so nothing is broken.

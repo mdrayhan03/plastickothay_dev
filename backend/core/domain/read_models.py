@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from core.domain.ids import ModerationLogId, PostId, UserId
-from core.domain.value_objects import ModerationAction, PostStatus, Severity
+from core.domain.value_objects import ImageRef, ModerationAction, PostStatus, Severity
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +63,7 @@ class LeaderboardRow:
     full_name: str
     points: int
     rank: int
+    avatar: ImageRef | None = None
 
 
 @dataclass(frozen=True, slots=True)

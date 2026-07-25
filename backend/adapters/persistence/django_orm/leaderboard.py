@@ -27,7 +27,7 @@ from core.domain.points import (
     level_progress,
 )
 from core.domain.read_models import Contribution, LeaderboardRow
-from core.domain.value_objects import EngagementType, PostStatus
+from core.domain.value_objects import EngagementType, ImageRef, PostStatus
 from core.ports.repositories import LeaderboardRepository
 
 APPROVED = int(PostStatus.APPROVED)
@@ -93,7 +93,13 @@ class DjangoLeaderboardRepository(LeaderboardRepository):
         users = {
             u.pk: u
             for u in orm.User.objects.filter(pk__in=user_ids).only(
-                "pk", "username", "first_name", "last_name", "date_joined"
+                "pk",
+                "username",
+                "first_name",
+                "last_name",
+                "date_joined",
+                "avatar_provider",
+                "avatar_external_id",
             )
         }
         ranked = sorted(
@@ -110,6 +116,9 @@ class DjangoLeaderboardRepository(LeaderboardRepository):
                 full_name=f"{u.first_name} {u.last_name}".strip(),
                 points=scored[u.pk].points,
                 rank=start + i + 1,
+                avatar=ImageRef(provider=u.avatar_provider, external_id=u.avatar_external_id)
+                if u.avatar_external_id
+                else None,
             )
             for i, u in enumerate(window)
         ]

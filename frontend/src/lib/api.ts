@@ -1,7 +1,7 @@
 /**
  * Axios instance + auth interceptors.
  *
- * Access token lives in a module variable (memory) — never localStorage, so XSS can't read
+ * Access token lives in a module variable (memory) - never localStorage, so XSS can't read
  * it. The refresh token is the backend's httpOnly cookie, sent automatically. On a 401 we
  * refresh once and retry; concurrent 401s queue behind a single in-flight refresh.
  */
@@ -18,20 +18,26 @@ export const setAccessToken = (t: string | null) => {
 }
 export const getAccessToken = () => accessToken
 
-/** Called when refresh fails — the app clears auth and routes to login. Wired by AuthContext. */
+/** Called when refresh fails - the app clears auth and routes to login. Wired by AuthContext. */
 let onAuthLost: (() => void) | null = null
 export const setOnAuthLost = (fn: () => void) => {
   onAuthLost = fn
 }
 
+// Same-origin by default: '/api' is relative, so the Vite proxy (dev) and the Django-served
+// build (prod) both keep the app and API on one origin — no CORS, first-party cookie. Only set
+// VITE_API_URL to a full URL for a split-origin deploy (which also needs CORS + CSRF_TRUSTED_
+// ORIGINS on the backend and SameSite=None;Secure on the refresh cookie).
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   withCredentials: true, // send the httpOnly refresh cookie
   headers: { 'Content-Type': 'application/json' },
 })
 
 // Bare client for refresh, so it never triggers the interceptor's retry loop.
-const bare = axios.create({ baseURL: '/api', withCredentials: true })
+const bare = axios.create({ baseURL: API_BASE, withCredentials: true })
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`

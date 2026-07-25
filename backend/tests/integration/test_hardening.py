@@ -10,10 +10,19 @@ PNG = f"data:image/png;base64,{_B64}"
 
 
 def _submit(client):
-    return client.post("/api/posts/", {
-        "severity": 3, "lat": 23.8, "lon": 90.4, "photo": PNG,
-        "name": "A", "email": "a@e.com", "phone": "+880",
-    }, format="json")
+    return client.post(
+        "/api/posts/",
+        {
+            "severity": 3,
+            "lat": 23.8,
+            "lon": 90.4,
+            "photo": PNG,
+            "name": "A",
+            "email": "a@e.com",
+            "phone": "+880",
+        },
+        format="json",
+    )
 
 
 class TestThrottling:
@@ -36,8 +45,9 @@ class TestThrottling:
         """login is 10/hour/IP — blunts credential stuffing. The 11th attempt is 429."""
         client = APIClient()
         codes = [
-            client.post("/api/auth/login/", {"username": "nope", "password": "x"},
-                        format="json").status_code
+            client.post(
+                "/api/auth/login/", {"username": "nope", "password": "x"}, format="json"
+            ).status_code
             for _ in range(11)
         ]
         # First 10 reach the use case (400 invalid credentials); the 11th is throttled.

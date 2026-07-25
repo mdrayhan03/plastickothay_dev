@@ -21,22 +21,39 @@ PHOTO = f"data:image/png;base64,{PNG}"
 
 
 def auth(client, username):
-    client.post("/api/auth/register/", {
-        "username": username, "email": f"{username}@e.com", "first_name": username,
-        "last_name": "T", "phone": "+880", "password": "s3cretpass",
-    }, format="json")
+    client.post(
+        "/api/auth/register/",
+        {
+            "username": username,
+            "email": f"{username}@e.com",
+            "first_name": username,
+            "last_name": "T",
+            "phone": "+880",
+            "password": "s3cretpass",
+        },
+        format="json",
+    )
     code = int(re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
     client.post("/api/auth/verify/", {"username": username, "code": code}, format="json")
-    return client.post("/api/auth/login/", {
-        "username": username, "password": "s3cretpass"}, format="json").data["access"]
+    return client.post(
+        "/api/auth/login/", {"username": username, "password": "s3cretpass"}, format="json"
+    ).data["access"]
 
 
 def approved_post(reporter_id=None):
     post = orm.Post.objects.create(
-        reporter_name="R", reporter_email="r@e.com", reporter_phone="x",
-        reporter_user_id=reporter_id, severity=3, image_provider="local",
-        image_external_id="i", lat=23.8, lon=90.4, description="d",
-        status=int(PostStatus.APPROVED), created="2026-07-18T12:00:00Z",
+        reporter_name="R",
+        reporter_email="r@e.com",
+        reporter_phone="x",
+        reporter_user_id=reporter_id,
+        severity=3,
+        image_provider="local",
+        image_external_id="i",
+        lat=23.8,
+        lon=90.4,
+        description="d",
+        status=int(PostStatus.APPROVED),
+        created="2026-07-18T12:00:00Z",
         approved_at="2026-07-18T12:00:00Z",
     )
     return post.id
@@ -82,9 +99,16 @@ class TestLike:
     def test_cannot_like_pending_post(self):
         c = APIClient()
         pid = orm.Post.objects.create(
-            reporter_name="R", reporter_email="r@e.com", reporter_phone="x",
-            severity=3, image_provider="local", image_external_id="i",
-            lat=23.8, lon=90.4, status=int(PostStatus.PENDING), created="2026-07-18T12:00:00Z",
+            reporter_name="R",
+            reporter_email="r@e.com",
+            reporter_phone="x",
+            severity=3,
+            image_provider="local",
+            image_external_id="i",
+            lat=23.8,
+            lon=90.4,
+            status=int(PostStatus.PENDING),
+            created="2026-07-18T12:00:00Z",
         ).id
         assert c.post(f"/api/posts/{pid}/like/").status_code == 404
 
@@ -108,8 +132,12 @@ class TestScoring:
         c = APIClient()
         access = auth(c, "bob")
         alice = orm.User.objects.create(
-            username="alice", email="a@e.com", password="x",
-            first_name="Alice", last_name="T", date_joined="2026-07-18T12:00:00Z",
+            username="alice",
+            email="a@e.com",
+            password="x",
+            first_name="Alice",
+            last_name="T",
+            date_joined="2026-07-18T12:00:00Z",
         )
         pid = approved_post(reporter_id=alice.id)
         c.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")

@@ -60,8 +60,13 @@ class ContactMessageSerializer(serializers.Serializer):
 
     def to_representation(self, msg: ContactMessage):
         return {
-            "id": msg.id, "name": msg.name, "email": msg.email, "phone": msg.phone,
-            "subject": msg.subject, "message": msg.message, "status": msg.status,
+            "id": msg.id,
+            "name": msg.name,
+            "email": msg.email,
+            "phone": msg.phone,
+            "subject": msg.subject,
+            "message": msg.message,
+            "status": msg.status,
             "created": msg.created,
         }
 
@@ -83,8 +88,7 @@ class SiteConfigSerializer(serializers.Serializer):
             "tagline": cfg.tagline,
             "logo_url": logo_url,
             "map_center": (
-                {"lat": cfg.map_center.lat, "lon": cfg.map_center.lon}
-                if cfg.map_center else None
+                {"lat": cfg.map_center.lat, "lon": cfg.map_center.lon} if cfg.map_center else None
             ),
             "map_zoom": cfg.map_zoom,
             "flags": cfg.flags,
@@ -111,6 +115,10 @@ class SubmitFeedbackSerializer(serializers.Serializer):
 class FeedbackSerializer(serializers.Serializer):
     def to_representation(self, fb: Feedback):
         return {
-            "id": fb.id, "name": fb.name, "email": fb.email, "rating": fb.rating,
-            "comment": fb.comment, "created": fb.created,
+            "id": fb.id,
+            "name": fb.name,
+            "email": fb.email,
+            "rating": fb.rating,
+            "comment": fb.comment,
+            "created": fb.created,
         }

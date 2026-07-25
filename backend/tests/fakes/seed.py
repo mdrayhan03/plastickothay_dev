@@ -34,12 +34,32 @@ DEFAULT_LEVEL_RULES = [
 ]
 
 DEFAULT_BADGE_RULES = [
-    BadgeRule("first_report", "First Report", "First approved report.",
-              BadgeCriteria.POSTS_APPROVED, 1, True, "🌱"),
-    BadgeRule("reporter_10", "Active Reporter", "10 approved reports.",
-              BadgeCriteria.POSTS_APPROVED, 10, True, "📸"),
-    BadgeRule("well_liked", "Well Liked", "25 likes received.",
-              BadgeCriteria.LIKES_RECEIVED, 25, True, "❤️"),
-    BadgeRule("champion", "Champion", "1500 points.",
-              BadgeCriteria.POINTS_TOTAL, 1500, True, "👑"),
+    BadgeRule(
+        "first_report",
+        "First Report",
+        "First approved report.",
+        BadgeCriteria.POSTS_APPROVED,
+        1,
+        True,
+        "🌱",
+    ),
+    BadgeRule(
+        "reporter_10",
+        "Active Reporter",
+        "10 approved reports.",
+        BadgeCriteria.POSTS_APPROVED,
+        10,
+        True,
+        "📸",
+    ),
+    BadgeRule(
+        "well_liked",
+        "Well Liked",
+        "25 likes received.",
+        BadgeCriteria.LIKES_RECEIVED,
+        25,
+        True,
+        "❤️",
+    ),
+    BadgeRule("champion", "Champion", "1500 points.", BadgeCriteria.POINTS_TOTAL, 1500, True, "👑"),
 ]

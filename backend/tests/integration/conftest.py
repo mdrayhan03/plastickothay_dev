@@ -26,8 +26,14 @@ def _seed_rules(db):
     for code, name, desc, criteria, threshold, active, icon in BADGE_RULES:
         orm.BadgeRule.objects.update_or_create(
             code=code,
-            defaults={"name": name, "description": desc, "criteria": criteria,
-                      "threshold": threshold, "active": active, "icon": icon},
+            defaults={
+                "name": name,
+                "description": desc,
+                "criteria": criteria,
+                "threshold": threshold,
+                "active": active,
+                "icon": icon,
+            },
         )
 
 

@@ -29,7 +29,15 @@ LEVEL_RULES = [
 
 # (code, name, description, criteria, threshold, active, icon)
 BADGE_RULES = [
-    ("first_report", "First Report", "Got your first report approved.", "posts_approved", 1, True, "🌱"),  # noqa: E501
+    (
+        "first_report",
+        "First Report",
+        "Got your first report approved.",
+        "posts_approved",
+        1,
+        True,
+        "🌱",
+    ),  # noqa: E501
     ("reporter_10", "Active Reporter", "10 approved reports.", "posts_approved", 10, True, "📸"),
     ("reporter_50", "Dedicated Reporter", "50 approved reports.", "posts_approved", 50, True, "🏅"),  # noqa: E501
     ("well_liked", "Well Liked", "Received 25 likes.", "likes_received", 25, True, "❤️"),
@@ -62,8 +70,12 @@ class Command(BaseCommand):
             orm.BadgeRule.objects.get_or_create(
                 code=code,
                 defaults={
-                    "name": name, "description": desc, "criteria": criteria,
-                    "threshold": threshold, "active": active, "icon": icon,
+                    "name": name,
+                    "description": desc,
+                    "criteria": criteria,
+                    "threshold": threshold,
+                    "active": active,
+                    "icon": icon,
                 },
             )
         # Ensure the SiteConfig singleton exists with defaults (Dhaka centre, Monday weeks).

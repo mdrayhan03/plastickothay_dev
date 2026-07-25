@@ -92,9 +92,16 @@ class TestUserRepository:
         with pytest.raises((UsernameTaken, EmailTaken)):
             DjangoUserRepository().add(
                 User(
-                    id=None, username="alice", email="other@example.com",
-                    first_name="A", last_name="B", phone="x", role=Role.USER,
-                    is_verified=False, is_active=True, date_joined=NOW,
+                    id=None,
+                    username="alice",
+                    email="other@example.com",
+                    first_name="A",
+                    last_name="B",
+                    phone="x",
+                    role=Role.USER,
+                    is_verified=False,
+                    is_active=True,
+                    date_joined=NOW,
                 ),
                 password="secret123",
             )
@@ -104,9 +111,16 @@ class TestUserRepository:
         with pytest.raises((EmailTaken, UsernameTaken)):
             DjangoUserRepository().add(
                 User(
-                    id=None, username="bob", email="alice@example.com",
-                    first_name="A", last_name="B", phone="x", role=Role.USER,
-                    is_verified=False, is_active=True, date_joined=NOW,
+                    id=None,
+                    username="bob",
+                    email="alice@example.com",
+                    first_name="A",
+                    last_name="B",
+                    phone="x",
+                    role=Role.USER,
+                    is_verified=False,
+                    is_active=True,
+                    date_joined=NOW,
                 ),
                 password="secret123",
             )
@@ -121,18 +135,42 @@ class TestUserRepository:
 class TestOTPRepository:
     def test_latest_valid_ignores_expired(self):
         repo = DjangoOTPRepository()
-        repo.add(OTP(None, "alice", 111111, OTPPurpose.REGISTRATION, NOW,
-                     datetime(2020, 1, 1, tzinfo=UTC)))  # expired
-        repo.add(OTP(None, "alice", 222222, OTPPurpose.REGISTRATION, NOW,
-                     datetime(2030, 1, 1, tzinfo=UTC)))  # valid
+        repo.add(
+            OTP(
+                None,
+                "alice",
+                111111,
+                OTPPurpose.REGISTRATION,
+                NOW,
+                datetime(2020, 1, 1, tzinfo=UTC),
+            )
+        )  # expired
+        repo.add(
+            OTP(
+                None,
+                "alice",
+                222222,
+                OTPPurpose.REGISTRATION,
+                NOW,
+                datetime(2030, 1, 1, tzinfo=UTC),
+            )
+        )  # valid
 
         found = repo.latest_valid_for("alice", OTPPurpose.REGISTRATION, NOW)
         assert found.code == 222222
 
     def test_purge_expired(self):
         repo = DjangoOTPRepository()
-        repo.add(OTP(None, "alice", 111111, OTPPurpose.REGISTRATION, NOW,
-                     datetime(2020, 1, 1, tzinfo=UTC)))
+        repo.add(
+            OTP(
+                None,
+                "alice",
+                111111,
+                OTPPurpose.REGISTRATION,
+                NOW,
+                datetime(2020, 1, 1, tzinfo=UTC),
+            )
+        )
         assert repo.purge_expired(NOW) == 1
 
 
@@ -165,8 +203,9 @@ class TestPostRepository:
         repo = DjangoPostRepository()
         seen, cursor = [], None
         for _ in range(10):  # guard against infinite loop
-            page = repo.list(PostFilter(statuses=(PostStatus.APPROVED,)),
-                             PageRequest(limit=2, cursor=cursor))
+            page = repo.list(
+                PostFilter(statuses=(PostStatus.APPROVED,)), PageRequest(limit=2, cursor=cursor)
+            )
             seen.extend(p.id for p in page.items)
             cursor = page.next_cursor
             if cursor is None:

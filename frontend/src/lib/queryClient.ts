@@ -33,6 +33,8 @@ export const qk = {
   adminReview: (status: string) => ['admin', 'review', status] as const,
   adminReports: (statuses: string[]) => ['admin', 'reports', statuses] as const,
   adminStats: ['admin', 'stats'] as const,
+  adminMap: ['admin', 'map'] as const,
+  adminAnalytics: ['admin', 'analytics'] as const,
   adminUsers: ['admin', 'users'] as const,
   adminUserDetail: (id: number) => ['admin', 'users', id] as const,
   adminMessages: ['admin', 'messages'] as const,

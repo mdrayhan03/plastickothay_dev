@@ -1,13 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle2, Clock, FileStack, Layers, TrendingUp } from 'lucide-react'
-import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { formatDistanceToNow } from 'date-fns'
+import { CheckCircle2, Clock, FileStack, TrendingUp, Users2 } from 'lucide-react'
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+} from 'recharts'
 import { DensityMap } from '@/components/admin/DensityMap'
 import { useLeaderboard } from '@/hooks/useScoring'
 import { qk } from '@/lib/queryClient'
 import { severityColor, severityLabel } from '@/lib/severity'
 import { statusMeta } from '@/lib/status'
 import { adminService } from '@/services/adminService'
-import { postService } from '@/services/postService'
 import type { Severity } from '@/types'
 
 const tooltipStyle = {
@@ -16,6 +28,13 @@ const tooltipStyle = {
   borderRadius: 12,
   fontSize: 13,
   color: 'var(--ink)',
+}
+
+const actionVerb: Record<string, string> = {
+  approve: 'approved',
+  reject: 'rejected',
+  hide: 'hid',
+  unhide: 'unhid',
 }
 
 function Card({
@@ -38,16 +57,23 @@ function Card({
   )
 }
 
+function weekLabel(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 export function AdminDashboard() {
   const { data: stats } = useQuery({ queryKey: qk.adminStats, queryFn: adminService.stats })
-  const { data: markers = [] } = useQuery({ queryKey: qk.mapMarkers, queryFn: postService.mapMarkers })
+  const { data: markers = [] } = useQuery({ queryKey: qk.adminMap, queryFn: adminService.map })
+  const { data: analytics } = useQuery({ queryKey: qk.adminAnalytics, queryFn: adminService.analytics })
   const { data: board } = useLeaderboard('all')
+  const { data: audit } = useQuery({ queryKey: qk.adminAudit, queryFn: () => adminService.audit() })
 
   const kpis = [
     { label: 'Pending review', value: stats?.pending ?? 0, icon: Clock, color: 'var(--gold)' },
     { label: 'Approved', value: stats?.approved ?? 0, icon: CheckCircle2, color: 'var(--brand)' },
     { label: 'Total reports', value: stats?.total ?? 0, icon: FileStack, color: 'var(--ink)' },
-    { label: 'Hidden', value: stats?.hidden ?? 0, icon: Layers, color: 'var(--ink-3)' },
+    { label: 'Active users', value: analytics?.active_users ?? 0, icon: Users2, color: 'var(--brand-2)' },
   ]
 
   const statusKey = ['rejected', 'approved', 'pending', 'hidden'] as const
@@ -63,7 +89,9 @@ export function AdminDashboard() {
     color: severityColor[s],
   }))
 
+  const overTime = (analytics?.over_time ?? []).map((w) => ({ ...w, label: weekLabel(w.week) }))
   const top = board?.results.slice(0, 5) ?? []
+  const activity = audit?.results.slice(0, 6) ?? []
 
   return (
     <div className="space-y-6">
@@ -86,10 +114,46 @@ export function AdminDashboard() {
 
       <Card
         title="Report density"
-        aside={<span className="text-[11.5px] text-ink-3">approved reports · all-status map needs BE-3</span>}
+        aside={<span className="text-[11.5px] text-ink-3">all reports · every status</span>}
       >
         <div className="h-[380px] overflow-hidden rounded-xl border border-line">
           <DensityMap center={[23.78, 90.4]} zoom={12} markers={markers} />
+        </div>
+      </Card>
+
+      <Card title="Reports over time" aside={<span className="text-[11.5px] text-ink-3">last 8 weeks</span>}>
+        {overTime.length === 0 ? (
+          <p className="py-10 text-center text-sm text-ink-3">No activity in this window yet.</p>
+        ) : (
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={overTime}>
+                <defs>
+                  <linearGradient id="submitted" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="approved" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false} />
+                <XAxis dataKey="label" stroke="var(--ink-3)" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Area type="monotone" dataKey="submitted" stroke="var(--gold)" strokeWidth={2} fill="url(#submitted)" />
+                <Area type="monotone" dataKey="approved" stroke="var(--brand)" strokeWidth={2} fill="url(#approved)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+        <div className="mt-2 flex justify-center gap-5 text-[12px] font-semibold text-ink-2">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-gold" /> Submitted
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-brand" /> Approved
+          </span>
         </div>
       </Card>
 
@@ -120,7 +184,7 @@ export function AdminDashboard() {
           </div>
         </Card>
 
-        <Card title="By severity" aside={<span className="text-[11.5px] text-ink-3">approved on map</span>}>
+        <Card title="By severity">
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={severityData}>
@@ -157,11 +221,25 @@ export function AdminDashboard() {
         </Card>
 
         <Card title="Recent activity">
-          <div className="grid min-h-40 place-items-center px-6 text-center">
-            <p className="text-sm text-ink-3">
-              The moderation activity feed lights up once the audit endpoint (BE-1) ships.
-            </p>
-          </div>
+          {activity.length === 0 ? (
+            <div className="grid min-h-40 place-items-center px-6 text-center">
+              <p className="text-sm text-ink-3">No moderation actions yet.</p>
+            </div>
+          ) : (
+            <ul className="space-y-2.5">
+              {activity.map((e) => (
+                <li key={e.id} className="flex items-center gap-2 text-[13px]">
+                  <span className="min-w-0 flex-1 truncate text-ink-2">
+                    <b className="text-ink">{e.admin}</b> {actionVerb[e.action] ?? e.action} report{' '}
+                    <b className="text-ink">#{e.post_id}</b>
+                  </span>
+                  <time className="shrink-0 text-[11.5px] text-ink-3">
+                    {formatDistanceToNow(new Date(e.at), { addSuffix: true })}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </div>

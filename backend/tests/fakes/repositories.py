@@ -377,6 +377,7 @@ class InMemoryLeaderboardRepository(LeaderboardRepository):
                 full_name=user.full_name,
                 points=points,
                 rank=index + 1,
+                avatar=user.avatar,
             )
             for index, (user, points) in enumerate(ranked)
         ]

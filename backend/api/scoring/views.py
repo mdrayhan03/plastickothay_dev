@@ -27,6 +27,7 @@ class LeaderboardView(APIView):
             container.site_config(),
             container.clock(),
         ).execute(period, page_request(request))
+        storage = container.image_storage()
         results = [
             {
                 "rank": r.rank,
@@ -34,6 +35,7 @@ class LeaderboardView(APIView):
                 "username": r.username,
                 "full_name": r.full_name,
                 "points": r.points,
+                "avatar_url": storage.public_url(r.avatar) if r.avatar else None,
             }
             for r in page.items
         ]

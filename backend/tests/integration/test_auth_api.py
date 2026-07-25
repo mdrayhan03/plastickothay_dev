@@ -163,6 +163,62 @@ class TestProtectedEndpoints:
         assert resp.status_code == 201
 
 
+PNG = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk"
+    "+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
+AVATAR = f"data:image/png;base64,{PNG}"
+
+
+class TestAvatar:
+    def _login_me(self, client, username="alice"):
+        access = _verify_and_login(client, username).data["access"]
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    def test_register_with_avatar_exposes_url_on_me(self, client):
+        client.post(
+            "/api/auth/register/",
+            {
+                "username": "alice",
+                "email": "alice@example.com",
+                "first_name": "Alice",
+                "last_name": "Tester",
+                "phone": "+880170",
+                "password": "s3cretpass",
+                "avatar": AVATAR,
+            },
+            format="json",
+        )
+        client.post(
+            "/api/auth/verify/", {"username": "alice", "code": _otp_from_email()}, format="json"
+        )
+        access = client.post(
+            "/api/auth/login/", {"username": "alice", "password": "s3cretpass"}, format="json"
+        ).data["access"]
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+        me = client.get("/api/me/").data
+        assert me["avatar_url"]
+        assert orm.User.objects.get(username="alice").avatar_external_id != ""
+
+    def test_no_avatar_is_null(self, client):
+        self._login_me(client)
+        assert client.get("/api/me/").data["avatar_url"] is None
+
+    def test_update_profile_sets_avatar(self, client):
+        self._login_me(client)
+        resp = client.patch("/api/me/", {"avatar": AVATAR}, format="json")
+        assert resp.status_code == 200
+        assert resp.data["avatar_url"]
+
+    def test_update_profile_without_avatar_keeps_existing(self, client):
+        self._login_me(client)
+        client.patch("/api/me/", {"avatar": AVATAR}, format="json")
+        resp = client.patch("/api/me/", {"first_name": "Alicia"}, format="json")
+        assert resp.data["first_name"] == "Alicia"
+        assert resp.data["avatar_url"]  # not wiped
+
+
 class TestPasswordReset:
     def test_reset_flow(self, client):
         _verify_and_login(client)

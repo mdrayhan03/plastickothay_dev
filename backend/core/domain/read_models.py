@@ -5,10 +5,10 @@ behaviour. Filters are what use cases pass to repositories.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
-from core.domain.ids import PostId, UserId
-from core.domain.value_objects import PostStatus, Severity
+from core.domain.ids import ModerationLogId, PostId, UserId
+from core.domain.value_objects import ModerationAction, PostStatus, Severity
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,12 +45,36 @@ class MapMarker:
 
 
 @dataclass(frozen=True, slots=True)
+class AdminMapMarker:
+    """Like MapMarker but with status — the admin density map shows all non-deleted reports,
+    not just approved ones, so pending hot-spots are visible for triage (LLD §8.4)."""
+
+    id: PostId
+    lat: float
+    lon: float
+    severity: Severity
+    status: PostStatus
+
+
+@dataclass(frozen=True, slots=True)
 class LeaderboardRow:
     user_id: UserId
     username: str
     full_name: str
     points: int
     rank: int
+
+
+@dataclass(frozen=True, slots=True)
+class AuditLogEntry:
+    """A moderation action for the admin audit screen, with the admin's name resolved."""
+
+    id: ModerationLogId
+    post_id: PostId
+    admin_name: str
+    action: ModerationAction
+    reason: str
+    at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,6 +100,21 @@ class EarnedBadge:
     description: str
     icon: str
     earned_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class WeeklyPoint:
+    week: date  # the Monday the week starts on
+    submitted: int
+    approved: int
+
+
+@dataclass(frozen=True, slots=True)
+class PostAnalytics:
+    """Dashboard time-series: submissions vs approvals per week, plus active contributors."""
+
+    over_time: list[WeeklyPoint]
+    active_users: int
 
 
 @dataclass(frozen=True, slots=True)

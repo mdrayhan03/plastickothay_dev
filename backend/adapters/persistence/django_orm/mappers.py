@@ -72,6 +72,9 @@ def user_to_domain(row: orm.User) -> User:
         role=role_from_flags(row.is_superuser, row.is_staff),
         is_verified=row.is_verified,
         is_active=row.is_active,
+        avatar=ImageRef(provider=row.avatar_provider, external_id=row.avatar_external_id)
+        if row.avatar_external_id
+        else None,
         date_joined=row.date_joined,
         last_login=row.last_login,
     )
@@ -104,6 +107,7 @@ def post_to_domain(row: orm.Post) -> Post:
         severity=Severity(row.severity),
         image=ImageRef(provider=row.image_provider, external_id=row.image_external_id),
         location=GeoPoint(row.lat, row.lon),
+        place_name=row.place_name,
         description=row.description,
         status=PostStatus(row.status),
         created=row.created,
@@ -123,6 +127,7 @@ def post_apply_to_orm(entity: Post, row: orm.Post) -> orm.Post:
     row.image_external_id = entity.image.external_id
     row.lat = entity.location.lat
     row.lon = entity.location.lon
+    row.place_name = entity.place_name
     row.description = entity.description
     row.status = int(entity.status)
     row.created = entity.created

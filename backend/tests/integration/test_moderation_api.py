@@ -21,10 +21,18 @@ PHOTO = f"data:image/png;base64,{PNG}"
 
 
 def make_verified_user(client, username, role=Role.USER):
-    client.post("/api/auth/register/", {
-        "username": username, "email": f"{username}@example.com", "first_name": username,
-        "last_name": "T", "phone": "+880170", "password": "s3cretpass",
-    }, format="json")
+    client.post(
+        "/api/auth/register/",
+        {
+            "username": username,
+            "email": f"{username}@example.com",
+            "first_name": username,
+            "last_name": "T",
+            "phone": "+880170",
+            "password": "s3cretpass",
+        },
+        format="json",
+    )
     code = int(re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
     client.post("/api/auth/verify/", {"username": username, "code": code}, format="json")
     if role is not Role.USER:
@@ -32,16 +40,26 @@ def make_verified_user(client, username, role=Role.USER):
         u.is_superuser = role is Role.ADMIN
         u.is_staff = role in (Role.STAFF, Role.ADMIN)
         u.save()
-    access = client.post("/api/auth/login/", {
-        "username": username, "password": "s3cretpass"}, format="json").data["access"]
+    access = client.post(
+        "/api/auth/login/", {"username": username, "password": "s3cretpass"}, format="json"
+    ).data["access"]
     return access
 
 
 def submit(client):
-    return client.post("/api/posts/", {
-        "severity": 3, "lat": 23.8, "lon": 90.4, "photo": PHOTO,
-        "name": "Anon", "email": "anon@example.com", "phone": "+880111",
-    }, format="json").data["id"]
+    return client.post(
+        "/api/posts/",
+        {
+            "severity": 3,
+            "lat": 23.8,
+            "lon": 90.4,
+            "photo": PHOTO,
+            "name": "Anon",
+            "email": "anon@example.com",
+            "phone": "+880111",
+        },
+        format="json",
+    ).data["id"]
 
 
 @pytest.fixture
@@ -145,3 +163,60 @@ class TestReviewListAndStats:
         stats = admin_client.get("/api/admin/stats/").data
         assert stats["approved"] == 1
         assert stats["pending"] == 1
+
+
+class TestAnalytics:
+    def test_requires_staff(self):
+        assert APIClient().get("/api/admin/analytics/").status_code == 401
+
+    def test_weekly_series_and_active_users(self, admin_client):
+        p1 = submit(admin_client)
+        submit(admin_client)
+        admin_client.post(f"/api/admin/posts/{p1}/approve/")
+
+        data = admin_client.get("/api/admin/analytics/").data
+        assert sum(w["submitted"] for w in data["over_time"]) == 2
+        assert sum(w["approved"] for w in data["over_time"]) == 1
+        # Both reports were submitted by the authenticated admin — one distinct contributor.
+        assert data["active_users"] == 1
+
+
+class TestAdminMap:
+    def test_requires_staff(self):
+        assert APIClient().get("/api/admin/map/").status_code == 401
+
+    def test_includes_all_statuses_unlike_public_map(self, admin_client):
+        pending = submit(admin_client)
+        approved = submit(admin_client)
+        admin_client.post(f"/api/admin/posts/{approved}/approve/")
+
+        markers = admin_client.get("/api/admin/map/").data
+        by_id = {m["id"]: m for m in markers}
+        assert by_id[pending]["status"] == int(PostStatus.PENDING)
+        assert by_id[approved]["status"] == int(PostStatus.APPROVED)
+
+        # The public map remains approved-only.
+        public_ids = {m["id"] for m in APIClient().get("/api/map/posts/").data}
+        assert public_ids == {approved}
+
+
+class TestAuditLog:
+    def test_requires_staff(self):
+        assert APIClient().get("/api/admin/audit/").status_code == 401
+
+    def test_records_and_lists_moderation_actions(self, admin_client):
+        p1 = submit(admin_client)
+        p2 = submit(admin_client)
+        admin_client.post(f"/api/admin/posts/{p1}/approve/")
+        admin_client.post(f"/api/admin/posts/{p2}/reject/", {"reason": "spam"}, format="json")
+
+        res = admin_client.get("/api/admin/audit/")
+        assert res.status_code == 200
+        entries = res.data["results"]
+        assert len(entries) == 2
+        # Newest first: the reject came last.
+        assert entries[0]["action"] == "reject"
+        assert entries[0]["post_id"] == p2
+        assert entries[0]["reason"] == "spam"
+        assert entries[0]["admin"] == "boss T"  # registered first_name "boss" + last_name "T"
+        assert entries[1]["action"] == "approve"

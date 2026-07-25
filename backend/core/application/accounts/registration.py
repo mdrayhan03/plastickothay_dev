@@ -11,6 +11,7 @@ Ports the legacy flow (superadmin/views.py:90-137) with two corrections:
 import secrets
 from datetime import timedelta
 
+from core.application.accounts.avatars import upload_avatar
 from core.application.accounts.dto import RegisterCommand, VerifyOTPCommand
 from core.domain.entities import OTP, User
 from core.domain.errors import EmailTaken, OTPExpired, OTPInvalid, UsernameTaken, UserNotFound
@@ -18,6 +19,7 @@ from core.domain.value_objects import OTPPurpose, Role
 from core.ports.clock import Clock
 from core.ports.notifications import Notifier
 from core.ports.repositories import OTPRepository, UserRepository
+from core.ports.storage import ImageStorage
 from core.ports.unit_of_work import UnitOfWork
 
 OTP_TTL = timedelta(minutes=3)
@@ -62,11 +64,13 @@ class RegisterUser:
         notifier: Notifier,
         uow: UnitOfWork,
         clock: Clock,
+        images: ImageStorage | None = None,
     ) -> None:
         self.users = users
         self.issuer = _OTPIssuer(otps, notifier, clock)
         self.uow = uow
         self.clock = clock
+        self.images = images
 
     def execute(self, cmd: RegisterCommand) -> User:
         username = cmd.username.strip().lower()
@@ -76,6 +80,8 @@ class RegisterUser:
             raise UsernameTaken()
         if self.users.get_by_email(email) is not None:
             raise EmailTaken()
+
+        avatar = upload_avatar(self.images, cmd.avatar)
 
         with self.uow:
             user = self.users.add(
@@ -89,6 +95,7 @@ class RegisterUser:
                     role=Role.USER,
                     is_verified=False,
                     is_active=True,
+                    avatar=avatar,
                     date_joined=self.clock.now(),
                 ),
                 password=cmd.password,

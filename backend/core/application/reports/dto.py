@@ -18,6 +18,7 @@ class SubmitReportCommand:
     filename: str
     content_type: str
     description: str = ""
+    place_name: str = ""
     # Only used for anonymous submissions; ignored when the caller is authenticated.
     name: str = ""
     email: str = ""

@@ -24,6 +24,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True)
     is_verified = models.BooleanField(default=False)
     email = models.EmailField(unique=True)
+    avatar_provider = models.CharField(max_length=32, blank=True, default="")
+    avatar_external_id = models.CharField(max_length=255, blank=True, default="")
 
     class Meta:
         db_table = "app_user"
@@ -63,6 +65,7 @@ class Post(models.Model):
     image_external_id = models.CharField(max_length=255)
     lat = models.FloatField()
     lon = models.FloatField()
+    place_name = models.CharField(max_length=255, blank=True, default="")  # reverse-geocoded
     description = models.TextField(default="No description provided.")
     status = models.IntegerField(default=2)  # 0 reject, 1 approve, 2 pending, 3 hidden
     created = models.DateTimeField()
@@ -177,9 +180,7 @@ class UserBadge(models.Model):
     class Meta:
         db_table = "user_badge"
         constraints = [
-            models.UniqueConstraint(
-                fields=["user", "badge_code"], name="uniq_badge_per_user"
-            ),
+            models.UniqueConstraint(fields=["user", "badge_code"], name="uniq_badge_per_user"),
         ]
         indexes = [models.Index(fields=["user"])]
 

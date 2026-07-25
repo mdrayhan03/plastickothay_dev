@@ -46,6 +46,7 @@ class SubmitReport:
                     severity=severity,
                     image=image,
                     location=location,
+                    place_name=cmd.place_name.strip(),
                     description=cmd.description.strip() or "No description provided.",
                     status=PostStatus.PENDING,
                     created=self.clock.now(),

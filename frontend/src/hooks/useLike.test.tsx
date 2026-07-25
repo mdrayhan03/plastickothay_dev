@@ -17,6 +17,7 @@ function post(over: Partial<PublicPost> = {}): PublicPost {
   return {
     id: 1,
     reporter_name: 'R',
+    reporter_id: null,
     severity: 3,
     image_url: '',
     lat: 0,

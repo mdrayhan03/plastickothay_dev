@@ -18,6 +18,9 @@ export interface AuthUser {
   phone: string
   role: Role
   is_verified: boolean
+  // Uploaded profile photo. Optional until the backend `avatar` field ships (BE-9);
+  // the Avatar component falls back to initials when absent.
+  avatar_url?: string | null
 }
 
 export interface LoginResponse {
@@ -84,6 +87,21 @@ export interface LeaderboardRow {
   username: string
   full_name: string
   points: number
+  avatar_url?: string | null
+}
+
+/** Public, privacy-limited profile of any user (endpoint BE-10, pending). */
+export interface PublicProfile {
+  id: number
+  username: string
+  full_name: string
+  avatar_url: string | null
+  level: number
+  level_title: string
+  total_points: number
+  posts_approved: number
+  likes_received: number
+  badges: { code: string; name: string; icon: string }[]
 }
 
 export interface Leaderboard {

@@ -69,9 +69,13 @@ export function MorePage() {
       <TopBar title="More" />
 
       <div className="m-4.5 flex items-center gap-3.5 rounded-[20px] bg-[linear-gradient(150deg,var(--brand-2),var(--brand-deep))] p-4 text-white shadow-md">
-        <div className="grid size-13 place-items-center rounded-full bg-white/20 text-lg font-extrabold">
-          {status === 'authed' && user ? user.first_name[0]?.toUpperCase() : '?'}
-        </div>
+        {status === 'authed' && user?.avatar_url ? (
+          <img src={user.avatar_url} alt="" className="size-13 rounded-full object-cover" />
+        ) : (
+          <div className="grid size-13 place-items-center rounded-full bg-white/20 text-lg font-extrabold">
+            {status === 'authed' && user ? user.first_name[0]?.toUpperCase() : '?'}
+          </div>
+        )}
         <div className="min-w-0">
           <div className="truncate font-display text-lg font-bold">
             {status === 'authed' && user ? `${user.first_name} ${user.last_name}` : 'Guest'}

@@ -17,6 +17,15 @@ export const authService = {
     const { data } = await api.get<AuthUser>('/me/')
     return data
   },
+  async updateProfile(payload: {
+    first_name: string
+    last_name: string
+    phone?: string
+    avatar?: string // base64 data URL; ignored until BE-9 ships
+  }) {
+    const { data } = await api.patch<AuthUser>('/me/', payload)
+    return data
+  },
   async register(payload: {
     username: string
     email: string
@@ -24,6 +33,7 @@ export const authService = {
     last_name: string
     phone: string
     password: string
+    avatar?: string // base64 data URL; ignored until BE-9 ships
   }) {
     await api.post('/auth/register/', payload)
   },

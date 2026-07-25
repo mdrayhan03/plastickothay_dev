@@ -27,7 +27,19 @@ review drawer's history shows only "submitted".
 
 ---
 
-## BE-0 · Users list, activate/deactivate, role change (FOUNDATIONAL)
+## BE-0 · Users list, activate/deactivate, role change (FOUNDATIONAL) ✅ DONE
+
+**Implemented.** `GET /api/admin/users/` (staff, paginated), `PATCH /api/admin/users/<id>/active/`
+(staff; forbids self and, for staff, deactivating an admin), `PATCH /api/admin/users/<id>/role/`
+(admin only; forbids changing your own role). Use cases already existed in
+`core/application/accounts/administration.py`; this added the serializers, views (`UserListView`,
+`UserActiveView`, `UserRoleView`) and URLs, plus 12 unit + 11 integration tests (233 total pass).
+The list is plain cursor pagination — the admin UI filters by role/active/search client-side, so
+no server-side filters were needed.
+
+---
+
+### Original spec
 
 **Why:** the whole Users screen has **no data source** — `api/admin/urls.py` exposes only
 `posts/*` and `stats/`. There is no user list, no activate, no role endpoint. (Messages,
@@ -149,14 +161,20 @@ back to coordinates whenever it's absent — so nothing regresses before this sh
 
 | # | Endpoint | Role | Frontend fallback today |
 |---|---|---|---|
-| BE-0 | `GET /api/admin/users/` + `PATCH .../active/` + `PATCH .../role/` | staff (role=**superuser**) | Users screen renders; list 404s → "needs API" notice; actions disabled |
-| BE-1 | `GET /api/admin/audit/` | staff | empty audit screen; history = "submitted" only |
-| BE-2 | `DELETE /api/admin/users/<id>/` | **superuser** | button shown (inactive only), notes pending |
-| BE-3 | `GET /api/admin/map/` | staff | uses approved-only public markers |
-| BE-4 | `GET /api/admin/users/<id>/` | staff | stats show "—" |
-| BE-5 | analytics on `/api/admin/stats/` | staff | over-time omitted; active-users hidden |
-| BE-7 | tighten `PUT /api/site-config/` to **superuser** | **superuser** | staff see "Admins only" panel |
-| BE-8 | `place_name` field on `Post` (+ serializers) | — (write via submit) | sent but dropped; display falls back to coords |
+| BE-0 ✅ | `GET /api/admin/users/` + `PATCH .../active/` + `PATCH .../role/` | staff (role=**superuser**) | **Done** — Users screen is fully live |
+| BE-1 ✅ | `GET /api/admin/audit/` | staff | **Done** — audit trail with admin names |
+| BE-2 ✅ | `DELETE /api/admin/users/<id>/` | **superuser** | **Done** — inactive-only, guards enforced |
+| BE-3 ✅ | `GET /api/admin/map/` | staff | **Done** — all-status density markers |
+| BE-4 ✅ | `GET /api/admin/users/<id>/` | staff | **Done** — user + contribution stats |
+| BE-5 ✅ | `GET /api/admin/analytics/` (new endpoint, not on `/stats/`) | staff | **Done** — weekly over-time + active users |
+| BE-7 ✅ | tighten `PUT /api/site-config/` to **superuser** | **superuser** | **Done** — `IsAdmin` on write |
+| BE-8 ✅ | `place_name` field on `Post` (+ serializers) | — (write via submit) | **Done** — stored + returned |
+
+**STATUS: ALL DONE.** Every admin backend item (BE-0..BE-8) is implemented, tested (275 backend
+tests pass), and architecture-clean (import-linter 4 contracts kept). Note BE-5 landed as a new
+`GET /api/admin/analytics/` endpoint rather than extending `/api/admin/stats/` — cleaner
+separation of counts vs time-series. The over-time chart uses Monday-start weeks (`date_trunc`),
+independent of the configured leaderboard week-start.
 
 All are additive and staff/superuser-gated. None block the frontend from shipping; each just
 lights up a currently-degraded piece. Each needs a use case + adapter method + view + tests,

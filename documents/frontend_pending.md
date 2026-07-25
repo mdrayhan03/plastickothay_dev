@@ -32,18 +32,16 @@ import-linter clean). See `admin_backend_todo.md` and `user_portal_backend_todo.
 previously-degraded admin screens (Users, Audit, delete, all-status map, user stats, analytics)
 and user features (avatar, public profiles, `place_name`, `reporter_id`) are all live.
 
-**New frontend follow-ups these unlock** (small):
-- ☐ Wire the dashboard **over-time chart** to the new `GET /api/admin/analytics/` endpoint.
-- ☐ Return/render `avatar_url` on **leaderboard** rows (backend exposes it on profiles/me/admin;
-      leaderboard rows still render initials — needs `avatar_url` in the leaderboard serializer +
-      row type, then the frontend shows photos).
-- ☐ Link **report cards / detail sheet** to `/u/<reporter_id>` now that `reporter_id` is exposed
-      (skip the link when it's null for anonymous reports).
+**Follow-ups these unlocked:**
+- ✅ Dashboard **over-time chart** wired to `GET /api/admin/analytics/` (+ Active-users KPI, and
+      the Recent-activity feed now reads the audit endpoint).
+- ✅ Dashboard **density map** switched to `GET /api/admin/map/` (all statuses, not approved-only).
+- ✅ **Report cards + detail sheet** link to `/u/<reporter_id>` (skips anonymous reports).
+- ✅ **Leaderboard avatars** — backend now returns `avatar_url` on leaderboard rows (BE-12); the
+      frontend already rendered it.
 
 ## 5. Optional polish (nice-to-have)
 
-- ☐ **Author links on feed cards / report sheet** — blocked on **BE-11**, then a small FE change
-      (skip the link when `reporter_id` is null for anonymous reports).
 - ☐ **In-app camera** requires a secure context (HTTPS / localhost) — known web limitation, not a bug.
 
 ---

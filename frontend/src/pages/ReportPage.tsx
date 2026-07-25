@@ -52,9 +52,15 @@ export function ReportPage() {
         setLocating(false)
         applyLocation(pos.coords.latitude, pos.coords.longitude)
       },
-      () => {
-        toast.error('Could not get your location. Drop a pin on the map instead.')
+      (err) => {
         setLocating(false)
+        const denied = err.code === err.PERMISSION_DENIED
+        toast.error(
+          denied
+            ? 'Location is off. Turn on location access for this site, or drop a pin on the map.'
+            : 'Couldn’t get your location. Drop a pin on the map instead.',
+          { action: { label: 'Try again', onClick: locate } },
+        )
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )

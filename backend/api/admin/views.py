@@ -1,7 +1,7 @@
-"""Admin moderation API — staff/admin only.
+"""Admin moderation API - staff/admin only.
 
 Every route is IsStaffOrAdmin. AdminPostSerializer is used here (the only place reporter
-email/phone are exposed). No point logic anywhere — points derive from status (DEC-2).
+email/phone are exposed). No point logic anywhere - points derive from status (DEC-2).
 """
 
 from rest_framework.response import Response
@@ -202,7 +202,7 @@ class UserActiveView(APIView):
 
 
 class UserRoleView(APIView):
-    """Change a user's role. Admin (superuser) only — enforced here and in the use case."""
+    """Change a user's role. Admin (superuser) only - enforced here and in the use case."""
 
     permission_classes = [IsAdmin]
 

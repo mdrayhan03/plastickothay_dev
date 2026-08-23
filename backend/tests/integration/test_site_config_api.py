@@ -1,4 +1,4 @@
-"""Site config API — public read, admin write, and the week-start → leaderboard effect."""
+"""Site config API - public read, admin write, and the week-start → leaderboard effect."""
 
 import re
 
@@ -126,7 +126,7 @@ class TestWeekStartAffectsLeaderboard:
         # A post approved "yesterday" relative to a week boundary should be in/out of the
         # weekly board depending on where the week starts. Rather than pin to a real date,
         # assert the leaderboard endpoint honours the configured value without error and the
-        # config round-trips — the exact-boundary logic is covered in the domain/period tests.
+        # config round-trips - the exact-boundary logic is covered in the domain/period tests.
         c = APIClient()
         c.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_access(c)}")
         c.put("/api/site-config/", {"week_start": "sunday", "site_name": "X"}, format="json")

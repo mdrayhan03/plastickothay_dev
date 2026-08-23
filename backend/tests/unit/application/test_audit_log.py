@@ -1,4 +1,4 @@
-"""Audit log listing — resolves each moderation action's admin name."""
+"""Audit log listing - resolves each moderation action's admin name."""
 
 from core.application.reports.moderation import ListAuditLog
 from core.domain.entities import PostModerationLog
@@ -30,4 +30,4 @@ class TestListAuditLog:
     def test_missing_admin_falls_back(self, moderation_log, users, clock):
         _log(moderation_log, 9999, 5, ModerationAction.REJECT, clock.now())
         page = ListAuditLog(moderation_log, users).execute(PageRequest(limit=10, cursor=None))
-        assert page.items[0].admin_name == "—"
+        assert page.items[0].admin_name == "-"

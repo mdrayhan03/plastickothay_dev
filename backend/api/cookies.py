@@ -1,7 +1,7 @@
 """Refresh-token cookie helpers.
 
 The refresh token lives in an httpOnly, Secure, SameSite=Lax cookie scoped to /api/auth/
-(LLD §8.1). The access token is returned in the JSON body and kept in memory by the SPA —
+(LLD §8.1). The access token is returned in the JSON body and kept in memory by the SPA -
 never in a cookie, never in localStorage. Same-origin deployment keeps the cookie first-party
 (DEC-7), so SameSite=Lax works and CORS is unnecessary.
 """

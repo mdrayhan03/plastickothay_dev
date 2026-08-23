@@ -6,7 +6,7 @@ const MAX_WIDTH = 1280 // downscale so the base64 payload stays reasonable
 
 type Status = 'loading' | 'ready' | 'denied' | 'missing'
 
-/** Full-screen live camera. No gallery/upload — reports must be shot in real time. */
+/** Full-screen live camera. No gallery/upload - reports must be shot in real time. */
 export function CameraCapture({
   onCapture,
   onClose,

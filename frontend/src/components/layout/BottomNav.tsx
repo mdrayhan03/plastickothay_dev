@@ -43,7 +43,7 @@ function Tab({
 export function BottomNav() {
   const navigate = useNavigate()
   return (
-    <nav className="absolute inset-x-0 bottom-0 z-50 grid h-21 grid-cols-5 items-center border-t border-line bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-3.5 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg">
+    <nav className="absolute inset-x-0 bottom-0 z-50 grid h-21 grid-cols-5 items-center border-t border-line bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-3.5 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">
       <Tab {...tabs[0]} />
       <Tab {...tabs[1]} />
 

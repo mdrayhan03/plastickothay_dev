@@ -1,9 +1,9 @@
-# B0 Commit List — copy-paste ready
+# B0 Commit List - copy-paste ready
 
 **Branch:** `backend`
 **Total:** 23 commits, 56 files (53 under `backend/`, 3 docs).
 
-> **In a hurry?** §0 below is all 23 commits in ONE block — paste once, get 23 commits.
+> **In a hurry?** §0 below is all 23 commits in ONE block - paste once, get 23 commits.
 > §1–23 are the same commits individually if you'd rather go step by step.
 
 ---
@@ -63,7 +63,7 @@ Refs: backend_lld.md 8.4" -m "$CO"
 
 # 5 ── domain: leaderboard periods
 git add backend/core/domain/periods.py
-git commit -m "feat(domain): compute leaderboard period boundaries in Dhaka time" -m "Timestamps are stored UTC, but week/month/year boundaries are computed in Asia/Dhaka. Bucketing in UTC would reset the weekly leaderboard at 06:00 Monday local — mid-morning for every user.
+git commit -m "feat(domain): compute leaderboard period boundaries in Dhaka time" -m "Timestamps are stored UTC, but week/month/year boundaries are computed in Asia/Dhaka. Bucketing in UTC would reset the weekly leaderboard at 06:00 Monday local - mid-morning for every user.
 
 The legacy code mixed datetime.utcnow() and datetime.now(); that is not carried forward. Input and output here are both tz-aware UTC.
 
@@ -71,9 +71,9 @@ Refs: backend_lld.md 5.4" -m "$CO"
 
 # 6 ── domain: point rules
 git add backend/core/domain/points.py
-git commit -m "feat(domain): add derived point rules" -m "Points are derived from current state — no ledger, no score table (DEC-2). A score is a function of current post statuses x current engagements x active rules, so hiding a post strips its points AND its likes' points automatically, and un-hiding restores them, with no reversal code anywhere.
+git commit -m "feat(domain): add derived point rules" -m "Points are derived from current state - no ledger, no score table (DEC-2). A score is a function of current post statuses x current engagements x active rules, so hiding a post strips its points AND its likes' points automatically, and un-hiding restores them, with no reversal code anywhere.
 
-Four conditions gate an engagement: actor is authenticated, post is publicly approved, post is attributable, actor is not the owner. Condition 1 is a security control, not a product choice (DEC-1) — an anonymous liker has no stable identity, so no unique constraint can bind them, and paying the owner would let a shell loop print points forever.
+Four conditions gate an engagement: actor is authenticated, post is publicly approved, post is attributable, actor is not the owner. Condition 1 is a security control, not a product choice (DEC-1) - an anonymous liker has no stable identity, so no unique constraint can bind them, and paying the owner would let a shell loop print points forever.
 
 This module is the SPECIFICATION. Production uses raw SQL, so these rules live in two places and can drift; the contract suite in tests/contract/ is what will stop that.
 
@@ -88,17 +88,17 @@ Clock makes OTP expiry and period boundaries testable without sleep().
 
 ImageStorage takes decoded bytes, never a base64 string: base64 is transport encoding and is decoded at the serializer.
 
-Notifier speaks domain intent (send_otp), not transport. Django's EMAIL_BACKEND is the transport strategy and lives inside the Mailjet adapter — two layers, deliberately.
+Notifier speaks domain intent (send_otp), not transport. Django's EMAIL_BACKEND is the transport strategy and lives inside the Mailjet adapter - two layers, deliberately.
 
 Refs: backend_lld.md 6" -m "$CO"
 
 # 8 ── ports: repositories
 git add backend/core/ports/repositories.py
-git commit -m "feat(ports): add repository ports" -m "Every method accepts and returns domain types — never an ORM model, never a QuerySet. A lazy queryset crossing this boundary would leak persistence semantics into the domain.
+git commit -m "feat(ports): add repository ports" -m "Every method accepts and returns domain types - never an ORM model, never a QuerySet. A lazy queryset crossing this boundary would leak persistence semantics into the domain.
 
 LeaderboardRepository is the calculation strategy port: raw Postgres SQL by default, swappable for an ORM or NoSQL implementation without touching any use case.
 
-EngagementRepository.add() must translate the DB's unique-constraint violation into AlreadyLiked rather than checking first — a check-then-act read would let concurrent double-likes through.
+EngagementRepository.add() must translate the DB's unique-constraint violation into AlreadyLiked rather than checking first - a check-then-act read would let concurrent double-likes through.
 
 Refs: backend_lld.md 6, 7.2" -m "$CO"
 
@@ -106,7 +106,7 @@ Refs: backend_lld.md 6, 7.2" -m "$CO"
 git add backend/core/application/reports/dto.py backend/core/application/reports/submission.py
 git commit -m "feat(reports): add report submission for anonymous and authenticated users" -m "The request payload is identical either way; the only difference is whether a token is present. Anonymous submissions trust the body; authenticated submissions take name/email/phone from the stored profile and IGNORE the body, otherwise a logged-in user could attach a stranger's contact details to a report.
 
-The Drive upload is not part of the transaction, so a failed insert would orphan the file forever. Added a compensating delete on failure — this was not in the LLD sketch.
+The Drive upload is not part of the transaction, so a failed insert would orphan the file forever. Added a compensating delete on failure - this was not in the LLD sketch.
 
 Refs: backend_lld.md 7.1" -m "$CO"
 
@@ -114,7 +114,7 @@ Refs: backend_lld.md 7.1" -m "$CO"
 git add backend/core/application/reports/queries.py
 git commit -m "feat(reports): add public listing, detail, map and description update" -m "Public listing pins statuses to APPROVED in the USE CASE, not the view and never from a query param.
 
-This closes a live leak in the legacy code: posts() defaulted to Post.objects() — every post regardless of status — which combined with the planned serializer exposing email and pN would have published the name, email and phone of everyone who ever filed a report.
+This closes a live leak in the legacy code: posts() defaulted to Post.objects() - every post regardless of status - which combined with the planned serializer exposing email and pN would have published the name, email and phone of everyone who ever filed a report.
 
 GetReport raises PostNotFound rather than NotAuthorized for non-public posts: a 403 would confirm the post exists and leak the moderation queue.
 
@@ -132,7 +132,7 @@ Refs: backend_lld.md 7.3; DEC-2, DEC-4, DEC-6" -m "$CO"
 
 # 12 ── engagement: likes
 git add backend/core/application/engagement/likes.py
-git commit -m "feat(engagement): add like and unlike" -m "Anonymous callers may like — recorded, counted and displayed — but the like awards nothing to anyone, including the post owner (DEC-1).
+git commit -m "feat(engagement): add like and unlike" -m "Anonymous callers may like - recorded, counted and displayed - but the like awards nothing to anyone, including the post owner (DEC-1).
 
 No check-then-act: uniqueness is the database's job via a partial unique index, and a read-first guard would let concurrent double-likes through. Self-likes are refused outright.
 
@@ -140,7 +140,7 @@ Refs: backend_lld.md 7.2, 9.3; DEC-1" -m "$CO"
 
 # 13 ── engagement: feedback & contact messages
 git add backend/core/application/engagement/submissions.py
-git commit -m "feat(engagement): add feedback and contact message submission" -m "Both are greenfield, not a migration: the legacy feedback() view only rendered a template and never handled POST, and the Rate document had no fields at all — its form submitted into the void.
+git commit -m "feat(engagement): add feedback and contact message submission" -m "Both are greenfield, not a migration: the legacy feedback() view only rendered a template and never handled POST, and the Rate document had no fields at all - its form submitted into the void.
 
 Both accept anonymous submissions; authenticated ones take identity from the profile.
 
@@ -161,7 +161,7 @@ Refs: backend_lld.md 9.1, 9.4" -m "$CO"
 git add backend/core/application/accounts/authentication.py
 git commit -m "feat(accounts): add login, token refresh and logout" -m "Sessions are gone: the legacy flow set request.session['user_id'] plus a remember_me cookie. Tokens replace both.
 
-Logout is real — revoking the refresh token is server-side state, without which logout would only mean 'the client forgot'.
+Logout is real - revoking the refresh token is server-side state, without which logout would only mean 'the client forgot'.
 
 Verification and ban checks run only AFTER the password check: answering 'not verified' to a wrong password would confirm the account exists. RefreshToken re-checks the user, so a user banned mid-session cannot refresh their way back in.
 
@@ -169,7 +169,7 @@ Refs: backend_lld.md 8.1" -m "$CO"
 
 # 16 ── accounts: password reset
 git add backend/core/application/accounts/password.py
-git commit -m "feat(accounts): add password reset via OTP" -m "RequestPasswordReset returns silently for unknown usernames — distinguishing would leak which accounts exist.
+git commit -m "feat(accounts): add password reset via OTP" -m "RequestPasswordReset returns silently for unknown usernames - distinguishing would leak which accounts exist.
 
 Refs: backend_lld.md 10" -m "$CO"
 
@@ -177,7 +177,7 @@ Refs: backend_lld.md 10" -m "$CO"
 git add backend/core/application/accounts/profile.py backend/core/application/accounts/administration.py
 git commit -m "feat(accounts): add profile update and admin user management" -m "Username, email and role are not self-editable: email changes need re-verification, role changes are an admin action.
 
-SetUserRole refuses self-modification — without it the last admin can demote themselves and lock everyone out. Staff cannot deactivate an admin.
+SetUserRole refuses self-modification - without it the last admin can demote themselves and lock everyone out. Staff cannot deactivate an admin.
 
 Refs: backend_lld.md 7, 10" -m "$CO"
 
@@ -185,15 +185,15 @@ Refs: backend_lld.md 7, 10" -m "$CO"
 git add backend/core/application/content/contact_page.py
 git commit -m "feat(content): add admin-editable contact page" -m "Structured fields rather than one JSON blob. Postgres would happily store a blob, but nothing would validate it and every consumer would re-derive the shape; since this is an admin form, validation belongs server-side.
 
-Singleton — there is exactly one contact page.
+Singleton - there is exactly one contact page.
 
 Refs: backend_lld.md 4.2, 11.4" -m "$CO"
 
 # 19 ── scoring: leaderboard & contribution
 git add backend/core/application/scoring/leaderboard.py
-git commit -m "feat(scoring): add leaderboard and contribution" -m "Both delegate calculation to LeaderboardRepository — the strategy port. The use case only chooses the period window and supplies active rules, so swapping SQL for ORM or NoSQL never touches this file.
+git commit -m "feat(scoring): add leaderboard and contribution" -m "Both delegate calculation to LeaderboardRepository - the strategy port. The use case only chooses the period window and supplies active rules, so swapping SQL for ORM or NoSQL never touches this file.
 
-Rules are read per request: deactivating a rule takes effect immediately and retroactively (DEC-2 / POL-1 — announce before changing).
+Rules are read per request: deactivating a rule takes effect immediately and retroactively (DEC-2 / POL-1 - announce before changing).
 
 Replaces the legacy contribution view, which hardcoded 'every 5 points = 1 level' and zeroed reviews_written and friends_referred.
 
@@ -202,11 +202,11 @@ Refs: backend_lld.md 5.4, 5.5" -m "$CO"
 # 20 ── test fakes
 git add backend/tests/fakes/system.py backend/tests/fakes/repositories.py backend/tests/fakes/seed.py \
         backend/tests/conftest.py
-git commit -m "test(fakes): add in-memory adapters and rule seed data" -m "These are what let the use-case suite run with no database — the B0 acceptance test. conftest.py imports no Django, configures no settings and opens no connection; if it ever needs to, the hexagon has sprung a leak.
+git commit -m "test(fakes): add in-memory adapters and rule seed data" -m "These are what let the use-case suite run with no database - the B0 acceptance test. conftest.py imports no Django, configures no settings and opens no connection; if it ever needs to, the hexagon has sprung a leak.
 
 InMemoryLeaderboardRepository delegates to core.domain.points: the same reference implementation the contract suite will check the production SQL against.
 
-The in-memory engagement repo mirrors the partial unique index — one like per user per post, comments unconstrained, anonymous rows unconstrained (nothing identifies them, which is exactly why they earn nothing).
+The in-memory engagement repo mirrors the partial unique index - one like per user per post, comments unconstrained, anonymous rows unconstrained (nothing identifies them, which is exactly why they earn nothing).
 
 NOTE: DEFAULT_LEVEL_RULES thresholds are a PLACEHOLDER needing a product decision. The legacy 'every 5 points = 1 level' is meaningless now one approved post is worth 100.
 
@@ -242,7 +242,7 @@ The B0 report records verified exit criteria, findings, deviations from the LLD,
 Refs: backend_lld.md 14" -m "$CO"
 
 echo
-echo "✅ done — $(git rev-list --count HEAD ^HEAD~23) commits created"
+echo "✅ done - $(git rev-list --count HEAD ^HEAD~23) commits created"
 git log --oneline -23
 git status --short
 ```
@@ -257,7 +257,7 @@ Run every block from the **repo root** (`plastickothay_dev/`), in order. Each bl
 commit: `git add` then `git commit`. Verify with `git status` at the end.
 
 > `backend/.venv/` is already covered by `.gitignore` and will not be staged.
-> `backend_old/` is gitignored on purpose — it stays local as reference and never lands here.
+> `backend_old/` is gitignored on purpose - it stays local as reference and never lands here.
 
 Ordering rule: code lands before the tests that exercise it, so no commit is left with a
 red suite. Domain → ports → application → fakes → tests → docs.
@@ -291,7 +291,7 @@ Adds pytest, ruff and import-linter config. The import-linter contracts are the 
 Refs: backend_lld.md 2.1, 3" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 2. Domain — identity, errors, value objects
+## 2. Domain - identity, errors, value objects
 
 ```bash
 git add backend/core/domain/ids.py \
@@ -305,7 +305,7 @@ Every DomainError carries a stable code that the API exception handler maps to o
 Refs: backend_lld.md 4.1, 4.3, 8.5" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 3. Domain — entities
+## 3. Domain - entities
 
 ```bash
 git add backend/core/domain/entities.py
@@ -319,7 +319,7 @@ Post.approve() sets approved_at once only: re-approving after a hide must not sh
 Refs: backend_lld.md 2.2, 4.2" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 4. Domain — pagination & read models
+## 4. Domain - pagination & read models
 
 ```bash
 git add backend/core/domain/pagination.py \
@@ -334,33 +334,33 @@ MapMarker is deliberately not a Post. The map wants thousands of thin markers, t
 Refs: backend_lld.md 8.4" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 5. Domain — leaderboard periods
+## 5. Domain - leaderboard periods
 
 ```bash
 git add backend/core/domain/periods.py
 
-git commit -m "feat(domain): compute leaderboard period boundaries in Dhaka time" -m "Timestamps are stored UTC, but week/month/year boundaries are computed in Asia/Dhaka. Bucketing in UTC would reset the weekly leaderboard at 06:00 Monday local — mid-morning for every user.
+git commit -m "feat(domain): compute leaderboard period boundaries in Dhaka time" -m "Timestamps are stored UTC, but week/month/year boundaries are computed in Asia/Dhaka. Bucketing in UTC would reset the weekly leaderboard at 06:00 Monday local - mid-morning for every user.
 
 The legacy code mixed datetime.utcnow() and datetime.now(); that is not carried forward. Input and output here are both tz-aware UTC.
 
 Refs: backend_lld.md 5.4" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 6. Domain — point rules
+## 6. Domain - point rules
 
 ```bash
 git add backend/core/domain/points.py
 
-git commit -m "feat(domain): add derived point rules" -m "Points are derived from current state — no ledger, no score table (DEC-2). A score is a function of current post statuses x current engagements x active rules, so hiding a post strips its points AND its likes' points automatically, and un-hiding restores them, with no reversal code anywhere.
+git commit -m "feat(domain): add derived point rules" -m "Points are derived from current state - no ledger, no score table (DEC-2). A score is a function of current post statuses x current engagements x active rules, so hiding a post strips its points AND its likes' points automatically, and un-hiding restores them, with no reversal code anywhere.
 
-Four conditions gate an engagement: actor is authenticated, post is publicly approved, post is attributable, actor is not the owner. Condition 1 is a security control, not a product choice (DEC-1) — an anonymous liker has no stable identity, so no unique constraint can bind them, and paying the owner would let a shell loop print points forever.
+Four conditions gate an engagement: actor is authenticated, post is publicly approved, post is attributable, actor is not the owner. Condition 1 is a security control, not a product choice (DEC-1) - an anonymous liker has no stable identity, so no unique constraint can bind them, and paying the owner would let a shell loop print points forever.
 
 This module is the SPECIFICATION. Production uses raw SQL, so these rules live in two places and can drift; the contract suite in tests/contract/ is what will stop that.
 
 Refs: backend_lld.md 5.1, 5.2, 5.3; DEC-1, DEC-2" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 7. Ports — infrastructure
+## 7. Ports - infrastructure
 
 ```bash
 git add backend/core/ports/clock.py \
@@ -375,26 +375,26 @@ Clock makes OTP expiry and period boundaries testable without sleep().
 
 ImageStorage takes decoded bytes, never a base64 string: base64 is transport encoding and is decoded at the serializer.
 
-Notifier speaks domain intent (send_otp), not transport. Django's EMAIL_BACKEND is the transport strategy and lives inside the Mailjet adapter — two layers, deliberately.
+Notifier speaks domain intent (send_otp), not transport. Django's EMAIL_BACKEND is the transport strategy and lives inside the Mailjet adapter - two layers, deliberately.
 
 Refs: backend_lld.md 6" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 8. Ports — repositories
+## 8. Ports - repositories
 
 ```bash
 git add backend/core/ports/repositories.py
 
-git commit -m "feat(ports): add repository ports" -m "Every method accepts and returns domain types — never an ORM model, never a QuerySet. A lazy queryset crossing this boundary would leak persistence semantics into the domain.
+git commit -m "feat(ports): add repository ports" -m "Every method accepts and returns domain types - never an ORM model, never a QuerySet. A lazy queryset crossing this boundary would leak persistence semantics into the domain.
 
 LeaderboardRepository is the calculation strategy port: raw Postgres SQL by default, swappable for an ORM or NoSQL implementation without touching any use case.
 
-EngagementRepository.add() must translate the DB's unique-constraint violation into AlreadyLiked rather than checking first — a check-then-act read would let concurrent double-likes through.
+EngagementRepository.add() must translate the DB's unique-constraint violation into AlreadyLiked rather than checking first - a check-then-act read would let concurrent double-likes through.
 
 Refs: backend_lld.md 6, 7.2" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 9. Reports — submission
+## 9. Reports - submission
 
 ```bash
 git add backend/core/application/reports/dto.py \
@@ -402,26 +402,26 @@ git add backend/core/application/reports/dto.py \
 
 git commit -m "feat(reports): add report submission for anonymous and authenticated users" -m "The request payload is identical either way; the only difference is whether a token is present. Anonymous submissions trust the body; authenticated submissions take name/email/phone from the stored profile and IGNORE the body, otherwise a logged-in user could attach a stranger's contact details to a report.
 
-The Drive upload is not part of the transaction, so a failed insert would orphan the file forever. Added a compensating delete on failure — this was not in the LLD sketch.
+The Drive upload is not part of the transaction, so a failed insert would orphan the file forever. Added a compensating delete on failure - this was not in the LLD sketch.
 
 Refs: backend_lld.md 7.1" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 10. Reports — public queries
+## 10. Reports - public queries
 
 ```bash
 git add backend/core/application/reports/queries.py
 
 git commit -m "feat(reports): add public listing, detail, map and description update" -m "Public listing pins statuses to APPROVED in the USE CASE, not the view and never from a query param.
 
-This closes a live leak in the legacy code: posts() defaulted to Post.objects() — every post regardless of status — which combined with the planned serializer exposing email and pN would have published the name, email and phone of everyone who ever filed a report.
+This closes a live leak in the legacy code: posts() defaulted to Post.objects() - every post regardless of status - which combined with the planned serializer exposing email and pN would have published the name, email and phone of everyone who ever filed a report.
 
 GetReport raises PostNotFound rather than NotAuthorized for non-public posts: a 403 would confirm the post exists and leak the moderation queue.
 
 Refs: backend_lld.md 8.3, 8.4" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 11. Reports — moderation
+## 11. Reports - moderation
 
 ```bash
 git add backend/core/application/reports/moderation.py
@@ -435,31 +435,31 @@ PostModerationLog is an audit trail for humans and is NEVER an input to point ca
 Refs: backend_lld.md 7.3; DEC-2, DEC-4, DEC-6" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 12. Engagement — likes
+## 12. Engagement - likes
 
 ```bash
 git add backend/core/application/engagement/likes.py
 
-git commit -m "feat(engagement): add like and unlike" -m "Anonymous callers may like — recorded, counted and displayed — but the like awards nothing to anyone, including the post owner (DEC-1).
+git commit -m "feat(engagement): add like and unlike" -m "Anonymous callers may like - recorded, counted and displayed - but the like awards nothing to anyone, including the post owner (DEC-1).
 
 No check-then-act: uniqueness is the database's job via a partial unique index, and a read-first guard would let concurrent double-likes through. Self-likes are refused outright.
 
 Refs: backend_lld.md 7.2, 9.3; DEC-1" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 13. Engagement — feedback & contact messages
+## 13. Engagement - feedback & contact messages
 
 ```bash
 git add backend/core/application/engagement/submissions.py
 
-git commit -m "feat(engagement): add feedback and contact message submission" -m "Both are greenfield, not a migration: the legacy feedback() view only rendered a template and never handled POST, and the Rate document had no fields at all — its form submitted into the void.
+git commit -m "feat(engagement): add feedback and contact message submission" -m "Both are greenfield, not a migration: the legacy feedback() view only rendered a template and never handled POST, and the Rate document had no fields at all - its form submitted into the void.
 
 Both accept anonymous submissions; authenticated ones take identity from the profile.
 
 Refs: backend_lld.md 4.2" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 14. Accounts — registration & OTP
+## 14. Accounts - registration & OTP
 
 ```bash
 git add backend/core/application/accounts/dto.py \
@@ -475,31 +475,31 @@ OTP codes use secrets, not random: they guard account takeover. ResendOTP return
 Refs: backend_lld.md 9.1, 9.4" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 15. Accounts — login, refresh, logout
+## 15. Accounts - login, refresh, logout
 
 ```bash
 git add backend/core/application/accounts/authentication.py
 
 git commit -m "feat(accounts): add login, token refresh and logout" -m "Sessions are gone: the legacy flow set request.session['user_id'] plus a remember_me cookie. Tokens replace both.
 
-Logout is real — revoking the refresh token is server-side state, without which logout would only mean 'the client forgot'.
+Logout is real - revoking the refresh token is server-side state, without which logout would only mean 'the client forgot'.
 
 Verification and ban checks run only AFTER the password check: answering 'not verified' to a wrong password would confirm the account exists. RefreshToken re-checks the user, so a user banned mid-session cannot refresh their way back in.
 
 Refs: backend_lld.md 8.1" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 16. Accounts — password reset
+## 16. Accounts - password reset
 
 ```bash
 git add backend/core/application/accounts/password.py
 
-git commit -m "feat(accounts): add password reset via OTP" -m "RequestPasswordReset returns silently for unknown usernames — distinguishing would leak which accounts exist.
+git commit -m "feat(accounts): add password reset via OTP" -m "RequestPasswordReset returns silently for unknown usernames - distinguishing would leak which accounts exist.
 
 Refs: backend_lld.md 10" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 17. Accounts — profile & admin user management
+## 17. Accounts - profile & admin user management
 
 ```bash
 git add backend/core/application/accounts/profile.py \
@@ -507,31 +507,31 @@ git add backend/core/application/accounts/profile.py \
 
 git commit -m "feat(accounts): add profile update and admin user management" -m "Username, email and role are not self-editable: email changes need re-verification, role changes are an admin action.
 
-SetUserRole refuses self-modification — without it the last admin can demote themselves and lock everyone out. Staff cannot deactivate an admin.
+SetUserRole refuses self-modification - without it the last admin can demote themselves and lock everyone out. Staff cannot deactivate an admin.
 
 Refs: backend_lld.md 7, 10" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 18. Content — contact page
+## 18. Content - contact page
 
 ```bash
 git add backend/core/application/content/contact_page.py
 
 git commit -m "feat(content): add admin-editable contact page" -m "Structured fields rather than one JSON blob. Postgres would happily store a blob, but nothing would validate it and every consumer would re-derive the shape; since this is an admin form, validation belongs server-side.
 
-Singleton — there is exactly one contact page.
+Singleton - there is exactly one contact page.
 
 Refs: backend_lld.md 4.2, 11.4" -m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
-## 19. Scoring — leaderboard & contribution
+## 19. Scoring - leaderboard & contribution
 
 ```bash
 git add backend/core/application/scoring/leaderboard.py
 
-git commit -m "feat(scoring): add leaderboard and contribution" -m "Both delegate calculation to LeaderboardRepository — the strategy port. The use case only chooses the period window and supplies active rules, so swapping SQL for ORM or NoSQL never touches this file.
+git commit -m "feat(scoring): add leaderboard and contribution" -m "Both delegate calculation to LeaderboardRepository - the strategy port. The use case only chooses the period window and supplies active rules, so swapping SQL for ORM or NoSQL never touches this file.
 
-Rules are read per request: deactivating a rule takes effect immediately and retroactively (DEC-2 / POL-1 — announce before changing).
+Rules are read per request: deactivating a rule takes effect immediately and retroactively (DEC-2 / POL-1 - announce before changing).
 
 Replaces the legacy contribution view, which hardcoded 'every 5 points = 1 level' and zeroed reviews_written and friends_referred.
 
@@ -546,11 +546,11 @@ git add backend/tests/fakes/system.py \
         backend/tests/fakes/seed.py \
         backend/tests/conftest.py
 
-git commit -m "test(fakes): add in-memory adapters and rule seed data" -m "These are what let the use-case suite run with no database — the B0 acceptance test. conftest.py imports no Django, configures no settings and opens no connection; if it ever needs to, the hexagon has sprung a leak.
+git commit -m "test(fakes): add in-memory adapters and rule seed data" -m "These are what let the use-case suite run with no database - the B0 acceptance test. conftest.py imports no Django, configures no settings and opens no connection; if it ever needs to, the hexagon has sprung a leak.
 
 InMemoryLeaderboardRepository delegates to core.domain.points: the same reference implementation the contract suite will check the production SQL against.
 
-The in-memory engagement repo mirrors the partial unique index — one like per user per post, comments unconstrained, anonymous rows unconstrained (nothing identifies them, which is exactly why they earn nothing).
+The in-memory engagement repo mirrors the partial unique index - one like per user per post, comments unconstrained, anonymous rows unconstrained (nothing identifies them, which is exactly why they earn nothing).
 
 NOTE: DEFAULT_LEVEL_RULES thresholds are a PLACEHOLDER needing a product decision. The legacy 'every 5 points = 1 level' is meaningless now one approved post is worth 100.
 
@@ -621,7 +621,7 @@ cd backend
 ```bash
 git add backend/ documents/backend_implementation_plan.md documents/b0_implementation_report.md documents/b0_commits.md
 
-git commit -m "feat(backend): B0 — hexagonal core with framework-free domain and use cases" -m "Domain entities, ports, and every use case for reports, accounts, engagement, content and scoring, plus in-memory fakes and 76 tests.
+git commit -m "feat(backend): B0 - hexagonal core with framework-free domain and use cases" -m "Domain entities, ports, and every use case for reports, accounts, engagement, content and scoring, plus in-memory fakes and 76 tests.
 
 Exit criteria verified: pytest passes with Django, psycopg and PostgreSQL all absent; import-linter keeps 4 contracts; ruff clean. That is the proof the hexagon is real rather than decorative.
 

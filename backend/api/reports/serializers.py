@@ -1,4 +1,4 @@
-"""Report serializers — the public/admin split (LLD §8.3).
+"""Report serializers - the public/admin split (LLD §8.3).
 
 This is where the legacy PII leak is closed. The public serializers expose reporter NAME only;
 email and phone are reachable exclusively through the admin serializer, behind an admin token.
@@ -86,7 +86,7 @@ class PublicPostSerializer(serializers.Serializer):
 
 
 class OwnPostSerializer(PublicPostSerializer):
-    """The reporter's own posts — adds status so they can see pending/hidden state."""
+    """The reporter's own posts - adds status so they can see pending/hidden state."""
 
     status = serializers.SerializerMethodField()
 
@@ -102,7 +102,7 @@ class MapMarkerSerializer(serializers.Serializer):
 
 
 class AdminPostSerializer(serializers.Serializer):
-    """Admin-only — the ONLY place reporter email/phone are exposed."""
+    """Admin-only - the ONLY place reporter email/phone are exposed."""
 
     id = serializers.IntegerField()
     reporter_name = serializers.SerializerMethodField()

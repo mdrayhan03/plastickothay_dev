@@ -1,4 +1,4 @@
-"""Reports API — public reads and open submission.
+"""Reports API - public reads and open submission.
 
 Public list/detail pin status to APPROVED in the use case, never via a query param. Public
 serializers never expose reporter email/phone (LLD §8.3). Submission is open to anyone

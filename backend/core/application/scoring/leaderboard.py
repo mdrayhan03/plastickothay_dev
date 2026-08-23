@@ -2,7 +2,7 @@
 
 The period window (period → `since`) is computed HERE, in the domain/use-case, from the clock
 and the admin-configured week-start (SiteConfig). The leaderboard repository only filters by
-the resulting timestamp — no time, timezone, or period logic lives in the adapter.
+the resulting timestamp - no time, timezone, or period logic lives in the adapter.
 """
 
 from core.domain.ids import UserId
@@ -38,7 +38,7 @@ class GetLeaderboard:
             period, self.clock.now(), week_starts_on_monday=week_start.starts_on_monday
         )
         # Rules are read per request: deactivating a rule takes effect immediately and
-        # retroactively (LLD DEC-2 / POL-1 — announce before changing).
+        # retroactively (LLD DEC-2 / POL-1 - announce before changing).
         return self.leaderboard.top(since, self.point_rules.active_rules(), page)
 
 

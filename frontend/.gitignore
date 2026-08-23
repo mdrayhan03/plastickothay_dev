@@ -28,3 +28,8 @@ dist-ssr
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local env (public build-time vars; keep .env.example tracked)
+.env
+.env.*.local
+!.env.example

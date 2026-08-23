@@ -95,7 +95,7 @@ export async function installApiMock(page: Page, opts: Options = {}) {
   const json = (route: Route, data: unknown, status = 200) =>
     route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) })
 
-  // Map tiles + reverse geocoding are external — stub them so tests are offline and fast.
+  // Map tiles + reverse geocoding are external - stub them so tests are offline and fast.
   await page.route(/basemaps\.cartocdn\.com/, (r) => r.abort())
   await page.route(/nominatim\.openstreetmap\.org/, (r) => json(r, { address: {} }))
 

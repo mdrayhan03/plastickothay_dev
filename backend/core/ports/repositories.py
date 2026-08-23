@@ -113,11 +113,11 @@ class PostRepository(ABC):
 
     @abstractmethod
     def list_map_markers(self) -> list[MapMarker]:
-        """Approved posts only, thin projection — never the full record (LLD §8.4)."""
+        """Approved posts only, thin projection - never the full record (LLD §8.4)."""
 
     @abstractmethod
     def list_admin_map_markers(self) -> list[AdminMapMarker]:
-        """All non-deleted posts (any status), thin projection — for the admin density map."""
+        """All non-deleted posts (any status), thin projection - for the admin density map."""
 
     @abstractmethod
     def counts_by_status(self) -> StatusCounts: ...
@@ -125,7 +125,7 @@ class PostRepository(ABC):
     @abstractmethod
     def analytics(self, since: datetime) -> PostAnalytics:
         """Weekly submitted/approved series since `since`, plus the count of distinct
-        authenticated contributors in that window — for the admin dashboard."""
+        authenticated contributors in that window - for the admin dashboard."""
 
 
 class EngagementRepository(ABC):
@@ -150,7 +150,7 @@ class EngagementRepository(ABC):
 
     @abstractmethod
     def counts_for(self, post_ids: list[PostId], type: EngagementType) -> dict[PostId, int]:
-        """Batch lookup — avoids N+1 when serializing a page of posts."""
+        """Batch lookup - avoids N+1 when serializing a page of posts."""
 
     @abstractmethod
     def liked_post_ids(self, post_ids: list[PostId], actor_id: UserId) -> set[PostId]:
@@ -173,7 +173,7 @@ class LeaderboardRepository(ABC):
 
     The default implementation is raw Postgres SQL (LLD §5.4). Swapping in an ORM or NoSQL
     implementation means implementing this port and passing the shared contract suite in
-    tests/contract/ — the rules live in core.domain.points AND in SQL, so that suite is
+    tests/contract/ - the rules live in core.domain.points AND in SQL, so that suite is
     what stops them drifting.
     """
 
@@ -181,7 +181,7 @@ class LeaderboardRepository(ABC):
     def top(self, since: datetime | None, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
         """`since` is the inclusive period lower bound (None = all-time), already computed by
         the use case from the period, the clock, and the configured week-start. The adapter
-        only filters by it — no time/timezone/period logic lives in the adapter."""
+        only filters by it - no time/timezone/period logic lives in the adapter."""
 
     @abstractmethod
     def contribution_for(
@@ -229,13 +229,13 @@ class ModerationLogRepository(ABC):
 
     @abstractmethod
     def list(self, page: PageRequest) -> Page[PostModerationLog]:
-        """All actions, newest first — for the admin audit screen."""
+        """All actions, newest first - for the admin audit screen."""
 
 
 class SiteConfigRepository(ABC):
     @abstractmethod
     def get(self) -> SiteConfig:
-        """Always returns a config — defaults if none has been saved yet."""
+        """Always returns a config - defaults if none has been saved yet."""
 
     @abstractmethod
     def save(self, config: SiteConfig) -> SiteConfig: ...
@@ -250,7 +250,7 @@ class BadgeRepository(ABC):
 
     @abstractmethod
     def award(self, user_id: UserId, code: str, at) -> None:
-        """Idempotent — awarding an already-held badge is a no-op."""
+        """Idempotent - awarding an already-held badge is a no-op."""
 
     @abstractmethod
     def list_earned(self, user_id: UserId) -> list[UserBadge]: ...

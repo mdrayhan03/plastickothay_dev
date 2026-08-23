@@ -28,7 +28,7 @@ export function ProfilePage() {
           <div className="font-bold text-ink">Profiles aren’t available yet</div>
           <p className="mt-1 max-w-xs text-sm text-ink-2">
             Public user profiles need the <b>/api/users/&lt;id&gt;/</b> endpoint (BE-10). It’s
-            planned — this screen lights up once it ships.
+            planned - this screen lights up once it ships.
           </p>
         </div>
       )}
@@ -81,9 +81,11 @@ export function ProfilePage() {
           {!posts.isError && allPosts.length === 0 && !posts.isLoading && (
             <p className="px-8 pb-6 text-center text-sm text-ink-3">No public reports yet.</p>
           )}
-          {allPosts.map((post) => (
-            <ReportCard key={post.id} post={post} onOpen={setSelected} />
-          ))}
+          <div className="grid gap-3 px-4.5 md:grid-cols-2">
+            {allPosts.map((post) => (
+              <ReportCard key={post.id} post={post} onOpen={setSelected} />
+            ))}
+          </div>
           {posts.hasNextPage && (
             <button
               type="button"

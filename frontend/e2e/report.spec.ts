@@ -5,7 +5,7 @@ test('a signed-in user captures a photo, sets location, and submits a report', a
   const state = await installApiMock(page, { authed: user() })
   await page.goto('/report')
 
-  // 1. Open the in-app camera (no upload option) and shoot — Chromium's fake device supplies
+  // 1. Open the in-app camera (no upload option) and shoot - Chromium's fake device supplies
   //    a video stream so getUserMedia + canvas capture work headless.
   await page.getByText(/tap to capture the pollution/i).click()
   const shutter = page.getByRole('button', { name: /take photo/i })

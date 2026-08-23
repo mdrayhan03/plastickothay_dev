@@ -10,7 +10,7 @@ import { ReviewQueue } from '@/pages/admin/ReviewQueue'
 import { SettingsPage } from '@/pages/admin/SettingsPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 
-/** The desktop admin portal — full width, no phone frame. Staff/admin only. */
+/** The desktop admin portal - full width, no phone frame. Staff/admin only. */
 export function AdminPortal() {
   return (
     <StaffRoute>

@@ -1,4 +1,4 @@
-"""Leaderboard contract suite — the guard against SQL/Python rule drift (LLD §5.4, B5).
+"""Leaderboard contract suite - the guard against SQL/Python rule drift (LLD §5.4, B5).
 
 The point rules live in two places: core.domain.points (the reference, used by the fake) and
 the Django ORM aggregation in adapters. This suite runs identical scenarios against BOTH and
@@ -235,7 +235,7 @@ class TestLeaderboardContract:
 
         bob = backend.add_user("bob")
         post = backend.add_post(None, PostStatus.APPROVED, approved_at=NOW)
-        backend.add_like(post.id, bob.id)  # like on anon post — no receiver, no giver credit
+        backend.add_like(post.id, bob.id)  # like on anon post - no receiver, no giver credit
         assert points_of(backend, bob.id) == 0
 
     def test_leaderboard_ranks_by_points(self, backend):

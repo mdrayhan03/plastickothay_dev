@@ -82,7 +82,7 @@ export function ReportPage() {
         description,
         ...(isAuthed ? {} : contact),
       })
-      toast.success('Report submitted — thank you!')
+      toast.success('Report submitted - thank you!')
       navigate('/')
     } catch (e) {
       toast.error(apiErrorMessage(e, 'Could not submit'))
@@ -204,7 +204,7 @@ export function ReportPage() {
           <FormField label="Email" type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
           <FormField label="Phone" type="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
           <p className="text-[11.5px] leading-relaxed text-ink-3">
-            Only used to follow up on your report — never shown publicly.
+            Only used to follow up on your report - never shown publicly.
           </p>
         </div>
       )}
@@ -217,7 +217,7 @@ export function ReportPage() {
         <p className="mt-3 text-center text-xs text-ink-2">
           {isAuthed
             ? 'Your report earns points once approved.'
-            : 'Reporting as a guest — sign in to earn points.'}
+            : 'Reporting as a guest - sign in to earn points.'}
         </p>
       </div>
     </>

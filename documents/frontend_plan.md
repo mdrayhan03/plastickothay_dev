@@ -1,4 +1,4 @@
-# Frontend Plan — PlasticKothay PWA
+# Frontend Plan - PlasticKothay PWA
 
 **Branch:** `frontend` · **Status:** plan (pre-implementation)
 **Consumes:** the backend API on `backend` (31 endpoints, contract-complete)
@@ -8,7 +8,7 @@
 
 ## 1. What we're building
 
-A **mobile-first Progressive Web App** that looks and feels like a native phone app —
+A **mobile-first Progressive Web App** that looks and feels like a native phone app -
 installable to the home screen, full-screen, with a **bottom tab bar** for primary navigation
 and bottom sheets for actions. Desktop renders the same app centered in a phone-width frame.
 Mobile UX is the primary target; desktop is a courtesy.
@@ -46,12 +46,12 @@ like reports, climb a leaderboard, and earn badges. Admins moderate from the sam
 
 ### 3.1 The frame
 - **Mobile:** full-viewport, `100dvh`, no horizontal scroll ever.
-- **Desktop:** the app is centered at `max-width: 480px` with a subtle frame/shadow — it reads
+- **Desktop:** the app is centered at `max-width: 480px` with a subtle frame/shadow - it reads
   as a phone. Content never sprawls wide.
 - **Safe areas:** honour `env(safe-area-inset-*)` so the bottom bar clears the iPhone home
   indicator and content clears the notch.
 
-### 3.2 Navigation — bottom tab bar
+### 3.2 Navigation - bottom tab bar
 Fixed to the bottom, five slots, the center one a raised **FAB** for the primary action:
 
 ```
@@ -72,7 +72,7 @@ Fixed to the bottom, five slots, the center one a raised **FAB** for the primary
 | **Me** | `/me` | profile: contribution, level ring, badges, my reports |
 | **More** | `/more` | contact, feedback, about, settings; **Admin** entry for staff; logout |
 
-- **Top app bar:** contextual — screen title, optional back button, optional action.
+- **Top app bar:** contextual - screen title, optional back button, optional action.
 - **Sheets, not modals:** actions (report details, filters, confirm) slide up from the bottom
   (shadcn `Sheet`/`Drawer`), the native-app pattern.
 - **Auth screens** (login/register/OTP) are full-screen flows *outside* the tab shell.
@@ -110,7 +110,7 @@ frontend/
     │   └── utils.ts           cn() and helpers (shadcn)
     ├── types/                 API contract types (mirror the serializers)
     │   ├── auth.ts  post.ts  scoring.ts  content.ts  config.ts
-    ├── services/              one module per API area — pure functions returning typed data
+    ├── services/              one module per API area - pure functions returning typed data
     │   ├── authService.ts  postService.ts  engagementService.ts
     │   ├── scoringService.ts  contentService.ts  adminService.ts
     ├── hooks/                 React Query wrappers + useAuth
@@ -156,7 +156,7 @@ sequenceDiagram
 ```
 
 Rules:
-- **Access token in a module variable (memory), never localStorage** — XSS can't read it.
+- **Access token in a module variable (memory), never localStorage** - XSS can't read it.
 - **Refresh token** is the backend's httpOnly cookie; the browser sends it automatically.
 - **Request interceptor** attaches `Authorization: Bearer <access>` when present.
 - **Response interceptor** on `401`: call `/api/auth/refresh/` once, update the token, retry the
@@ -169,7 +169,7 @@ Rules:
 
 ---
 
-## 6. Server state — TanStack Query
+## 6. Server state - TanStack Query
 
 - One `QueryClient`; sensible defaults (`staleTime` per data type, retry off for 4xx).
 - **Query keys** are structured and centralized: `['posts', filters]`, `['map']`,
@@ -179,7 +179,7 @@ Rules:
   → invalidate the review queue + stats.
 - **Optimistic** like/unlike: bump the count immediately, roll back on error.
 - **Cursor pagination** (the backend's `next_cursor`) via `useInfiniteQuery`.
-- **Auth stays in Context**, not React Query — it's client state, not server cache.
+- **Auth stays in Context**, not React Query - it's client state, not server cache.
 
 ---
 
@@ -191,7 +191,7 @@ Rules:
 - **Caching:** precache the app shell (HTML/JS/CSS); API calls are network-first (React Query
   owns in-session caching). A simple offline fallback screen when the shell can't reach the net.
 - **Icons/splash:** generated from one source logo.
-- Not doing background sync / push in v1 — noted as future.
+- Not doing background sync / push in v1 - noted as future.
 
 ---
 
@@ -209,7 +209,7 @@ from an OpenAPI schema if we add drf-spectacular.)
 
 | # | Decision | Why |
 |---|---|---|
-| F-1 | Mobile-first PWA, bottom-tab shell, phone-frame on desktop | product direction — feels like a native app, installable |
+| F-1 | Mobile-first PWA, bottom-tab shell, phone-frame on desktop | product direction - feels like a native app, installable |
 | F-2 | Tailwind v4 + shadcn/ui | own the components, no bloat, fits custom public + data-heavy admin |
 | F-3 | TanStack Query for all server state; Context for auth only | caching/refetch/optimistic for free; the modern standard |
 | F-4 | react-hook-form + zod | robust forms; zod mirrors the API contract |
@@ -222,9 +222,9 @@ from an OpenAPI schema if we add drf-spectacular.)
 
 ## 10. Open questions before/along the way
 
-1. **Brand palette & logo** — a starting green palette is fine; final logo comes via site-config.
-2. **Map tiles** — OpenStreetMap default tiles (free) vs a keyed provider (MapTiler/Mapbox) for
+1. **Brand palette & logo** - a starting green palette is fine; final logo comes via site-config.
+2. **Map tiles** - OpenStreetMap default tiles (free) vs a keyed provider (MapTiler/Mapbox) for
    nicer styling. OSM to start.
-3. **Anonymous reporting UX** — the API allows it; do we surface a "report without an account"
+3. **Anonymous reporting UX** - the API allows it; do we surface a "report without an account"
    path, or nudge sign-up first? (Recommend allow-anonymous with a soft sign-up nudge.)
-4. **Offline depth** — v1 caches the shell only. Full offline report drafting is a later add.
+4. **Offline depth** - v1 caches the shell only. Full offline report drafting is a later add.

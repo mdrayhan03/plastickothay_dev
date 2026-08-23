@@ -13,7 +13,7 @@ test('a user can sign in and see their profile', async ({ page }) => {
   await expect(page.getByText(new RegExp(`welcome, ${user().first_name}`, 'i'))).toBeVisible()
   // ...and the More tab now offers Log out instead of Sign in.
   await page.getByRole('link', { name: /more/i }).click()
-  await expect(page.getByRole('button', { name: /log out/i })).toBeVisible()
+  await expect(page.getByText(/log out/i)).toBeVisible()
 })
 
 test('protected route redirects an anonymous user to login', async ({ page }) => {

@@ -1,4 +1,4 @@
-"""Report submission — the one endpoint open to anonymous and authenticated callers alike."""
+"""Report submission - the one endpoint open to anonymous and authenticated callers alike."""
 
 import contextlib
 import uuid

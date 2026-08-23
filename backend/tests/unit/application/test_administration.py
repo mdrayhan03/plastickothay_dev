@@ -1,4 +1,4 @@
-"""Admin user management use cases — list, activate/deactivate, role change."""
+"""Admin user management use cases - list, activate/deactivate, role change."""
 
 import pytest
 

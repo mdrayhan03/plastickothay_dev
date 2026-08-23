@@ -184,7 +184,7 @@ function UserDrawer({
 }) {
   const qc = useQueryClient()
 
-  // BE-4: full stats endpoint pending — fetch is attempted, stats show "—" on failure.
+  // BE-4: full stats endpoint pending - fetch is attempted, stats show "-" on failure.
   const { data: detail } = useQuery({
     queryKey: user ? qk.adminUserDetail(user.id) : ['admin', 'users', 'none'],
     queryFn: () => adminService.userDetail(user!.id),
@@ -210,7 +210,7 @@ function UserDrawer({
     onError: () => toast.error('Deleting users needs the admin API (BE-2).'),
   })
 
-  const stat = (v?: number) => (v == null ? '—' : v.toLocaleString())
+  const stat = (v?: number) => (v == null ? '-' : v.toLocaleString())
   const roleEditable = user ? canChangeRole(isAdmin, isSelf) : false
   const deletable = user ? canDeleteUser(isAdmin, user, isSelf) : false
 

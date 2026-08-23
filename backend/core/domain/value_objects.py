@@ -1,4 +1,4 @@
-"""Value objects — immutable, self-validating, no identity.
+"""Value objects - immutable, self-validating, no identity.
 
 Replaces the magic numbers in the legacy code (``status=1``, ``user_type=3``).
 """

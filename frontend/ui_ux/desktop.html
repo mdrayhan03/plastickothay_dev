@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PlasticKothay — Desktop UX Prototype</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+:root{
+  --brand:#0A9C74; --brand-2:#17BE8F; --brand-deep:#066A4E; --brand-soft:#E1F3EC;
+  --gold:#DFA317; --gold-2:#F3C651; --gold-soft:#FBF0D6;
+  --ink:#0A211C; --ink-2:#425F59; --ink-3:#7C948C;
+  --ground:#EEF4F0; --surface:#FFFFFF; --surface-2:#F5F9F5;
+  --line:#E3EAE5; --line-2:#D3DFD8;
+  --sev-1:#2FA96A; --sev-2:#8CB93B; --sev-3:#F2A93B; --sev-4:#F0801E; --sev-5:#E5484D;
+  --heart:#E5527A;
+  --grad:linear-gradient(152deg,var(--brand-2),var(--brand-deep));
+  --shadow-1:0 1px 2px rgba(10,33,28,.05),0 2px 6px rgba(10,33,28,.05);
+  --shadow-2:0 10px 28px -10px rgba(10,33,28,.22);
+  --font-ui:"Plus Jakarta Sans",system-ui,sans-serif;
+  --font-display:"Bricolage Grotesque",serif;
+}
+:root[data-theme="dark"]{
+  --brand:#20C998; --brand-2:#33DCAB; --brand-deep:#0C9A72; --brand-soft:#123029;
+  --gold:#F0C24E; --gold-2:#F8D982; --gold-soft:#2E2713;
+  --ink:#E9F1ED; --ink-2:#9DB5AC; --ink-3:#6F857D;
+  --ground:#07120F; --surface:#0D1D18; --surface-2:#112420;
+  --line:#1B2E28; --line-2:#243D36;
+  --shadow-1:0 1px 2px rgba(0,0,0,.45); --shadow-2:0 12px 30px -10px rgba(0,0,0,.65);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font-ui);background:var(--ground);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.tnum{font-variant-numeric:tabular-nums}
+::selection{background:color-mix(in srgb,var(--brand) 30%,transparent)}
+
+/* ===== shell: sidebar + main (no rail — parity with mobile) ===== */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100dvh}
+
+/* sidebar = the mobile bottom-nav destinations */
+.side{position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;gap:4px;
+  padding:22px 16px;border-right:1px solid var(--line);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;color:var(--brand)}
+.brand svg{width:28px;height:28px}
+.brand b{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav a{display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:13px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.nav a svg{width:20px;height:20px}
+.nav a:hover{background:var(--surface-2)}
+.nav a.on{background:var(--brand-soft);color:var(--brand-deep);font-weight:700}
+.report-btn{margin:12px 0;display:flex;align-items:center;justify-content:center;gap:9px;height:48px;border-radius:14px;
+  background:var(--grad);color:#fff;font-weight:700;font-size:15px;box-shadow:0 10px 22px -10px color-mix(in srgb,var(--brand) 70%,transparent)}
+.report-btn svg{width:22px;height:22px}
+.side .spacer{flex:1}
+.userchip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:var(--surface-2)}
+.userchip .av{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+.userchip .nm{font-size:13px;font-weight:700;line-height:1.15}
+.userchip .nm small{display:block;font-weight:600;color:var(--ink-3);font-size:11px}
+
+/* main */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;
+  padding:16px 28px;background:color-mix(in srgb,var(--ground) 82%,transparent);
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar .hi{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.topbar .loc{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-.02em}
+.topbar .loc svg{width:19px;height:19px;color:var(--brand)}
+.topbar .actions{margin-left:auto;display:flex;gap:10px}
+.iconbtn{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+
+.content{padding:24px 28px 40px;display:flex;flex-direction:column;gap:22px}
+
+/* map hero — markers + count only, same as mobile Home */
+.maphero{position:relative;height:400px;border-radius:24px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-2);background:var(--surface-2)}
+#map{position:absolute;inset:0}
+.map-stat{position:absolute;z-index:500;right:16px;top:16px;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow-1)}
+.map-stat b{font-family:var(--font-display);font-size:26px;display:block;line-height:1}
+.map-stat span{font-size:10.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em}
+
+.sec-h{display:flex;align-items:center;justify-content:space-between}
+.sec-h h2{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+
+/* recent reports — same cards as the mobile feed, laid out for width */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.rcard{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:12px;box-shadow:var(--shadow-1);transition:transform .15s, box-shadow .15s}
+.rcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.rcard .thumb{width:76px;height:76px;border-radius:14px;flex:none;object-fit:cover;background:var(--surface-2)}
+.rcard .b{flex:1;min-width:0}
+.rcard .rowt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.rcard .place{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;min-width:0}
+.rcard .place svg{width:14px;height:14px;color:var(--ink-3);flex:none}
+.rcard .place span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard p{font-size:13px;color:var(--ink-2);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rcard .meta{display:flex;align-items:center;gap:14px;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.rcard .meta i{display:inline-flex;align-items:center;gap:5px}
+.rcard .meta svg{width:15px;height:15px}
+.rcard .meta a.author{color:var(--brand);margin-left:auto}
+.pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.sev-1{background:var(--sev-1)}.sev-2{background:var(--sev-2)}.sev-3{background:var(--sev-3)}.sev-4{background:var(--sev-4)}.sev-5{background:var(--sev-5)}
+
+/* responsive: below 900px it becomes today's mobile app (sidebar → bottom nav) */
+.mobnav{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .content{padding:16px 16px 96px}
+  .topbar{padding:14px 16px}
+  .maphero{height:280px}
+  .grid{grid-template-columns:1fr}
+  .mobnav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;position:fixed;left:0;right:0;bottom:0;z-index:60;
+    height:78px;padding:8px 12px;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+  .mobnav a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .mobnav a.on{color:var(--brand)}
+  .mobnav a svg{width:23px;height:23px}
+  .mobnav .fab{margin-top:-24px;width:52px;height:52px;border-radius:17px;background:var(--grad);display:grid;place-items:center;color:#fff;box-shadow:0 12px 24px -8px color-mix(in srgb,var(--brand) 70%,transparent)}
+  .mobnav .fab svg{width:26px;height:26px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR = the five mobile bottom-nav destinations -->
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>
+      <b>PlasticKothay</b>
+    </div>
+    <nav class="nav">
+      <a class="on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg> Home</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg> Leaderboard</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg> My impact</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg> More</a>
+    </nav>
+    <a class="report-btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Report plastic</a>
+    <div class="spacer"></div>
+    <div class="userchip">
+      <div class="av">RU</div>
+      <div class="nm">Rahim Uddin<small>Signed in</small></div>
+    </div>
+  </aside>
+
+  <!-- MAIN = the mobile Home screen, re-laid-out -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="hi">Welcome 👋</div>
+        <div class="loc"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.4" fill="var(--surface)"/></svg> Dhaka</div>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="themeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+        <button class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21h4"/></svg></button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="maphero">
+        <div id="map"></div>
+        <div class="map-stat"><b class="tnum">128</b><span>on the map</span></div>
+      </div>
+
+      <div>
+        <div class="sec-h"><h2>Recent reports</h2></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- mobile bottom nav (shown < 900px) -->
+<nav class="mobnav">
+  <a class="on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/></svg>Board</a>
+  <a href="#"><span class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Me</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>More</a>
+</nav>
+
+<script>
+document.getElementById('themeBtn').onclick = () => {
+  const r = document.documentElement
+  r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'
+  setTimeout(() => map && map.invalidateSize(), 60)
+}
+
+const SEV = {1:'Low',2:'Minor',3:'Moderate',4:'High',5:'Critical'}
+const reports = [
+  {place:'Hatirjheel, Dhaka', sev:5, by:'Rahim Uddin', likes:31, when:'2h ago', desc:'Large plastic accumulation blocking the canal outflow near the bridge.'},
+  {place:'Banani lake', sev:3, by:'Karim H.', likes:12, when:'5h ago', desc:'Bottles and wrappers washed up along the eastern shore.'},
+  {place:'Gulshan 2', sev:2, by:'Nadia R.', likes:7, when:'1d ago', desc:'Small dump beside the market bins, needs a pickup.'},
+  {place:'Mirpur DOHS', sev:4, by:'Sabuj', likes:19, when:'1d ago', desc:'Recurring pile at the drain mouth after every rain.'},
+  {place:'Buriganga bank', sev:5, by:'Anon', likes:44, when:'2d ago', desc:'Heavy riverside pollution, plastic mixed with other waste.'},
+  {place:'Uttara sector 7', sev:1, by:'Farhan', likes:4, when:'3d ago', desc:'Minor litter near the park entrance.'},
+]
+document.getElementById('grid').innerHTML = reports.map(r => `
+  <article class="rcard">
+    <div class="thumb"></div>
+    <div class="b">
+      <div class="rowt"><span class="place"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg><span>${r.place}</span></span>
+        <span class="pill sev-${r.sev}">${SEV[r.sev]}</span></div>
+      <p>${r.desc}</p>
+      <div class="meta"><i>♥ ${r.likes}</i><i>🕑 ${r.when}</i><a class="author" href="#">${r.by}</a></div>
+    </div>
+  </article>`).join('')
+
+const map = L.map('map',{zoomControl:false,attributionControl:false}).setView([23.78,90.40],12)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map)
+const col = {1:'#2FA96A',2:'#8CB93B',3:'#F2A93B',4:'#F0801E',5:'#E5484D'}
+;[[23.79,90.41,5],[23.75,90.39,3],[23.80,90.42,2],[23.77,90.36,4],[23.71,90.41,5],[23.87,90.38,1],[23.76,90.43,3]]
+  .forEach(([la,lo,s])=>L.circleMarker([la,lo],{radius:7,color:'#fff',weight:1.5,fillColor:col[s],fillOpacity:.95}).addTo(map))
+</script>
+</body>
+</html>

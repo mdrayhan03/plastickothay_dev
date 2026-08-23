@@ -1,7 +1,7 @@
 """In-memory repository fakes.
 
 These exist so the use-case suite runs with no database (LLD §2.1 acceptance test). The
-fake leaderboard delegates to core.domain.points — the same reference implementation the
+fake leaderboard delegates to core.domain.points - the same reference implementation the
 contract suite checks the production SQL against.
 """
 
@@ -273,7 +273,7 @@ class InMemoryEngagementRepository(EngagementRepository):
 
     def add(self, engagement: Engagement) -> Engagement:
         # Mirrors the partial unique index: one like per user per post, but comments are
-        # unconstrained. Anonymous rows are not constrained at all — nothing identifies
+        # unconstrained. Anonymous rows are not constrained at all - nothing identifies
         # them, which is exactly why they award no points (DEC-1).
         if (
             engagement.type is EngagementType.LIKE

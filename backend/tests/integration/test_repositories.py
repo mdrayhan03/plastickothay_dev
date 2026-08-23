@@ -1,11 +1,11 @@
-"""Repository integration tests — real ORM, real database.
+"""Repository integration tests - real ORM, real database.
 
 Runs against whatever DATABASE_URL points at (SQLite locally, Postgres in CI). The mapper
 round-trip and the DB-level constraints are what these prove; the behaviour above the
 repository is already covered by the unit suite on fakes.
 
 Concurrency (two simultaneous likes racing the partial unique index) needs real Postgres and
-is deferred to B5 — SQLite serialises writers and cannot reproduce the race.
+is deferred to B5 - SQLite serialises writers and cannot reproduce the race.
 """
 
 from datetime import UTC, datetime
@@ -228,7 +228,7 @@ class TestEngagementRepository:
         assert repo.count(post.id, EngagementType.LIKE) == 1
 
     def test_anonymous_likes_are_not_deduplicated(self):
-        """actor_user IS NULL is outside the partial index, so anonymous likes stack — which
+        """actor_user IS NULL is outside the partial index, so anonymous likes stack - which
         is exactly why DEC-1 makes them worth zero points."""
         alice = make_user("alice")
         post = make_post(reporter_id=alice.id)

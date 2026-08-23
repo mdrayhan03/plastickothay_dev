@@ -1,8 +1,8 @@
-"""Leaderboard calculation — the LeaderboardRepository strategy.
+"""Leaderboard calculation - the LeaderboardRepository strategy.
 
 Implemented with the Django ORM rather than raw SQL so it runs on any backend (SQLite in
-tests, Postgres in prod) and stays portable. The point rules live in TWO places now — the
-reference implementation in core.domain.points (used by the fake) and this aggregation — so
+tests, Postgres in prod) and stays portable. The point rules live in TWO places now - the
+reference implementation in core.domain.points (used by the fake) and this aggregation - so
 they can drift. tests/contract/ runs identical scenarios against both; this implementation is
 only "done" when it matches the reference there.
 
@@ -86,7 +86,7 @@ class DjangoLeaderboardRepository(LeaderboardRepository):
 
     def top(self, since: datetime | None, rules: Rules, page: PageRequest) -> Page[LeaderboardRow]:
         # `since` is computed by the use case (period + clock + configured week-start). The
-        # adapter only filters by it — no time/period logic here.
+        # adapter only filters by it - no time/period logic here.
         scored = self._compute(since, rules)
 
         user_ids = [uid for uid, r in scored.items() if r.points > 0]

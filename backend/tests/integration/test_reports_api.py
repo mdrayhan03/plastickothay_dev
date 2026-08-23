@@ -1,4 +1,4 @@
-"""Reports API — submission, public reads, and the PII guarantee.
+"""Reports API - submission, public reads, and the PII guarantee.
 
 The PII regression test is the point of this milestone: reporter email/phone must never appear
 in any public response (LLD §8.3).
@@ -81,7 +81,7 @@ class TestPublicReads:
         assert pending not in ids
 
     def test_detail_of_pending_is_404_not_403(self, client):
-        """404, not 403 — a 403 would confirm the post exists and leak the queue."""
+        """404, not 403 - a 403 would confirm the post exists and leak the queue."""
         pid = submit(client).data["id"]
         assert client.get(f"/api/posts/{pid}/").status_code == 404
 

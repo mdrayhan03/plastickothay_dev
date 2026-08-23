@@ -332,7 +332,7 @@ class DjangoEngagementRepository(EngagementRepository):
         owner_id = self._owner_of(engagement.post_id)
         try:
             # Savepoint so the caught IntegrityError does not poison the request's outer
-            # transaction — LikePost reads count() right after catching AlreadyLiked.
+            # transaction - LikePost reads count() right after catching AlreadyLiked.
             with transaction.atomic():
                 row = orm.Engagement.objects.create(
                     post_id=engagement.post_id,

@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { installApiMock, user } from './api-mock'
 
+// The admin console is desktop-first — run these against a desktop viewport.
+test.use({ viewport: { width: 1280, height: 900 } })
+
 const staff = user({ role: 'staff', first_name: 'Mod', last_name: 'Erator' })
 
 test('staff can open the review queue and approve a pending report', async ({ page }) => {

@@ -13,7 +13,7 @@ const statusCls: Record<string, string> = {
 
 function mailtoHref(m: ContactMessage) {
   const subject = encodeURIComponent(`Re: ${m.subject}`)
-  const body = encodeURIComponent(`\n\n— \nIn reply to your message to PlasticKothay:\n> ${m.message}`)
+  const body = encodeURIComponent(`\n\n- \nIn reply to your message to PlasticKothay:\n> ${m.message}`)
   return `mailto:${m.email}?subject=${subject}&body=${body}`
 }
 
@@ -33,7 +33,7 @@ export function MessagesPage() {
     <div className="space-y-5">
       <div>
         <h1 className="font-display text-2xl font-extrabold">Contact messages</h1>
-        <p className="text-sm text-ink-3">Reply opens your email client — the app doesn’t send mail itself.</p>
+        <p className="text-sm text-ink-3">Reply opens your email client - the app doesn’t send mail itself.</p>
       </div>
 
       {isLoading && <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />}

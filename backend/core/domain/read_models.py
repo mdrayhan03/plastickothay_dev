@@ -46,7 +46,7 @@ class MapMarker:
 
 @dataclass(frozen=True, slots=True)
 class AdminMapMarker:
-    """Like MapMarker but with status — the admin density map shows all non-deleted reports,
+    """Like MapMarker but with status - the admin density map shows all non-deleted reports,
     not just approved ones, so pending hot-spots are visible for triage (LLD §8.4)."""
 
     id: PostId

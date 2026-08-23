@@ -1,12 +1,12 @@
-"""Permission matrix — every endpoint × {anonymous, user, staff}.
+"""Permission matrix - every endpoint × {anonymous, user, staff}.
 
 The design is "IsAuthenticated by default + explicit AllowAny overrides". That is exactly the
 shape where one forgotten decorator either breaks the public surface or leaks admin data. This
-test is the backstop: it pins the intended access level of every route (LLD §7, §10, DEC —
+test is the backstop: it pins the intended access level of every route (LLD §7, §10, DEC -
 B7 exit criterion).
 
 `expected` is the status an actor should get. 401/403 = blocked. Anything else = reachable
-(the request may still 400/404 on payload/lookup, which is fine — we only assert it wasn't
+(the request may still 400/404 on payload/lookup, which is fine - we only assert it wasn't
 blocked at the permission layer).
 """
 
@@ -64,7 +64,7 @@ PUBLIC = True
 DENIED = False
 
 MATRIX = [
-    # Public reads/writes — everyone allowed.
+    # Public reads/writes - everyone allowed.
     ("get", "/api/posts/", {"anon": PUBLIC, "user": PUBLIC, "staff": PUBLIC}),
     ("get", "/api/map/posts/", {"anon": PUBLIC, "user": PUBLIC, "staff": PUBLIC}),
     ("get", "/api/leaderboard/", {"anon": PUBLIC, "user": PUBLIC, "staff": PUBLIC}),
@@ -75,7 +75,7 @@ MATRIX = [
     ("get", "/api/me/", {"anon": DENIED, "user": PUBLIC, "staff": PUBLIC}),
     ("get", "/api/me/posts/", {"anon": DENIED, "user": PUBLIC, "staff": PUBLIC}),
     ("get", "/api/me/contribution/", {"anon": DENIED, "user": PUBLIC, "staff": PUBLIC}),
-    # Admin-only — user must be blocked, staff allowed.
+    # Admin-only - user must be blocked, staff allowed.
     ("get", "/api/admin/posts/", {"anon": DENIED, "user": DENIED, "staff": PUBLIC}),
     ("get", "/api/admin/stats/", {"anon": DENIED, "user": DENIED, "staff": PUBLIC}),
     ("get", "/api/contact-messages/", {"anon": DENIED, "user": DENIED, "staff": PUBLIC}),

@@ -1,4 +1,4 @@
-"""Public user profiles and a user's public reports. AllowAny — world-readable, no PII."""
+"""Public user profiles and a user's public reports. AllowAny - world-readable, no PII."""
 
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response

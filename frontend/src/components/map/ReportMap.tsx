@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css'
-import { CircleMarker, MapContainer, TileLayer } from 'react-leaflet'
-import { severityColor } from '@/lib/severity'
+import { Marker, MapContainer, TileLayer } from 'react-leaflet'
+import { createComboMarkerIcon } from '@/lib/marker'
 import type { MapMarker } from '@/types'
 
 interface Props {
@@ -21,19 +21,14 @@ export function ReportMap({ center, zoom, markers, onMarkerClick }: Props) {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {markers.map((m) => (
-        <CircleMarker
+        <Marker
           key={m.id}
-          center={[m.lat, m.lon]}
-          radius={8}
-          pathOptions={{
-            color: '#fff',
-            weight: 2,
-            fillColor: severityColor[m.severity],
-            fillOpacity: 0.95,
-          }}
+          position={[m.lat, m.lon]}
+          icon={createComboMarkerIcon(m)}
           eventHandlers={{ click: () => onMarkerClick?.(m.id) }}
         />
       ))}
     </MapContainer>
   )
 }
+

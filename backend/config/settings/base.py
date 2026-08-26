@@ -9,6 +9,7 @@ hand-rolled factory - Django already gives that for free (LLD §1.1, discussion)
 import os
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 import dj_database_url
 from dotenv import load_dotenv
 

@@ -99,6 +99,12 @@ class MapMarkerSerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     severity = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, marker) -> str:
+        if getattr(marker, "image", ""):
+            return container.image_storage().public_url(marker.image)
+        return ""
 
 
 class AdminPostSerializer(serializers.Serializer):

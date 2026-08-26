@@ -62,9 +62,15 @@ class AdminMapMarkerSerializer(serializers.Serializer):
     lon = serializers.FloatField()
     severity = serializers.IntegerField()
     status = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     def get_status(self, marker) -> int:
         return int(marker.status)
+
+    def get_image_url(self, marker) -> str:
+        if getattr(marker, "image", None):
+            return container.image_storage().public_url(marker.image)
+        return ""
 
 
 class SetActiveSerializer(serializers.Serializer):

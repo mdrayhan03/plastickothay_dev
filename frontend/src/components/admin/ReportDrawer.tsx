@@ -1,9 +1,9 @@
 import 'leaflet/dist/leaflet.css'
 import { Check, Clock, Eye, EyeOff, Heart, Mail, MapPin, Phone, X } from 'lucide-react'
-import { CircleMarker, MapContainer, TileLayer } from 'react-leaflet'
+import { Marker, MapContainer, TileLayer } from 'react-leaflet'
 import { Drawer } from '@/components/admin/Drawer'
 import { SeverityChip, StatusChip } from '@/components/admin/Chips'
-import { severityColor } from '@/lib/severity'
+import { createComboMarkerIcon } from '@/lib/marker'
 import type { AdminPost, ModerationAction } from '@/types'
 
 function Row({ icon: Icon, children }: { icon: typeof Mail; children: React.ReactNode }) {
@@ -102,10 +102,9 @@ export function ReportDrawer({
               className="h-full w-full"
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <CircleMarker
-                center={[post.lat, post.lon]}
-                radius={9}
-                pathOptions={{ color: '#fff', weight: 2, fillColor: severityColor[post.severity], fillOpacity: 1 }}
+              <Marker
+                position={[post.lat, post.lon]}
+                icon={createComboMarkerIcon({ severity: post.severity, image_url: post.image_url })}
               />
             </MapContainer>
           </div>

@@ -42,6 +42,7 @@ class MapMarker:
     lat: float
     lon: float
     severity: Severity
+    image: ImageRef | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +55,7 @@ class AdminMapMarker:
     lon: float
     severity: Severity
     status: PostStatus
+    image: ImageRef | None = None
 
 
 @dataclass(frozen=True, slots=True)

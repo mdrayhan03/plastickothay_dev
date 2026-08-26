@@ -58,6 +58,7 @@ export interface MapMarker {
   lat: number
   lon: number
   severity: Severity
+  image_url?: string
 }
 
 export interface AdminPost extends PublicPost {

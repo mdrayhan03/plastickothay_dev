@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       workbox: {
-        // SPA deep-links resolve to the cached shell when offline; never for the API/admin/media.
+        // SPA deep-links resolve to the cached shell when offline; never for the API/admin/media/static.
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/, /^\/media/],
+        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/, /^\/media/, /^\/static/],
         runtimeCaching: [
           {
             // Map tiles - cache-first so a previously-viewed map still renders offline.
@@ -78,6 +78,8 @@ export default defineConfig(({ mode }) => {
     proxy: {
       '/api': { target: backend, changeOrigin: true },
       '/media': { target: backend, changeOrigin: true },
+      '/django-admin': { target: backend, changeOrigin: true },
+      '/static': { target: backend, changeOrigin: true },
     },
   },
   }

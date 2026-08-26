@@ -19,7 +19,7 @@ export function ReportMap({ center, zoom, markers, onMarkerClick }: Props) {
       attributionControl={false}
       className="size-full"
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {markers.map((m) => (
         <CircleMarker
           key={m.id}

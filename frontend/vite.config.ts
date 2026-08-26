@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
         runtimeCaching: [
           {
             // Map tiles - cache-first so a previously-viewed map still renders offline.
-            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+            urlPattern: /^https:\/\/[a-c]\.tile\.openstreetmap\.org\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'map-tiles',

@@ -85,8 +85,8 @@ export function ReportDrawer({
           <div className="flex flex-wrap items-center gap-2">
             <StatusChip status={post.status} />
             <SeverityChip severity={post.severity} />
-            <span className="ml-auto inline-flex items-center gap-1 text-[12px] font-semibold text-ink-3">
-              <Heart className="size-3.5" /> {post.likes}
+            <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-[12.5px] font-bold text-ink-2">
+              <Heart className="size-4 text-heart fill-heart/20" /> {post.likes ?? 0} {post.likes === 1 ? 'like' : 'likes'}
             </span>
           </div>
 

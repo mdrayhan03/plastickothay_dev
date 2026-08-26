@@ -198,6 +198,8 @@ export interface AdminUserDetail extends AdminUser {
   posts_approved: number
   likes_received: number
   total_points: number
+  level?: number
+  level_title?: string
 }
 
 export interface ContactMessage {

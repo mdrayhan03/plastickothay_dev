@@ -36,6 +36,8 @@ class AdminUserDetailSerializer(AdminUserSerializer):
     posts_approved = serializers.SerializerMethodField()
     likes_received = serializers.SerializerMethodField()
     total_points = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+    level_title = serializers.SerializerMethodField()
 
     def get_posts_approved(self, user: User) -> int:
         return self.context["contribution"].posts_approved
@@ -45,6 +47,12 @@ class AdminUserDetailSerializer(AdminUserSerializer):
 
     def get_total_points(self, user: User) -> int:
         return self.context["contribution"].total_points
+
+    def get_level(self, user: User) -> int:
+        return self.context["contribution"].level
+
+    def get_level_title(self, user: User) -> str:
+        return self.context["contribution"].level_title
 
 
 class AuditLogSerializer(serializers.Serializer):

@@ -39,18 +39,22 @@ export function ProfilePage() {
             <Avatar name={profile.full_name || profile.username} src={profile.avatar_url} className="size-24 text-3xl" />
             <div className="mt-3 font-display text-[22px] font-bold">{profile.full_name || profile.username}</div>
             <div className="text-[13px] font-semibold text-ink-3">@{profile.username}</div>
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-brand-soft px-3 py-1 text-xs font-extrabold text-brand-deep">
+              Lvl {profile.level} {profile.level_title ? `· ${profile.level_title}` : ''}
+            </div>
 
-            <div className="mt-4 grid w-full grid-cols-3 gap-2.5">
+            <div className="mt-4 grid w-full grid-cols-4 gap-2">
               {[
-                { n: profile.posts_approved, l: 'Reports' },
-                { n: profile.likes_received, l: 'Likes' },
-                { n: profile.total_points, l: 'Points', reward: true },
+                { n: `Lvl ${profile.level}`, l: 'Level' },
+                { n: profile.posts_approved.toLocaleString(), l: 'Reports' },
+                { n: profile.likes_received.toLocaleString(), l: 'Likes' },
+                { n: profile.total_points.toLocaleString(), l: 'Points', reward: true },
               ].map((s) => (
-                <div key={s.l} className="rounded-[16px] border border-line bg-surface p-3.5 text-center shadow-sm">
-                  <b className={`block font-display text-[22px] leading-none tnum ${s.reward ? 'text-gold' : ''}`}>
-                    {s.n.toLocaleString()}
+                <div key={s.l} className="rounded-[16px] border border-line bg-surface p-2.5 text-center shadow-sm">
+                  <b className={`block font-display text-base leading-none tnum ${s.reward ? 'text-gold' : ''}`}>
+                    {s.n}
                   </b>
-                  <span className="mt-1 block text-[10.5px] font-bold uppercase tracking-wide text-ink-2">{s.l}</span>
+                  <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-ink-2">{s.l}</span>
                 </div>
               ))}
             </div>

@@ -1,17 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, BadgeCheck, Mail, Phone, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { AlertTriangle, ArrowUpDown, Award, BadgeCheck, Camera, Crown, Handshake, Heart, Mail, Phone, Sprout, Trash2, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { RoleChip } from '@/components/admin/Chips'
+import { RoleChip, SeverityChip, StatusChip } from '@/components/admin/Chips'
 import { Drawer } from '@/components/admin/Drawer'
+import { ReportDrawer } from '@/components/admin/ReportDrawer'
 import { useAuth } from '@/context/auth-context'
 import { apiErrorMessage } from '@/lib/api'
 import { canChangeRole, canDeleteUser } from '@/lib/permissions'
 import { qk } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
 import { adminService } from '@/services/adminService'
-import type { AdminUser, Role } from '@/types'
+import type { AdminPost, AdminUser, Role } from '@/types'
 
 const ROLE_TABS = [
   { key: 'all', label: 'All' },
@@ -20,6 +21,15 @@ const ROLE_TABS = [
   { key: 'user', label: 'Users' },
 ] as const
 
+const BADGES = [
+  { id: 'first', name: 'First Report', icon: Sprout, check: (_u: AdminUser, d: any) => (d?.posts_approved ?? 0) >= 1 },
+  { id: 'active', name: 'Active Reporter', icon: Camera, check: (_u: AdminUser, d: any) => (d?.posts_approved ?? 0) >= 5 },
+  { id: 'liked', name: 'Well Liked', icon: Heart, check: (_u: AdminUser, d: any) => (d?.likes_received ?? 0) >= 10 },
+  { id: 'dedicated', name: 'Dedicated', icon: Award, check: (_u: AdminUser, d: any) => (d?.posts_approved ?? 0) >= 20 },
+  { id: 'supporter', name: 'Supporter', icon: Handshake, check: (_u: AdminUser, _d: any) => true },
+  { id: 'champion', name: 'Champion', icon: Crown, check: (_u: AdminUser, d: any) => (d?.total_points ?? 0) >= 1000 },
+]
+
 export function UsersPage() {
   const qc = useQueryClient()
   const { user: me } = useAuth()
@@ -27,6 +37,7 @@ export function UsersPage() {
   const [roleTab, setRoleTab] = useState<(typeof ROLE_TABS)[number]['key']>('all')
   const [activeOnly, setActiveOnly] = useState<'all' | 'active' | 'inactive'>('all')
   const [openId, setOpenId] = useState<number | null>(null)
+  const [selectedReport, setSelectedReport] = useState<AdminPost | null>(null)
   const [params, setParams] = useSearchParams()
   const q = params.get('q')?.trim().toLowerCase() ?? ''
 
@@ -138,7 +149,15 @@ export function UsersPage() {
         isSelf={open?.id === me?.id}
         onClose={() => setOpenId(null)}
         onToggleActive={(u) => setActive.mutate({ id: u.id, active: !u.is_active })}
+        onSelectReport={(r) => setSelectedReport(r)}
         busy={setActive.isPending}
+      />
+
+      <ReportDrawer
+        post={selectedReport}
+        onClose={() => setSelectedReport(null)}
+        onAct={() => setSelectedReport(null)}
+        busy={false}
       />
     </div>
   )
@@ -173,6 +192,7 @@ function UserDrawer({
   isSelf,
   onClose,
   onToggleActive,
+  onSelectReport,
   busy,
 }: {
   user: AdminUser | null
@@ -180,17 +200,53 @@ function UserDrawer({
   isSelf: boolean
   onClose: () => void
   onToggleActive: (u: AdminUser) => void
+  onSelectReport: (r: AdminPost) => void
   busy: boolean
 }) {
   const qc = useQueryClient()
+  const [statusFilter, setStatusFilter] = useState<'all' | number>('all')
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest')
 
-  // BE-4: full stats endpoint pending - fetch is attempted, stats show "-" on failure.
   const { data: detail } = useQuery({
     queryKey: user ? qk.adminUserDetail(user.id) : ['admin', 'users', 'none'],
     queryFn: () => adminService.userDetail(user!.id),
     enabled: !!user,
     retry: false,
   })
+
+  // Fetch reports submitted by this user
+  const { data: reportsData } = useQuery({
+    queryKey: user ? ['admin', 'user-reports', user.id] : ['admin', 'user-reports', 'none'],
+    queryFn: () => adminService.reports({ user_id: user!.id }),
+    enabled: !!user,
+  })
+
+  const userReports = reportsData?.results ?? []
+
+  // Status counts for filter pills
+  const counts = useMemo(
+    () => ({
+      all: userReports.length,
+      approved: userReports.filter((p) => p.status === 1).length,
+      pending: userReports.filter((p) => p.status === 2).length,
+      rejected: userReports.filter((p) => p.status === 0).length,
+    }),
+    [userReports],
+  )
+
+  // Filtered & sorted timeline posts
+  const filteredReports = useMemo(() => {
+    let result = [...userReports]
+    if (statusFilter !== 'all') {
+      result = result.filter((p) => p.status === statusFilter)
+    }
+    result.sort((a, b) => {
+      const timeA = new Date(a.created).getTime()
+      const timeB = new Date(b.created).getTime()
+      return sortOrder === 'latest' ? timeB - timeA : timeA - timeB
+    })
+    return result
+  }, [userReports, statusFilter, sortOrder])
 
   const setRole = useMutation({
     mutationFn: ({ id, role }: { id: number; role: Role }) => adminService.setRole(id, role),
@@ -227,10 +283,13 @@ function UserDrawer({
                 {user.first_name} {user.last_name}
                 {user.is_verified && <BadgeCheck className="size-4 text-brand" />}
               </div>
-              <div className="mt-0.5">
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                 <RoleChip role={user.role} />
+                <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-extrabold text-brand-deep">
+                  Lvl {detail?.level ?? 1} {detail?.level_title ? `· ${detail.level_title}` : ''}
+                </span>
                 {!user.is_active && (
-                  <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] font-bold uppercase text-ink-3">
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] font-bold uppercase text-ink-3">
                     Inactive
                   </span>
                 )}
@@ -253,20 +312,54 @@ function UserDrawer({
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Stats Bar */}
+          <div className="grid grid-cols-4 gap-2">
             {[
+              { label: 'Level', value: detail?.level ? `Lvl ${detail.level}` : 'Lvl 1' },
               { label: 'Reports', value: stat(detail?.posts_approved) },
               { label: 'Likes', value: stat(detail?.likes_received) },
               { label: 'Points', value: stat(detail?.total_points) },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl border border-line bg-surface p-3 text-center">
-                <div className="font-display text-xl font-extrabold tnum">{s.value}</div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">{s.label}</div>
+              <div key={s.label} className="rounded-xl border border-line bg-surface p-2.5 text-center">
+                <div className="font-display text-base font-extrabold tnum">{s.value}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-3">{s.label}</div>
               </div>
             ))}
           </div>
-          {!detail && <p className="-mt-3 text-[11.5px] text-ink-3">Stats need the user-detail endpoint (BE-4).</p>}
 
+          {/* Badges Grid */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wide text-ink-3">Badges</span>
+              <span className="text-[11px] font-bold text-ink-3">
+                {BADGES.filter((b) => b.check(user, detail)).length} of {BADGES.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {BADGES.map((b) => {
+                const unlocked = b.check(user, detail)
+                const Icon = b.icon
+                return (
+                  <div
+                    key={b.id}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-center transition-all',
+                      unlocked
+                        ? 'border-gold/40 bg-gold-soft/30 text-ink'
+                        : 'border-line bg-surface-2/40 opacity-40 grayscale',
+                    )}
+                  >
+                    <div className={cn('grid size-8 place-items-center rounded-lg', unlocked ? 'bg-gold/20 text-gold' : 'bg-surface-2 text-ink-3')}>
+                      <Icon className="size-4.5" />
+                    </div>
+                    <span className="text-[11px] font-bold leading-tight">{b.name}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Role Controls */}
           <div>
             <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-3">Role</div>
             <div className="flex gap-2">
@@ -289,7 +382,8 @@ function UserDrawer({
             {isAdmin && isSelf && <p className="mt-2 text-[11.5px] text-ink-3">You can’t change your own role.</p>}
           </div>
 
-          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 border-b border-line pb-5">
             <button
               disabled={busy || isSelf}
               onClick={() => onToggleActive(user)}
@@ -300,7 +394,6 @@ function UserDrawer({
             >
               {user.is_active ? 'Deactivate' : 'Activate'}
             </button>
-            {/* Delete is deliberately hidden until the user is inactive (AD-4), and admin-only (BE-2). */}
             {deletable && (
               <button
                 disabled={del.isPending}
@@ -311,8 +404,92 @@ function UserDrawer({
               </button>
             )}
           </div>
+
+          {/* Reports Timeline at Bottom */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wide text-ink-3">Reports Timeline</span>
+                <p className="text-[11.5px] font-semibold text-ink-3">{userReports.length} total reports</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSortOrder((prev) => (prev === 'latest' ? 'oldest' : 'latest'))}
+                className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-[11.5px] font-bold text-ink shadow-sm transition hover:bg-surface-2"
+              >
+                <ArrowUpDown className="size-3 text-brand" />
+                <span>{sortOrder === 'latest' ? 'Latest' : 'Oldest'}</span>
+              </button>
+            </div>
+
+            {/* Status Filter Pills */}
+            <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {[
+                { id: 'all', label: 'All', count: counts.all },
+                { id: 1, label: 'Approved', count: counts.approved },
+                { id: 2, label: 'Pending', count: counts.pending },
+                { id: 0, label: 'Rejected', count: counts.rejected },
+              ].map((item) => {
+                const isActive = statusFilter === item.id
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => setStatusFilter(item.id as 'all' | number)}
+                    className={`flex flex-none items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${
+                      isActive
+                        ? 'bg-brand text-white shadow-sm'
+                        : 'border border-line bg-surface text-ink-2 hover:bg-surface-2'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-surface-2 text-ink-3'
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Reports List */}
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-none">
+              {filteredReports.length === 0 ? (
+                <p className="rounded-xl border border-line bg-surface-2/50 p-4 text-center text-xs text-ink-3">
+                  No reports match this filter.
+                </p>
+              ) : (
+                filteredReports.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => onSelectReport(r)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-2.5 text-left transition-colors hover:border-brand/40"
+                  >
+                    <img src={r.image_url} alt="" className="size-10 rounded-lg object-cover bg-surface-2 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[12.5px] font-bold text-ink">
+                        {r.place_name || 'Pollution Report'}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-ink-3">
+                        <StatusChip status={r.status} />
+                        <SeverityChip severity={r.severity} />
+                        <span className="ml-auto inline-flex items-center gap-1 font-semibold">
+                          <Heart className="size-3 text-heart fill-heart/20" /> {r.likes ?? 0}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </Drawer>
   )
 }
+

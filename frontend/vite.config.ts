@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       workbox: {
-        // SPA deep-links resolve to the cached shell when offline; never for the API/admin.
+        // SPA deep-links resolve to the cached shell when offline; never for the API/admin/media.
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/],
+        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/, /^\/media/],
         runtimeCaching: [
           {
             // Map tiles - cache-first so a previously-viewed map still renders offline.
@@ -77,6 +77,7 @@ export default defineConfig(({ mode }) => {
     // refresh cookie works and there is no CORS. Prod serves the build from Django.
     proxy: {
       '/api': { target: backend, changeOrigin: true },
+      '/media': { target: backend, changeOrigin: true },
     },
   },
   }

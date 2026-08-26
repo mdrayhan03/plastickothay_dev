@@ -1,0 +1,6 @@
+# Dev/test tooling - install with: pip install -r requirements-dev.txt
+-r requirements.txt
+pytest
+pytest-django
+import-linter
+ruff

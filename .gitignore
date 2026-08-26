@@ -37,7 +37,7 @@ Thumbs.db
 # JSON config files you don't want exposed
 file.json
 
-# Migrations (OPTIONAL — remove if you want migrations tracked)
+# Migrations (OPTIONAL - remove if you want migrations tracked)
 # */migrations/*.py
 # !*/migrations/__init__.py
 

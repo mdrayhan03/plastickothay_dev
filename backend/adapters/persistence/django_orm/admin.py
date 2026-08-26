@@ -91,6 +91,7 @@ class ContactPageAdmin(admin.ModelAdmin):
     list_display = ("heading", "email", "phone", "updated_at")
 
     def has_add_permission(self, request):
+        # Singleton - exactly one row, created via the API/get_or_create.
         return not orm.ContactPage.objects.exists()
 
     def has_delete_permission(self, request, obj=None):

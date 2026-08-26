@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PlasticKothay - Admin Portal Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ================================================= TOKENS (shared w/ user portal) */
+:root{
+  --brand:#0A9C74; --brand-2:#17BE8F; --brand-deep:#066A4E; --brand-soft:#E1F3EC;
+  --gold:#DFA317; --gold-soft:#FBF0D6;
+  --ink:#0A211C; --ink-2:#425F59; --ink-3:#7C948C;
+  --ground:#EEF4F0; --surface:#FFFFFF; --surface-2:#F5F9F5;
+  --line:#E3EAE5; --line-2:#D3DFD8;
+  --sev-1:#2FA96A; --sev-2:#8CB93B; --sev-3:#F2A93B; --sev-4:#F0801E; --sev-5:#E5484D;
+  --pending:#F2A93B; --approved:#0A9C74; --hidden:#7C948C; --rejected:#E5484D;
+  --grad:linear-gradient(152deg,var(--brand-2),var(--brand-deep));
+  --shadow-1:0 1px 2px rgba(10,33,28,.05),0 2px 6px rgba(10,33,28,.05);
+  --shadow-2:0 12px 32px -12px rgba(10,33,28,.22);
+  --font-ui:"Plus Jakarta Sans",system-ui,sans-serif;
+  --font-display:"Bricolage Grotesque",serif;
+}
+:root[data-theme="dark"]{
+  --brand:#20C998; --brand-2:#33DCAB; --brand-deep:#0C9A72; --brand-soft:#123029;
+  --gold:#F0C24E; --gold-soft:#2E2713;
+  --ink:#E9F1ED; --ink-2:#9DB5AC; --ink-3:#6F857D;
+  --ground:#07120F; --surface:#0D1D18; --surface-2:#112420;
+  --line:#1B2E28; --line-2:#243D36;
+  --shadow-1:0 1px 2px rgba(0,0,0,.4); --shadow-2:0 14px 34px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-ui);background:var(--ground);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+img{display:block;max-width:100%}
+.tnum{font-variant-numeric:tabular-nums}
+::selection{background:color-mix(in srgb,var(--brand) 30%,transparent)}
+
+/* ================================================= LAYOUT */
+.admin{display:flex;min-height:100vh}
+.sidebar{width:248px;flex:none;background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:20px 20px 18px;color:var(--brand)}
+.brand svg{width:26px;height:26px}
+.brand b{font-family:var(--font-display);font-size:18px;font-weight:800}
+.nav{flex:1;padding:6px 12px;overflow-y:auto}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;
+  font-weight:600;font-size:13.5px;color:var(--ink-2);margin-bottom:2px;transition:.12s}
+.nav a:hover{background:var(--surface-2)}
+.nav a.on{background:var(--brand-soft);color:var(--brand-deep)}
+.nav a svg{width:18px;height:18px;flex:none}
+.nav a .badge{margin-left:auto;background:var(--pending);color:#fff;font-size:11px;font-weight:800;
+  padding:1px 7px;border-radius:999px}
+.nav .sec{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--ink-3);padding:14px 12px 6px}
+.side-foot{border-top:1px solid var(--line);padding:12px}
+.side-foot a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;font-weight:600;font-size:13.5px;color:var(--ink-2)}
+.side-foot a:hover{background:var(--surface-2)}
+.side-foot a svg{width:18px;height:18px}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+  padding:14px 28px;background:color-mix(in srgb,var(--surface) 85%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.search{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:12px;padding:9px 13px;width:320px;max-width:40%}
+.search svg{width:17px;height:17px;color:var(--ink-3)}
+.search input{border:none;background:none;outline:none;font:inherit;font-size:13.5px;width:100%;color:var(--ink)}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:12px}
+.iconbtn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--ink);position:relative}
+.iconbtn svg{width:18px;height:18px}
+.iconbtn .dot{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--sev-5)}
+.usermenu{position:relative;display:flex;align-items:center;gap:10px;padding-left:12px;border-left:1px solid var(--line);cursor:pointer}
+.usermenu .av{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+.usermenu .nm{font-size:13px;font-weight:700;line-height:1.2}
+.usermenu .rl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--brand)}
+.usermenu .caret{width:16px;height:16px;color:var(--ink-3)}
+.dropdown{position:absolute;top:calc(100% + 12px);right:0;min-width:190px;background:var(--surface);
+  border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow-2);padding:6px;z-index:60;
+  opacity:0;visibility:hidden;transform:translateY(-6px);transition:.15s}
+.dropdown.show{opacity:1;visibility:visible;transform:none}
+.dropdown a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink)}
+.dropdown a:hover{background:var(--surface-2)}
+.dropdown a svg{width:17px;height:17px;color:var(--ink-2)}
+.dropdown a.danger{color:var(--sev-5)}.dropdown a.danger svg{color:var(--sev-5)}
+.dropdown .divider{height:1px;background:var(--line);margin:5px 4px}
+
+.content{padding:26px 28px;max-width:1180px;width:100%}
+.view{display:none}.view.on{display:block}
+.page-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-h h1{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.02em}
+.page-h p{color:var(--ink-2);font-size:13.5px;margin-top:2px}
+
+/* ================================================= PRIMITIVES */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-1)}
+.btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:11px;font-weight:700;font-size:13.5px}
+.btn.pri{background:var(--grad);color:#fff}
+.btn.out{background:var(--surface);border:1px solid var(--line-2);color:var(--ink)}
+.btn.sm{height:32px;padding:0 11px;font-size:12.5px}
+.btn svg{width:16px;height:16px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:800;line-height:1.4}
+.chip.s{padding:2px 8px;font-size:10.5px}
+.st-pending{background:color-mix(in srgb,var(--pending) 16%,transparent);color:#9A6B12}
+.st-approved{background:var(--brand-soft);color:var(--brand-deep)}
+.st-hidden{background:var(--surface-2);color:var(--ink-3)}
+.st-rejected{background:color-mix(in srgb,var(--sev-5) 15%,transparent);color:var(--sev-5)}
+:root[data-theme="dark"] .st-pending{color:#e6b84e}
+.sev{color:#fff}.sev-1{background:var(--sev-1)}.sev-2{background:var(--sev-2)}.sev-3{background:var(--sev-3)}.sev-4{background:var(--sev-4)}.sev-5{background:var(--sev-5)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{padding:18px}
+.kpi .top{display:flex;align-items:center;justify-content:space-between}
+.kpi .lab{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.kpi .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.kpi .ic svg{width:17px;height:17px}
+.kpi .val{font-family:var(--font-display);font-size:32px;font-weight:800;margin-top:10px;line-height:1}
+.kpi .delta{font-size:12px;font-weight:700;margin-top:6px}
+.delta.up{color:var(--brand)}.delta.down{color:var(--sev-5)}
+
+/* charts grid */
+.grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.panel{padding:18px}
+.panel h3{font-family:var(--font-display);font-size:15.5px;font-weight:700;margin-bottom:2px}
+.panel .sub{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+.chart-box{position:relative;height:240px}
+.chart-box.sm{height:200px}
+
+/* lists */
+.rank{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)}
+.rank:last-child{border-bottom:0}
+.rank .n{width:20px;font-family:var(--font-display);font-weight:700;color:var(--ink-3);text-align:center}
+.rank .av{width:32px;height:32px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
+.rank .nm{flex:1;font-weight:600;font-size:13px}
+.rank .pt{font-family:var(--font-display);font-weight:700;color:var(--gold)}
+
+/* activity */
+.act{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.act:last-child{border-bottom:0}
+.act .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none}
+.act b{font-weight:700}.act .t{color:var(--ink-3);font-size:11.5px;margin-top:2px}
+
+/* ================================================= FILTERS + TABLE */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.tabs{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:3px}
+.tabs button{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.tabs button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+.tabs button .c{background:var(--line-2);color:var(--ink-2);font-size:10.5px;font-weight:800;padding:0 6px;border-radius:999px}
+.tabs button.on .c{background:var(--pending);color:#fff}
+.select{height:38px;padding:0 12px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface);font:inherit;font-size:13px;font-weight:600;color:var(--ink)}
+
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--ink-3);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr.sel{background:var(--brand-soft)}
+.thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;background:var(--surface-2)}
+.who b{font-weight:700}.who span{display:block;color:var(--ink-3);font-size:12px}
+.rowact{display:flex;gap:6px}
+.mini{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--surface)}
+.mini svg{width:16px;height:16px}
+.mini.ok{background:var(--brand);border-color:transparent;color:#fff}
+.mini.no{background:var(--sev-5);border-color:transparent;color:#fff}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand);cursor:pointer}
+
+.bulk{display:none;align-items:center;gap:14px;background:var(--ink);color:var(--ground);
+  border-radius:13px;padding:11px 16px;margin-bottom:14px;box-shadow:var(--shadow-2)}
+.bulk.show{display:flex}
+.bulk b{font-weight:800}
+.bulk .sp{flex:1}
+
+/* ================================================= DRAWER */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;opacity:0;visibility:hidden;transition:.2s}
+.scrim.show{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:440px;max-width:92vw;background:var(--surface);
+  z-index:50;box-shadow:var(--shadow-2);transform:translateX(100%);transition:.25s;overflow-y:auto}
+.drawer.show{transform:none}
+.drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
+.drawer .dh b{font-family:var(--font-display);font-size:17px;font-weight:700}
+.drawer .db{padding:20px}
+.drawer img.hero{width:100%;height:220px;object-fit:cover;border-radius:14px;background:var(--surface-2)}
+.drawer .map{width:100%;height:150px;border-radius:14px;margin-top:12px;background:
+  linear-gradient(135deg,#cfe3d9,#a9ccbe);display:grid;place-items:center;color:var(--brand-deep);font-weight:700;font-size:13px;position:relative;overflow:hidden}
+:root[data-theme="dark"] .drawer .map{background:linear-gradient(135deg,#123029,#0a1f1a)}
+.drawer .map .pin{width:16px;height:16px;border-radius:50% 50% 50% 0;background:var(--sev-4);transform:rotate(-45deg);box-shadow:0 0 0 4px color-mix(in srgb,var(--sev-4) 30%,transparent)}
+.kv{margin-top:16px}
+.kv .row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv .row span{color:var(--ink-3)}.kv .row b{font-weight:700}
+.contact{margin-top:14px;background:var(--surface-2);border-radius:12px;padding:12px}
+.contact .t{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px}
+.hist{margin-top:16px}
+.hist .h{display:flex;gap:10px;padding:8px 0;font-size:12.5px}
+.hist .h .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--brand)}
+.drawer .actions{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--surface)}
+.drawer .actions .btn{flex:1;justify-content:center;height:44px}
+
+/* cards grids */
+.msg{padding:16px;margin-bottom:12px}
+.msg .top{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.msg .top b{font-weight:700}.msg .top .from{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.msg p{margin-top:8px;color:var(--ink-2);font-size:13.5px}
+.msg .btns{margin-top:10px;display:flex;gap:8px}
+
+.fbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.fb{padding:16px}
+.fb .stars{display:flex;gap:2px;margin-bottom:8px}
+.fb .stars svg{width:16px;height:16px}
+.fb p{font-size:13.5px;color:var(--ink-2)}
+.fb .by{margin-top:10px;font-size:12px;font-weight:700;color:var(--ink-3)}
+
+/* audit */
+.log{padding:4px 18px}
+.log .item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.log .item:last-child{border-bottom:0}
+.log .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+.log .ic svg{width:17px;height:17px}
+.log .who{font-weight:700}
+.log .meta{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.log .when{margin-left:auto;font-size:12px;color:var(--ink-3);white-space:nowrap}
+
+/* settings */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.field input{height:42px;padding:0 13px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface);font:inherit;font-size:14px;color:var(--ink);outline:none}
+.field input:focus{border-color:var(--brand)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;height:42px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface);font-weight:700;color:var(--ink-2);text-transform:capitalize}
+.seg button.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep)}
+
+@media(max-width:1000px){
+  .kpis{grid-template-columns:repeat(2,1fr)} .grid-2,.grid-3{grid-template-columns:1fr}
+  .fbgrid{grid-template-columns:1fr 1fr} .form-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){ .sidebar{display:none} }
+</style>
+</head>
+<body>
+<div class="admin">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="34 28 60 80" fill="currentColor"><path d="M76.1289 29.697V42.069C76.1289 43.5479 74.9304 44.7464 73.4515 44.7464H54.5446C53.0657 44.7464 51.8672 43.5479 51.8672 42.069V29.6953C41.378 34.3607 34.0469 44.8866 34.0469 57.0918C34.0469 81.7074 61.0144 105.747 62.1661 106.757C62.6836 107.216 63.3429 107.45 63.9939 107.45C64.6449 107.45 65.3042 107.216 65.83 106.757C66.9817 105.747 93.9509 81.7074 93.9509 57.0918C93.9509 44.8866 86.6198 34.3624 76.1289 29.697ZM69.4788 86.6782C69.4788 87.2708 68.9981 87.7532 68.4039 87.7532H59.5922C58.998 87.7532 58.5172 87.2708 58.5172 86.6782V83.9524C58.5172 83.3599 58.998 82.8775 59.5922 82.8775H68.4039C68.9981 82.8775 69.4788 83.3599 69.4788 83.9524V86.6782ZM76.1189 66.6112C76.0571 67.3189 75.8168 67.9699 75.4212 68.5625C74.4981 69.9462 73.55 71.3133 72.6002 72.6787C72.3682 73.0109 72.1379 73.343 71.9075 73.6752C71.2899 74.5649 70.6923 75.4679 70.1582 76.4043C69.6357 77.3174 69.17 78.2655 68.8028 79.2653C68.7377 79.4423 68.454 79.6509 68.272 79.6526C65.4277 79.676 62.5817 79.6743 59.7341 79.6543C59.5588 79.6526 59.2801 79.484 59.225 79.3304C58.8611 78.3005 58.3904 77.3341 57.8579 76.4043C57.1185 75.1141 56.2572 73.8972 55.3959 72.6787C55.2089 72.415 55.022 72.1512 54.8367 71.8892C54.0538 70.7725 53.296 69.6408 52.5566 68.4974C52.0858 67.7679 51.8505 66.9667 51.8805 66.0921V66.0871C51.9773 65.2508 52.4714 64.538 53.1692 64.1391C53.5497 63.9204 53.9887 63.7953 54.4578 63.7953H73.5316C74.0007 63.7953 74.438 63.9204 74.8186 64.1391C75.5464 64.5531 76.0521 65.3109 76.1189 66.1905V66.6112ZM76.1289 57.873C76.1289 59.3519 74.9304 60.5503 73.4515 60.5503H54.5446C53.0657 60.5503 51.8672 59.3519 51.8672 57.873V50.6203C51.8672 49.1414 53.0657 47.9429 54.5446 47.9429H73.4515C74.9304 47.9429 76.1289 49.1414 76.1289 50.6203V57.873Z"/></svg>
+      <b>PK Admin</b>
+    </div>
+    <nav class="nav">
+      <a class="on" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+      <a data-view="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Review Queue<span class="badge">12</span></a>
+      <a data-view="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>All Reports</a>
+      <div class="sec">Community</div>
+      <a data-view="users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 21a6.5 6.5 0 0 1 13 0M17 11a3.5 3.5 0 0 0 0-7M22 21a6.5 6.5 0 0 0-4-6"/></svg>Users</a>
+      <a data-view="messages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>Messages<span class="badge" style="background:var(--brand)">5</span></a>
+      <a data-view="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18l-5.8 3 1.1-6.5L2.6 9.8l6.5-.9Z"/></svg>Feedback</a>
+      <div class="sec">System</div>
+      <a data-view="audit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Audit Log</a>
+      <a data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H2.8a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.6-1.1A1.7 1.7 0 0 0 4.3 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.6a1.7 1.7 0 0 0 1-1.6V2.8a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Settings</a>
+    </nav>
+    <div class="side-foot">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>View the app</a>
+      <a href="#" onclick="toggleTheme();return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>Toggle theme</a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search reports, users, messages…" /></div>
+      <div class="top-actions">
+        <button class="iconbtn"><span class="dot"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <div class="usermenu" onclick="toggleUserMenu(event)">
+          <div class="av">TN</div>
+          <div><div class="nm">Tanvir Ahmed</div><div class="rl">Admin</div></div>
+          <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          <div class="dropdown" id="userdd">
+            <a onclick="openMyProfile();event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My profile</a>
+            <a onclick="go('settings');event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9 2 2 0 1 1-2.8 2.8 1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2 2 2 0 1 1-2.8-2.8A1.7 1.7 0 0 0 4.6 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.5-2.9 2 2 0 1 1 2.8-2.8A1.7 1.7 0 0 0 12 4.6a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2 2 2 0 1 1 2.8 2.8A1.7 1.7 0 0 0 19.4 12a1.7 1.7 0 0 0 0 3Z"/></svg>Settings</a>
+            <div class="divider"></div>
+            <a class="danger" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Log out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view on" id="v-dashboard">
+        <div class="page-h"><div><h1>Dashboard</h1><p>Overview of reports and community activity across Dhaka.</p></div>
+          <button class="btn out sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
+        </div>
+
+        <div class="kpis">
+          <div class="card kpi"><div class="top"><span class="lab">Pending review</span><span class="ic" style="background:color-mix(in srgb,var(--pending) 16%,transparent);color:var(--pending)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></div><div class="val tnum">12</div><div class="delta up">Needs attention</div></div>
+          <div class="card kpi"><div class="top"><span class="lab">Approved (7d)</span><span class="ic" style="background:var(--brand-soft);color:var(--brand)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span></div><div class="val tnum">148</div><div class="delta up">▲ 12% vs last week</div></div>
+          <div class="card kpi"><div class="top"><span class="lab">Total reports</span><span class="ic" style="background:var(--surface-2);color:var(--ink-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.7-7-11a7 7 0 0 1 14 0c0 5.3-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span></div><div class="val tnum">1,284</div><div class="delta up">▲ 34 today</div></div>
+          <div class="card kpi"><div class="top"><span class="lab">Active users</span><span class="ic" style="background:var(--gold-soft);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 21a6.5 6.5 0 0 1 13 0"/></svg></span></div><div class="val tnum">642</div><div class="delta up">▲ 8% this month</div></div>
+        </div>
+
+        <div class="card panel" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div><h3>Report density across Dhaka</h3><div class="sub" style="margin:0">Every report, with hotspot circles over the densest areas</div></div>
+            <div style="display:flex;gap:14px;font-size:11px;font-weight:700;color:var(--ink-2)">
+              <span style="display:inline-flex;align-items:center;gap:5px"><b style="width:9px;height:9px;border-radius:50%;background:var(--sev-1);display:inline-block"></b>Low</span>
+              <span style="display:inline-flex;align-items:center;gap:5px"><b style="width:9px;height:9px;border-radius:50%;background:var(--sev-3);display:inline-block"></b>Moderate</span>
+              <span style="display:inline-flex;align-items:center;gap:5px"><b style="width:9px;height:9px;border-radius:50%;background:var(--sev-5);display:inline-block"></b>Critical</span>
+              <span style="display:inline-flex;align-items:center;gap:5px"><b style="width:11px;height:11px;border-radius:50%;background:color-mix(in srgb,var(--sev-5) 25%,transparent);display:inline-block"></b>Hotspot</span>
+            </div>
+          </div>
+          <div id="dashmap" style="height:340px;border-radius:14px;overflow:hidden;border:1px solid var(--line)"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card panel"><h3>Reports over time</h3><div class="sub">Submitted vs approved, last 8 weeks</div><div class="chart-box"><canvas id="c-line"></canvas></div></div>
+          <div class="card panel"><h3>By status</h3><div class="sub">Current distribution</div><div class="chart-box"><canvas id="c-donut"></canvas></div></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card panel"><h3>By severity</h3><div class="sub">All approved reports</div><div class="chart-box sm"><canvas id="c-bar"></canvas></div></div>
+          <div class="card panel"><h3>Top contributors</h3><div class="sub">This month</div>
+            <div class="rank"><span class="n tnum">1</span><span class="av">TN</span><span class="nm">Tanvir Ahmed</span><span class="pt tnum">918</span></div>
+            <div class="rank"><span class="n tnum">2</span><span class="av">AY</span><span class="nm">Ayesha Rahman</span><span class="pt tnum">642</span></div>
+            <div class="rank"><span class="n tnum">3</span><span class="av">NU</span><span class="nm">Nusrat Jahan</span><span class="pt tnum">515</span></div>
+            <div class="rank"><span class="n tnum">4</span><span class="av">FA</span><span class="nm">Fahim Ahmed</span><span class="pt tnum">470</span></div>
+          </div>
+          <div class="card panel"><h3>Recent activity</h3><div class="sub">Latest moderation</div>
+            <div class="act"><span class="d" style="background:var(--approved)"></span><div><div><b>Tanvir</b> approved a report at <b>Hatirjheel</b></div><div class="t">4 minutes ago</div></div></div>
+            <div class="act"><span class="d" style="background:var(--rejected)"></span><div><div><b>Ayesha</b> rejected a spam report</div><div class="t">22 minutes ago</div></div></div>
+            <div class="act"><span class="d" style="background:var(--hidden)"></span><div><div><b>Tanvir</b> hid a report at <b>Mirpur</b></div><div class="t">1 hour ago</div></div></div>
+            <div class="act"><span class="d" style="background:var(--approved)"></span><div><div><b>Ayesha</b> approved 4 reports</div><div class="t">2 hours ago</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REVIEW QUEUE ============ -->
+      <section class="view" id="v-review">
+        <div class="page-h"><div><h1>Review Queue</h1><p>Approve, reject or hide submitted reports. Click a row for full detail.</p></div></div>
+
+        <div class="filters">
+          <div class="tabs">
+            <button class="on">Pending <span class="c">12</span></button>
+            <button>Approved</button><button>Hidden</button><button>Rejected</button>
+          </div>
+          <select class="select"><option>All severity</option><option>Critical (5)</option><option>High (4)</option><option>Moderate (3)</option></select>
+          <select class="select"><option>Any time</option><option>Today</option><option>This week</option></select>
+        </div>
+
+        <div class="bulk" id="bulk"><b id="bulkn">2 selected</b><div class="sp"></div>
+          <button class="btn sm" style="background:var(--brand);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>Approve all</button>
+          <button class="btn sm" style="background:var(--sev-5);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject all</button>
+        </div>
+
+        <div class="card"><div class="tablewrap"><table>
+          <thead><tr><th style="width:36px"><input type="checkbox" id="all"></th><th>Report</th><th>Reporter</th><th>Location</th><th>Severity</th><th>Submitted</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- ============ REPORTS ============ -->
+      <section class="view" id="v-reports">
+        <div class="page-h"><div><h1>All Reports</h1><p>Every report, any status.</p></div></div>
+        <div class="filters"><div class="tabs"><button class="on">All</button><button>Approved</button><button>Pending</button><button>Hidden</button><button>Rejected</button></div>
+          <select class="select"><option>All severity</option></select></div>
+        <div class="card"><div class="tablewrap"><table>
+          <thead><tr><th>Report</th><th>Reporter</th><th>Location</th><th>Severity</th><th>Status</th><th>Likes</th><th>Date</th></tr></thead>
+          <tbody id="allrows"></tbody></table></div></div>
+      </section>
+
+      <!-- ============ USERS ============ -->
+      <section class="view" id="v-users">
+        <div class="page-h"><div><h1>Users</h1><p>Manage community members. Click a user for full details.</p></div></div>
+        <div class="filters">
+          <div class="tabs">
+            <button class="on">All</button><button>Admins</button><button>Staff</button><button>Users</button>
+          </div>
+          <select class="select"><option>Any status</option><option>Active</option><option>Inactive</option></select>
+        </div>
+        <div class="card"><div class="tablewrap"><table>
+          <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Reports</th><th>Joined</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody id="userrows"></tbody></table></div></div>
+      </section>
+
+      <!-- ============ MESSAGES ============ -->
+      <section class="view" id="v-messages">
+        <div class="page-h"><div><h1>Contact messages</h1><p>Inbound messages from the contact form.</p></div></div>
+        <div class="card msg"><div class="top"><div><b>Broken map marker near Uttara</b><div class="from">Sadia Islam · <a href="mailto:sadia@example.com" style="color:var(--brand);font-weight:600">sadia@example.com</a> · +8801711…</div></div><span class="chip st-approved" style="background:var(--brand-soft);color:var(--brand-deep)">New</span></div><p>The marker for the report near Uttara Sector 4 points to the wrong spot. Could you check it?</p><div class="btns"><a class="btn pri sm" href="mailto:sadia@example.com?subject=Re:%20Broken%20map%20marker%20near%20Uttara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17l-5-5 5-5M4 12h11a5 5 0 0 1 5 5v1"/></svg>Reply</a><button class="btn out sm">Mark read</button><button class="btn out sm">Mark replied</button></div></div>
+        <div class="card msg"><div class="top"><div><b>Partnership enquiry</b><div class="from">Green Dhaka NGO · <a href="mailto:contact@greendhaka.org" style="color:var(--brand);font-weight:600">contact@greendhaka.org</a></div></div><span class="chip st-hidden">Read</span></div><p>We'd love to collaborate on a cleanup drive using your report data. Who should we talk to?</p><div class="btns"><a class="btn pri sm" href="mailto:contact@greendhaka.org?subject=Re:%20Partnership%20enquiry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17l-5-5 5-5M4 12h11a5 5 0 0 1 5 5v1"/></svg>Reply</a><button class="btn out sm">Mark read</button><button class="btn out sm">Mark replied</button></div></div>
+        <div class="card msg"><div class="top"><div><b>Thank you!</b><div class="from">Imran Kabir · <a href="mailto:imran@example.com" style="color:var(--brand);font-weight:600">imran@example.com</a></div></div><span class="chip st-pending" style="background:var(--gold-soft);color:#9A6B12">Replied</span></div><p>Just wanted to say this app helped our neighborhood get a canal cleaned. Amazing work.</p><div class="btns"><a class="btn pri sm" href="mailto:imran@example.com?subject=Re:%20Thank%20you"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17l-5-5 5-5M4 12h11a5 5 0 0 1 5 5v1"/></svg>Reply</a><button class="btn out sm">Mark read</button><button class="btn out sm">Mark replied</button></div></div>
+      </section>
+
+      <!-- ============ FEEDBACK ============ -->
+      <section class="view" id="v-feedback">
+        <div class="page-h"><div><h1>Feedback</h1><p>Ratings and comments from the community.</p></div></div>
+        <div class="fbgrid" id="fb"></div>
+      </section>
+
+      <!-- ============ AUDIT ============ -->
+      <section class="view" id="v-audit">
+        <div class="page-h"><div><h1>Audit Log</h1><p>Every moderation action - who did what, and when.</p></div></div>
+        <div class="card log" id="log"></div>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section class="view" id="v-settings">
+        <div class="page-h"><div><h1>Site settings</h1><p>Branding, map defaults and the week that drives the leaderboard.</p></div>
+          <span class="chip st-pending" style="background:var(--gold-soft);color:#9A6B12"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Admin only</span>
+        </div>
+        <div class="card panel" style="max-width:680px">
+          <div class="form-grid">
+            <div class="field full"><label>Site name</label><input value="PlasticKothay" /></div>
+            <div class="field full"><label>Tagline</label><input value="Map plastic pollution. Clean up your city, together." /></div>
+            <div class="field full"><label>Week starts on</label><div class="seg"><button class="on">monday</button><button>sunday</button></div></div>
+            <div class="field"><label>Map latitude</label><input value="23.8103" /></div>
+            <div class="field"><label>Map longitude</label><input value="90.4125" /></div>
+            <div class="field"><label>Map zoom</label><input value="12" /></div>
+            <div class="field"><label>Logo</label><input type="file" style="padding-top:9px" /></div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px"><button class="btn pri">Save settings</button><button class="btn out">Reset</button></div>
+          <p style="margin-top:16px;font-size:13px;color:var(--ink-3)">Point, level and badge rules are edited in the <a href="#" style="color:var(--brand);font-weight:700">Django admin</a>.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= DRAWER ================= -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><b>Report #1284</b><button class="mini" onclick="closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="db">
+    <img class="hero" style="background:linear-gradient(135deg,#2b6f5a,#123c31)" alt="" />
+    <div class="map"><span class="pin"></span></div>
+    <div class="kv">
+      <div class="row"><span>Severity</span><span class="chip sev sev-4 s">High (4)</span></div>
+      <div class="row"><span>Location</span><b>Hatirjheel</b></div>
+      <div class="row"><span>Coordinates</span><b class="tnum">23.7808, 90.4142</b></div>
+      <div class="row"><span>Submitted</span><b>2 hours ago</b></div>
+      <div class="row"><span>Description</span><b style="max-width:220px;text-align:right">Plastic bottles piled along the lake edge near the bridge.</b></div>
+    </div>
+    <div class="contact"><div class="t">Reporter (admin-only)</div><b>Rahim Uddin</b><div style="font-size:13px;color:var(--ink-2)">rahim@example.com · +8801700000000</div></div>
+    <div class="hist"><div class="t" style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px">Moderation history</div>
+      <div class="h"><span class="dot"></span><div>Submitted by Rahim · 2h ago</div></div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn out" style="flex:none;width:44px;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button class="btn out">Reject</button>
+    <button class="btn pri">Approve</button>
+  </div>
+</aside>
+
+<!-- ================= USER DRAWER ================= -->
+<aside class="drawer" id="userdrawer">
+  <div class="dh"><b>User profile</b><button class="mini" onclick="closeUser()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="db">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="av" id="ud-av" style="width:56px;height:56px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px">RA</div>
+      <div><div style="font-family:var(--font-display);font-size:19px;font-weight:700" id="ud-name">Rahim Uddin</div>
+        <div style="display:flex;gap:6px;margin-top:4px"><span class="chip st-hidden s" id="ud-role">User</span><span class="chip st-approved s" id="ud-status">Active</span></div></div>
+    </div>
+
+    <div class="kv" style="margin-top:18px">
+      <div class="row"><span>Email</span><b id="ud-email">rahim@example.com</b></div>
+      <div class="row"><span>Phone</span><b class="tnum">+8801700000000</b></div>
+      <div class="row"><span>Joined</span><b>Jul 12, 2026</b></div>
+      <div class="row"><span>Verified</span><b style="color:var(--brand)">Yes</b></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
+      <div style="background:var(--surface-2);border-radius:12px;padding:12px;text-align:center"><b style="font-family:var(--font-display);font-size:20px" class="tnum">14</b><div style="font-size:10.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em">Reports</div></div>
+      <div style="background:var(--surface-2);border-radius:12px;padding:12px;text-align:center"><b style="font-family:var(--font-display);font-size:20px" class="tnum">96</b><div style="font-size:10.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em">Likes</div></div>
+      <div style="background:var(--surface-2);border-radius:12px;padding:12px;text-align:center"><b style="font-family:var(--font-display);font-size:20px;color:var(--gold)" class="tnum">318</b><div style="font-size:10.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em">Points</div></div>
+    </div>
+
+    <div class="contact" style="margin-top:18px">
+      <div class="t">Role</div>
+      <div class="seg" style="margin-top:6px" id="ud-roleseg"><button class="on">User</button><button>Staff</button><button>Admin</button></div>
+      <p style="font-size:11.5px;color:var(--ink-3);margin-top:8px;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Only an <b>Admin</b> can change roles. Staff can't.
+      </p>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn out" style="flex:none;color:var(--sev-5);border-color:color-mix(in srgb,var(--sev-5) 40%,var(--line-2))" id="ud-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Delete</button>
+    <button class="btn out" id="ud-toggle">Deactivate</button>
+    <button class="btn pri">Save</button>
+  </div>
+</aside>
+
+<script>
+function toggleTheme(){const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark');rebuildCharts()}
+
+/* nav */
+function go(view){
+  document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('on',x.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+view).classList.add('on');
+  window.scrollTo(0,0);
+  if(view==='dashboard'&&typeof dmap!=='undefined')setTimeout(()=>dmap.invalidateSize(),60);
+}
+document.querySelectorAll('.nav a[data-view]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.view)}));
+
+/* user menu */
+function toggleUserMenu(e){e.stopPropagation();document.getElementById('userdd').classList.toggle('show')}
+function openMyProfile(){openUser({name:'Tanvir Ahmed',av:'TN',email:'tanvir@example.com',role:'Admin',active:true})}
+document.addEventListener('click',()=>document.getElementById('userdd').classList.remove('show'));
+
+/* mock data */
+const places=['Hatirjheel','Karwan Bazar','Buriganga Bank','Dhanmondi Lake','Mirpur 10','Gulshan 2','Uttara Sec 4','Mohakhali','Tejgaon','Old Dhaka'];
+const names=[['Rahim Uddin','RA'],['Ayesha Rahman','AY'],['Fahim Ahmed','FA'],['Sadia Islam','SA'],['Imran Kabir','IM'],['Nusrat Jahan','NU'],['Priya Das','PR']];
+const sevName={1:'Low',2:'Minor',3:'Moderate',4:'High',5:'Critical'};
+const ago=['12 min ago','44 min ago','2 hours ago','5 hours ago','8 hours ago','yesterday','2 days ago'];
+const thumbs=['#2b6f5a,#123c31','#4a5f2b,#2b3a12','#6f4a2b,#3a2612','#2b4a6f,#12263a','#5f2b4a,#3a122b'];
+function pick(a,i){return a[i%a.length]}
+function tbg(i){return 'linear-gradient(135deg,'+pick(thumbs,i)+')'}
+
+/* review rows */
+let rows='';
+for(let i=0;i<12;i++){const n=pick(names,i);const s=(i%5)+1;
+  rows+=`<tr data-i="${i}">
+    <td onclick="event.stopPropagation()"><input type="checkbox" class="rc"></td>
+    <td onclick="openDrawer(${i})"><img class="thumb" style="background:${tbg(i)}"></td>
+    <td onclick="openDrawer(${i})"><div class="who"><b>${n[0]}</b><span>#${1284-i}</span></div></td>
+    <td onclick="openDrawer(${i})">${pick(places,i)}</td>
+    <td onclick="openDrawer(${i})"><span class="chip sev sev-${s} s">${sevName[s]}</span></td>
+    <td onclick="openDrawer(${i})" style="color:var(--ink-3)">${pick(ago,i)}</td>
+    <td><div class="rowact" style="justify-content:flex-end">
+      <button class="mini ok" title="Approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></button>
+      <button class="mini no" title="Reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <button class="mini" title="View" onclick="openDrawer(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div></td></tr>`;}
+document.getElementById('rows').innerHTML=rows;
+
+/* all reports rows */
+let ar='';const stat=[['Approved','st-approved'],['Pending','st-pending'],['Hidden','st-hidden'],['Rejected','st-rejected']];
+for(let i=0;i<10;i++){const n=pick(names,i);const s=(i%5)+1;const st=pick(stat,i);
+  ar+=`<tr><td><img class="thumb" style="background:${tbg(i)}"></td><td><div class="who"><b>${n[0]}</b></div></td><td>${pick(places,i)}</td><td><span class="chip sev sev-${s} s">${sevName[s]}</span></td><td><span class="chip ${st[1]} s">${st[0]}</span></td><td class="tnum">${(i*7+3)}</td><td style="color:var(--ink-3)">${pick(ago,i)}</td></tr>`;}
+document.getElementById('allrows').innerHTML=ar;
+
+/* users rows */
+let ur='';const roles=[['User','st-hidden'],['Staff','st-approved'],['Admin','st-pending']];
+for(let i=0;i<8;i++){const n=pick(names,i);const rl=roles[i===0?2:(i%3===0?1:0)];const active=i%4!==0;
+  const email=n[0].split(' ')[0].toLowerCase()+'@example.com';
+  ur+=`<tr style="cursor:pointer" onclick='openUser(${JSON.stringify({name:n[0],av:n[1],email,role:rl[0],active})})'>
+   <td><div style="display:flex;align-items:center;gap:10px"><span class="av" style="width:32px;height:32px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px">${n[1]}</span><b>${n[0]}</b></div></td>
+   <td style="color:var(--ink-2)">${email}</td>
+   <td><span class="chip ${rl[1]} s">${rl[0]}</span></td>
+   <td>${active?'<span class="chip st-approved s">Active</span>':'<span class="chip st-rejected s">Inactive</span>'}</td>
+   <td class="tnum">${i*3+2}</td><td style="color:var(--ink-3)">Jul ${10+i}, 2026</td>
+   <td style="text-align:right" onclick="event.stopPropagation()">${rl[0]!=='Admin'?`<button class="btn out sm">${active?'Deactivate':'Activate'}</button>`:'<span style="color:var(--ink-3);font-size:12px">-</span>'}</td></tr>`;}
+document.getElementById('userrows').innerHTML=ur;
+
+/* user drawer */
+function openUser(u){
+  document.getElementById('ud-av').textContent=u.av;
+  document.getElementById('ud-name').textContent=u.name;
+  document.getElementById('ud-email').textContent=u.email;
+  const role=document.getElementById('ud-role');role.textContent=u.role;
+  role.className='chip s '+(u.role==='Admin'?'st-pending':u.role==='Staff'?'st-approved':'st-hidden');
+  const st=document.getElementById('ud-status');st.textContent=u.active?'Active':'Inactive';
+  st.className='chip s '+(u.active?'st-approved':'st-rejected');
+  document.getElementById('ud-roleseg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.textContent===u.role));
+  // Delete is only allowed for INACTIVE users.
+  const del=document.getElementById('ud-delete');del.style.display=u.active?'none':'inline-flex';
+  document.getElementById('ud-toggle').textContent=u.active?'Deactivate':'Activate';
+  document.getElementById('userdrawer').classList.add('show');document.getElementById('scrim').classList.add('show');
+}
+function closeUser(){document.getElementById('userdrawer').classList.remove('show');document.getElementById('scrim').classList.remove('show')}
+
+/* feedback */
+let fb='';const comments=['Helped our neighborhood get a canal cleaned. Amazing!','Love the map - so easy to report.','Would be great to add Bangla language.','The camera flow is smooth.','Cleaned up Dhanmondi lake thanks to this.','Needs a dark mode... oh wait it has one!'];
+for(let i=0;i<6;i++){const n=pick(names,i);const r=5-(i%3);
+  let stars='';for(let s=0;s<5;s++)stars+=`<svg viewBox="0 0 24 24" fill="${s<r?'var(--gold)':'none'}" stroke="${s<r?'var(--gold)':'var(--line-2)'}" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18l-5.8 3 1.1-6.5L2.6 9.8l6.5-.9Z"/></svg>`;
+  fb+=`<div class="card fb"><div class="stars">${stars}</div><p>${pick(comments,i)}</p><div class="by">${n[0]}</div></div>`;}
+document.getElementById('fb').innerHTML=fb;
+
+/* audit log */
+let lg='';const acts=[['approve','approved','var(--approved)','var(--brand-soft)'],['reject','rejected','var(--rejected)','color-mix(in srgb,var(--sev-5) 15%,transparent)'],['hide','hid','var(--hidden)','var(--surface-2)'],['unhide','unhid','var(--brand)','var(--brand-soft)']];
+for(let i=0;i<8;i++){const a=pick(acts,i);const n=pick(names,i%3+1);
+  lg+=`<div class="item"><span class="ic" style="background:${a[3]};color:${a[2]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+   <div><div><span class="who">${n[0]}</span> ${a[1]} report <b>#${1284-i}</b> at ${pick(places,i)}</div><div class="meta">${a[0]==='reject'?'Reason: spam / not plastic':'-'}</div></div>
+   <div class="when">${pick(ago,i)}</div></div>`;}
+document.getElementById('log').innerHTML=lg;
+
+/* bulk select */
+function refreshBulk(){const n=document.querySelectorAll('.rc:checked').length;const b=document.getElementById('bulk');
+  b.classList.toggle('show',n>0);document.getElementById('bulkn').textContent=n+' selected';
+  document.querySelectorAll('#rows tr').forEach(tr=>tr.classList.toggle('sel',tr.querySelector('.rc').checked));}
+document.addEventListener('change',e=>{if(e.target.classList.contains('rc'))refreshBulk();
+  if(e.target.id==='all'){document.querySelectorAll('.rc').forEach(c=>c.checked=e.target.checked);refreshBulk();}});
+
+/* drawer */
+function openDrawer(){document.getElementById('drawer').classList.add('show');document.getElementById('scrim').classList.add('show')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('scrim').classList.remove('show')}
+function closeAll(){closeDrawer();closeUser()}
+
+/* segmented + tabs demo */
+document.addEventListener('click',e=>{
+  const seg=e.target.closest('.seg button');if(seg){seg.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));seg.classList.add('on')}
+  const tab=e.target.closest('.tabs button');if(tab){tab.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));tab.classList.add('on')}
+});
+
+/* charts */
+let charts=[];
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function buildCharts(){
+  const grid=css('--line'),ink3=css('--ink-3'),brand=css('--brand'),brand2=css('--brand-2');
+  Chart.defaults.font.family="Plus Jakarta Sans";Chart.defaults.color=ink3;
+  charts.push(new Chart(document.getElementById('c-line'),{type:'line',data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets:[{label:'Submitted',data:[42,55,48,63,70,66,82,91],borderColor:ink3,backgroundColor:'transparent',tension:.35,borderWidth:2,pointRadius:0},
+    {label:'Approved',data:[30,44,40,52,58,55,70,80],borderColor:brand,backgroundColor:'color-mix(in srgb,'+brand+' 12%,transparent)',fill:true,tension:.35,borderWidth:2.5,pointRadius:0}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true}}},scales:{x:{grid:{display:false}},y:{grid:{color:grid},border:{display:false}}}}}));
+  charts.push(new Chart(document.getElementById('c-donut'),{type:'doughnut',data:{labels:['Approved','Pending','Hidden','Rejected'],
+    datasets:[{data:[148,12,9,23],backgroundColor:[css('--approved'),css('--pending'),css('--hidden'),css('--rejected')],borderWidth:0}]},
+    options:{maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,padding:14}}}}}));
+  charts.push(new Chart(document.getElementById('c-bar'),{type:'bar',data:{labels:['Low','Minor','Mod','High','Crit'],
+    datasets:[{data:[120,180,260,210,90],backgroundColor:[css('--sev-1'),css('--sev-2'),css('--sev-3'),css('--sev-4'),css('--sev-5')],borderRadius:7}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:grid},border:{display:false}}}}}));
+}
+function rebuildCharts(){charts.forEach(c=>c.destroy());charts=[];buildCharts()}
+buildCharts();
+
+/* dashboard density map */
+const dmap=L.map('dashmap',{zoomControl:true,attributionControl:false}).setView([23.777,90.399],12.2);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(dmap);
+const sevcol={1:'#2FA96A',2:'#8CB93B',3:'#F2A93B',4:'#F0801E',5:'#E5484D'};
+/* hotspot density circles (bigger = denser area of reports) */
+const hotspots=[[23.7808,90.4142,900,58],[23.7104,90.4074,750,41],[23.7509,90.3935,600,33],[23.7925,90.4078,500,22]];
+hotspots.forEach(([la,lo,r,n])=>{
+  L.circle([la,lo],{radius:r,color:'#E5484D',weight:1,fillColor:'#E5484D',fillOpacity:.12})
+   .addTo(dmap).bindTooltip(n+' reports',{direction:'top'});
+});
+/* individual report markers */
+const rpts=[[23.7808,90.4142,5],[23.7509,90.3935,3],[23.7104,90.4074,5],[23.7461,90.376,2],[23.7925,90.4078,4],[23.8103,90.4125,3],[23.7639,90.389,1],[23.7515,90.4265,4],[23.7286,90.4106,5],[23.769,90.425,2],[23.8223,90.3654,3],[23.7396,90.386,4],[23.792,90.401,5],[23.715,90.405,3],[23.755,90.39,4]];
+rpts.forEach(([la,lo,s])=>L.circleMarker([la,lo],{radius:6,color:'#fff',weight:1.5,fillColor:sevcol[s],fillOpacity:.95}).addTo(dmap));
+</script>
+</body>
+</html>

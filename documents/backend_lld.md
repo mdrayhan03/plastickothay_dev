@@ -1,4 +1,4 @@
-# Backend Low-Level Design — PlasticKothay
+# Backend Low-Level Design - PlasticKothay
 
 **Status:** Draft for review
 **Date:** 2026-07-17
@@ -28,18 +28,18 @@
 ### 1.2 Feature scope
 
 - User accounts. Self-registration with OTP email verification. Admins can promote users to staff/admin.
-- Reports ("posts"). Submittable by **anyone** — authenticated or anonymous. Photo goes to Google Drive.
+- Reports ("posts"). Submittable by **anyone** - authenticated or anonymous. Photo goes to Google Drive.
 - Moderation. Admins approve/reject/hide. **Only approved posts are public.**
 - Engagement. Authenticated and anonymous users can like a post. **One like per user per post.**
 - Points. Authenticated users earn points from approved posts and from likes given/received.
-- Leaderboard. All-time / year / month / week. **Computed by query — no score table.**
+- Leaderboard. All-time / year / month / week. **Computed by query - no score table.**
 - Contact page (admin-editable content + inbound messages) and Feedback (rating + comment).
 
 ### 1.3 Non-goals for v1
 
 - Comments (modelled, seeded inactive, not exposed).
 - Badges/referrals (modelled, not populated).
-- Request/telemetry tracking middleware (deferred — no async infrastructure).
+- Request/telemetry tracking middleware (deferred - no async infrastructure).
 - Redis, Celery, nginx.
 
 ---
@@ -91,7 +91,7 @@ Nothing under `core/` may import:
 
 **Enforce it mechanically.** Add `import-linter` to CI (or a test that walks the AST of every module
 under `core/` and asserts its imports). Without enforcement this boundary erodes within weeks and the
-DB port becomes decorative — which is the exact failure this architecture exists to prevent.
+DB port becomes decorative - which is the exact failure this architecture exists to prevent.
 
 **Acceptance test for the architecture:** the entire use-case suite must run green against in-memory
 fake repositories with **no database running**. If it can't, the hexagon isn't real.
@@ -101,9 +101,9 @@ fake repositories with **no database running**. If it can't, the hexagon isn't r
 Django ORM models are Active Record: they carry `.save()`, `.objects`, and DB semantics. If use cases
 manipulate them directly, the persistence port is fiction. So:
 
-- `core/domain/entities.py` — plain dataclasses. No `.save()`.
-- `adapters/persistence/django_orm/models.py` — the ORM models.
-- `adapters/persistence/django_orm/mappers.py` — translate between them.
+- `core/domain/entities.py` - plain dataclasses. No `.save()`.
+- `adapters/persistence/django_orm/models.py` - the ORM models.
+- `adapters/persistence/django_orm/mappers.py` - translate between them.
 
 This is real cost (a mapper layer). It buys the swappability that motivated the architecture.
 
@@ -117,7 +117,7 @@ backend/
 ├── config/
 │   ├── settings/           base.py, dev.py, prod.py
 │   ├── urls.py
-│   └── container.py        composition root — wires ports to adapters
+│   └── container.py        composition root - wires ports to adapters
 ├── core/                   ← THE HEXAGON. No framework imports. Ever.
 │   ├── domain/
 │   │   ├── entities.py
@@ -268,7 +268,7 @@ class Feedback:                 # the "rate us" page
     rating: int                 # 1..5
     comment: str
     created: datetime
-    # never displayed publicly (product decision) — no moderation status needed
+    # never displayed publicly (product decision) - no moderation status needed
 
 @dataclass
 class ContactMessage:
@@ -323,12 +323,12 @@ current post statuses × current engagement rows × currently-active point rules
 
 Consequences, accepted deliberately:
 
-- **Reversal is free.** Hide or reject a post and its points stop counting automatically — the
+- **Reversal is free.** Hide or reject a post and its points stop counting automatically - the
   query filters on `status = APPROVED`. Likes on that post stop counting in the same instant. There
   is no cascade to write, no compensating entry, no double-deduct guard, no drift.
 - **Un-hiding restores points automatically.** No re-award path.
 - **Rule changes rewrite history retroactively.** Changing `post_approved` from 100 → 150 changes
-  everyone's past scores immediately — there is no gradual rollout and no per-user migration. This is
+  everyone's past scores immediately - there is no gradual rollout and no per-user migration. This is
   accepted, and mitigated **operationally, not technically**: rule changes are announced to all users
   ahead of the release (DEC-2, §13).
 - **No audit trail.** "Why do I have 4,237 points?" can only be answered by re-running the query.
@@ -343,18 +343,18 @@ Consequences, accepted deliberately:
 | `comment_received` | 5 | ❌ | v2 |
 | `comment_given` | 2 | ❌ | v2 |
 
-Deactivating a rule (`active = False`) stops it counting **immediately and retroactively** — this is
+Deactivating a rule (`active = False`) stops it counting **immediately and retroactively** - this is
 the "we can cancel engagement points" capability, and it needs no migration.
 
-### 5.3 Counting rules (`core/domain/points.py` — pure, unit-testable)
+### 5.3 Counting rules (`core/domain/points.py` - pure, unit-testable)
 
 An engagement counts toward points only if **all** hold:
 
-1. `engagement.actor_id is not None` — anonymous likes are recorded and displayed, but award nothing
-   to anyone, including the post owner. **This is a security control, not a product choice** — see
+1. `engagement.actor_id is not None` - anonymous likes are recorded and displayed, but award nothing
+   to anyone, including the post owner. **This is a security control, not a product choice** - see
    DEC-1 in §13.
 2. `post.status == APPROVED and post.deleted_at is None`.
-3. `engagement.actor_id != post.reporter_id` — **self-likes award zero to both sides**.
+3. `engagement.actor_id != post.reporter_id` - **self-likes award zero to both sides**.
 4. The relevant `PointRule.active` is true.
 
 A post counts toward its owner only if it is approved, not deleted, and `reporter_id is not None`
@@ -371,7 +371,7 @@ A post filed Saturday and approved Tuesday therefore scores in Tuesday's week. A
 is actively staffed, so approval lag stays short.
 
 All datetimes stored UTC; **period boundaries computed in `Asia/Dhaka` (UTC+6)**. The current code
-mixes `datetime.utcnow()` and `datetime.now()` — do not carry that forward. One canonical timezone,
+mixes `datetime.utcnow()` and `datetime.now()` - do not carry that forward. One canonical timezone,
 set in settings, used by `Clock`.
 
 Shape of the query (three CTEs, one aggregate):
@@ -435,7 +435,7 @@ Referrals stay 0 until a referral system exists.
 
 ## 6. Ports (`core/ports/`)
 
-All ABCs. All accept and return **domain types** — never ORM models, never `QuerySet`.
+All ABCs. All accept and return **domain types** - never ORM models, never `QuerySet`.
 
 ```python
 # repositories.py
@@ -529,7 +529,7 @@ class Clock(ABC):
 **Why `UnitOfWork`:** `transaction.atomic()` is a Django import and cannot appear in `core/`. Use
 cases that must be all-or-nothing (submit report = upload image + insert row) declare the boundary;
 the Django adapter implements it with `atomic()`. Retrofitting transaction boundaries later is
-miserable — design them in now.
+miserable - design them in now.
 
 **Why `Clock`:** OTP expiry and leaderboard period boundaries are time-dependent. A port makes them
 testable without `sleep()`.
@@ -539,7 +539,7 @@ testable without `sleep()`.
 ## 7. Application layer (`core/application/`)
 
 Each use case is a class: ports injected via `__init__`, one `execute()`. Commands/results are
-dataclasses (not DRF serializers — the domain must not know DRF exists).
+dataclasses (not DRF serializers - the domain must not know DRF exists).
 
 | Module | Use cases |
 |---|---|
@@ -551,7 +551,7 @@ dataclasses (not DRF serializers — the domain must not know DRF exists).
 | `content` | `GetContactPage`, `UpdateContactPage` |
 | `scoring` | `GetContribution`, `GetLeaderboard` |
 
-### 7.1 `SubmitReport` — the anonymous/authenticated split
+### 7.1 `SubmitReport` - the anonymous/authenticated split
 
 ```python
 class SubmitReport:
@@ -584,7 +584,7 @@ class SubmitReport:
 and client-supplied name/email/phone are ignored. Otherwise a logged-in user can attach a stranger's
 email and phone to a report.
 
-The use case receives **decoded bytes**, not a base64 string — base64 is transport encoding and is
+The use case receives **decoded bytes**, not a base64 string - base64 is transport encoding and is
 decoded at the serializer. Today's view does the `;base64,` split inline
 (`plastickothay/views.py:47`); that logic moves to the edge.
 
@@ -604,7 +604,7 @@ def execute(self, post_id: PostId, actor_id: UserId | None) -> LikeResult:
     return LikeResult(likes=self.engagements.count_likes(post_id))
 ```
 
-Uniqueness is enforced by the DB constraint (§9.3), not by a read-then-write check — a check-then-act
+Uniqueness is enforced by the DB constraint (§9.3), not by a read-then-write check - a check-then-act
 race under concurrent requests would otherwise let a double-like through. Catch `IntegrityError` in the
 **repository adapter** and re-raise as the domain's `AlreadyLiked`.
 
@@ -615,14 +615,14 @@ race under concurrent requests would otherwise let a double-like through. Catch 
 ```python
 # ApproveReport
 post.status = PostStatus.APPROVED
-post.approved_at = post.approved_at or clock.now()   # first approval only — stable period bucket
+post.approved_at = post.approved_at or clock.now()   # first approval only - stable period bucket
 moderation_log.add(...)
 notifier.send_post_approved(post.reporter.email, post)
 
 # RejectReport
 images.delete(post.image)          # Drive file removed
 post.status = PostStatus.REJECTED
-post.deleted_at = clock.now()      # SOFT delete — today's code hard-deletes the row
+post.deleted_at = clock.now()      # SOFT delete - today's code hard-deletes the row
 moderation_log.add(...)
 
 # HideReport
@@ -646,7 +646,7 @@ DRF views are thin: validate → call use case → serialize. No business logic,
 |---|---|---|
 | Lifetime | 15 min | 7 days |
 | Transport | `Authorization: Bearer` header | httpOnly cookie |
-| Storage (browser) | **memory only** — never localStorage | `HttpOnly; Secure; SameSite=Lax; Path=/api/auth/` |
+| Storage (browser) | **memory only** - never localStorage | `HttpOnly; Secure; SameSite=Lax; Path=/api/auth/` |
 | Revocable | no | yes (SimpleJWT blacklist app) |
 
 - On page reload the access token is gone; the SPA calls `POST /api/auth/refresh/` on boot. Normal.
@@ -666,10 +666,10 @@ Default is `IsAuthenticated`. Public endpoints override with `AllowAny` **explic
 
 `IsAdmin` = `is_superuser`. `IsStaffOrAdmin` = `is_staff or is_superuser`.
 
-### 8.3 Serializers — the public/admin split
+### 8.3 Serializers - the public/admin split
 
 > **This closes a live PII leak.** Today `posts()` (`plastickothay/views.py:82`) defaults to
-> `Post.objects()` — every post regardless of status — and the `PostSerializer` in
+> `Post.objects()` - every post regardless of status - and the `PostSerializer` in
 > `refactoring_plan.md` exposes `email` and `pN`. Ported as-is, `/api/posts/` would publicly serve the
 > name, email, and phone of every person who ever filed a report, approved or not.
 
@@ -687,7 +687,7 @@ Serializers translate between JSON and use-case commands/results. They never tou
 ### 8.4 Filtering & pagination
 
 > Today's `filter` param is a single overloaded value (`today` / `last_week` / `severity_3` /
-> `accepted` / `pending`) meaning three orthogonal things at once — so "accepted **and** severity 3"
+> `accepted` / `pending`) meaning three orthogonal things at once - so "accepted **and** severity 3"
 > is inexpressible. Replaced with real params:
 
 ```
@@ -699,7 +699,7 @@ GET /api/admin/posts/?status=pending&severity=3&...      (admin only: status fil
   query parameter.
 - Cursor pagination on `(created DESC, id DESC)`. Default 20, max 100.
 - **Map is a separate endpoint** returning thin markers. Today's `home()` does
-  `Post.objects(status=1).to_json()` — every accepted post, unbounded, into the page. The map wants
+  `Post.objects(status=1).to_json()` - every accepted post, unbounded, into the page. The map wants
   thousands of thin markers; the feed wants twenty fat records. They are not the same query.
 
 ### 8.5 Error envelope
@@ -745,7 +745,7 @@ when application logic is wrong or two requests race. Never enforce an invariant
 
 ## 9. Persistence (`adapters/persistence/django_orm/`)
 
-### 9.1 Custom user model — decide before the first migration
+### 9.1 Custom user model - decide before the first migration
 
 ```python
 class User(AbstractUser):
@@ -785,7 +785,7 @@ unverified accounts, conflating two ideas. Separate them: `is_verified` = comple
 class Engagement(models.Model):
     class Meta:
         constraints = [
-            # ONE LIKE PER USER PER POST — partial, so comments (later) stay unconstrained
+            # ONE LIKE PER USER PER POST - partial, so comments (later) stay unconstrained
             models.UniqueConstraint(
                 fields=["post", "actor_user"],
                 condition=Q(type="like") & Q(actor_user__isnull=False),
@@ -823,7 +823,7 @@ class Post(models.Model):
 
 The Mongo model used a TTL index to self-expire OTPs. Postgres has no TTL. Therefore:
 
-- Always filter `expires_at > now()` on read — **correctness never depends on cleanup running.**
+- Always filter `expires_at > now()` on read - **correctness never depends on cleanup running.**
 - Opportunistic purge: `RegisterUser`/`ResendOTP` deletes that username's expired rows.
 - Optional periodic `manage.py purge_expired_otps` if a scheduler ever exists.
 
@@ -925,7 +925,7 @@ Development:  Vite dev server proxies /api → localhost:8000  →  same origin
 > This is **load-bearing, not a preference.** The httpOnly refresh cookie only works cleanly
 > first-party. Deploy the SPA on a separate origin and you need `SameSite=None; Secure`, CORS with
 > credentials, and CSRF protection on the refresh endpoint. Serving `dist/` from Django avoids all of
-> it — and with no nginx available, it is also the only way to get same-origin.
+> it - and with no nginx available, it is also the only way to get same-origin.
 >
 > **Consequence: CORS is not needed in production.** Milestone 1 of `milestones_and_issues.md` exists
 > largely to configure CORS. Keep `django-cors-headers` for dev flexibility only.
@@ -935,15 +935,15 @@ Django URL order: `/api/*` → DRF; `/django-admin/*` → Django admin; everythi
 
 ### 11.3 Settings
 
-Sessions and `django.contrib.sessions` middleware are dropped (JWT is stateless) — **except** that
+Sessions and `django.contrib.sessions` middleware are dropped (JWT is stateless) - **except** that
 Django admin needs sessions. Keep sessions mounted for `/django-admin/` only, or accept the middleware
 and use JWT for the API regardless. Recommend the latter: simpler, cost is one cookie for staff.
 
 `TIME_ZONE = "Asia/Dhaka"`, `USE_TZ = True`. Store UTC, bucket periods in Dhaka time.
 
-### 11.4 Django admin — narrow use, deliberately
+### 11.4 Django admin - narrow use, deliberately
 
-Now that the ORM is in play, Django admin works for free. Use it — but **only for config tables**:
+Now that the ORM is in play, Django admin works for free. Use it - but **only for config tables**:
 `point_rule`, `level_rule`, `badge_rule`, `contact_page`.
 
 **Never register `Post` in Django admin.** Approving a post has real behaviour (email, points,
@@ -955,14 +955,14 @@ Rule for reviewers: **Django admin may touch tables with no behaviour. Everythin
 the API.** React admin replaces even this later; `react-admin` or `Refine` over the DRF endpoints
 gives Django-admin-grade CRUD for roughly a day of work.
 
-### 11.5 Synchronous I/O — accepted tradeoff
+### 11.5 Synchronous I/O - accepted tradeoff
 
 No Celery means Google Drive uploads and Mailjet sends happen **inside the request**:
 
 - `POST /api/posts/` blocks on the Drive upload. Submission latency = Drive latency.
 - `POST /api/auth/register/` blocks on Mailjet. A Mailjet outage hangs registration.
 
-This matches current behaviour, so it is not a regression — but it **requires explicit timeouts**
+This matches current behaviour, so it is not a regression - but it **requires explicit timeouts**
 (Drive 30s, Mailjet 10s) and clean error mapping (`ImageUploadFailed` → 502). Without timeouts a
 hung upstream ties up a Gunicorn worker until it dies. Revisit if async infrastructure appears.
 
@@ -977,7 +977,7 @@ hung upstream ties up a Gunicorn worker until it dies. Revisit if async infrastr
 | Repositories/mappers | integration tests against real Postgres |
 | Leaderboard SQL | integration, with fixture data covering every §5.3 exclusion |
 | API | DRF `APIClient`, contract + permission tests |
-| Architecture | `import-linter` — `core/` imports nothing framework-shaped |
+| Architecture | `import-linter` - `core/` imports nothing framework-shaped |
 
 **Permission tests are mandatory per endpoint**: anonymous / authenticated / staff / superuser. The
 global `IsAuthenticated` default plus 12 explicit `AllowAny` overrides is exactly the shape where one
@@ -993,9 +993,9 @@ un-hiding restores them; an inactive rule contributes zero.
 
 | # | Decision | Rationale | Cost |
 |---|---|---|---|
-| DEC-1 | **Anonymous likes are recorded and displayed but award zero points to anyone**, including the post owner | An anonymous liker has no stable identity, so no unique constraint can bind them. If anonymous likes awarded the owner 3 points, a five-line script would print unlimited points with no account and no OTP — the leaderboard is meaningless in a week. Only authenticated likes move the score. | Like counts include anonymous likes but points don't — needs explaining in the UI |
+| DEC-1 | **Anonymous likes are recorded and displayed but award zero points to anyone**, including the post owner | An anonymous liker has no stable identity, so no unique constraint can bind them. If anonymous likes awarded the owner 3 points, a five-line script would print unlimited points with no account and no OTP - the leaderboard is meaningless in a week. Only authenticated likes move the score. | Like counts include anonymous likes but points don't - needs explaining in the UI |
 | DEC-2 | **Points derived from current state; no ledger, no score table.** ✅ Confirmed 2026-07-17 | Reversal, cascade, and drift bugs cannot exist. Hide/reject/un-hide are automatic. Postgres aggregation is fast enough. | Rule changes rewrite history retroactively; no audit trail. **Mitigated operationally: see POL-1.** |
-| DEC-3 | Leaderboard periods bucket posts by **`approved_at`**, likes by `engagement.created`. ✅ Confirmed 2026-07-17 | Points become real on approval, so that's the honest date. | Approval lag shifts a post into a later week — accepted, moderation is actively staffed. |
+| DEC-3 | Leaderboard periods bucket posts by **`approved_at`**, likes by `engagement.created`. ✅ Confirmed 2026-07-17 | Points become real on approval, so that's the honest date. | Approval lag shifts a post into a later week - accepted, moderation is actively staffed. |
 | DEC-4 | Post status is the **only** source of truth for points; `post_moderation_log` is audit-only | Two sources of truth would eventually disagree and silently corrupt scores. | Log can't be used for point queries |
 | DEC-5 | Custom `AbstractUser`; `user_type` → `is_staff`/`is_superuser` | Free password hashing, permissions, groups, Django admin. | Irreversible after first migration |
 | DEC-6 | Rejected posts are **soft-deleted**; today's code hard-deletes | Preserves audit trail; stops resubmission gaming. | Rows accumulate |
@@ -1013,7 +1013,7 @@ release checklist, not just here.
 
 | # | Policy |
 |---|---|
-| **POL-1** | **Point rule changes must be announced to all users before release.** DEC-2 makes rule changes retroactive and instantaneous — the moment `point_rule.points` changes, every historical score and the whole leaderboard shift. There is no staged rollout to hide behind. Treat any edit to `point_rule` as a **user-facing release**, not a config tweak: announce first, then flip. ⚠️ **An announcement channel (email blast / in-app banner) does not exist yet and is not in the v1 scope above.** Until it does, POL-1 is a manual promise with nothing behind it. |
+| **POL-1** | **Point rule changes must be announced to all users before release.** DEC-2 makes rule changes retroactive and instantaneous - the moment `point_rule.points` changes, every historical score and the whole leaderboard shift. There is no staged rollout to hide behind. Treat any edit to `point_rule` as a **user-facing release**, not a config tweak: announce first, then flip. ⚠️ **An announcement channel (email blast / in-app banner) does not exist yet and is not in the v1 scope above.** Until it does, POL-1 is a manual promise with nothing behind it. |
 | **POL-2** | Moderation queue must be actively staffed. DEC-3 buckets leaderboard periods by approval date, so approval lag directly distorts weekly standings. If the queue ever backs up past ~a day, revisit DEC-3. |
 
 ---
@@ -1038,7 +1038,7 @@ Then the frontend milestones (F0–F5) from `milestones_and_issues.md`, which re
 
 ### 14.1 What to do with the existing documents
 
-- **`refactoring_plan.md`** — §2.2 (MongoEngine serializers), §2.4 (`MongoJWTAuthentication`), and §2.5
+- **`refactoring_plan.md`** - §2.2 (MongoEngine serializers), §2.4 (`MongoJWTAuthentication`), and §2.5
   (CORS) are obsolete. Its Gantt chart starts 2026-07-15 and is stale. Rewrite or mark superseded.
-- **`milestones_and_issues.md`** — Milestone 1 is largely CORS setup that is no longer needed;
+- **`milestones_and_issues.md`** - Milestone 1 is largely CORS setup that is no longer needed;
   Milestones 2–3 assume Mongo. The frontend milestones survive. Rewrite the backend half against §14.

@@ -21,6 +21,9 @@ SECRET_KEY = os.getenv("DJANGO_KEY", "dev-insecure-key-change-me")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# Enable HTTPS Proxy Header Trust for Render
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -28,12 +31,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",  # required by admin only
     "django.contrib.messages",  # required by admin only
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",  # makes logout real (B2)
     "adapters.persistence.django_orm",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -43,6 +48,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# --- CORS & CSRF Settings ---------------------------------------------------
+# Allow cross-origin requests from frontends hosted separately on Render or locally
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True  # Required since you use JWTCookieAuthentication
+
+# If you prefer strict origin matching over CORS_ALLOW_ALL_ORIGINS, use:
+# _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+# CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"

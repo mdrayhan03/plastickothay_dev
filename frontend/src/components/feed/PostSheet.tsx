@@ -26,8 +26,8 @@ export function PostSheet({ postId, onClose }: { postId: number | null; onClose:
     <>
       <div
         className={cn(
-          'absolute inset-0 z-[600] bg-black/40 transition-opacity',
-          open ? 'opacity-100' : 'pointer-events-none opacity-0',
+          'fixed inset-0 z-[600] bg-black/40 transition-opacity',
+          open ? 'opacity-100' : 'pointer-events-none opacity-0 invisible',
         )}
         onClick={onClose}
       />
@@ -36,8 +36,8 @@ export function PostSheet({ postId, onClose }: { postId: number | null; onClose:
         aria-modal="true"
         aria-label="Report details"
         className={cn(
-          'absolute inset-x-0 bottom-0 z-[601] max-h-[85%] overflow-y-auto rounded-t-3xl bg-surface shadow-[0_-16px_40px_-16px_rgba(10,33,28,.4)] transition-transform duration-300',
-          open ? 'translate-y-0' : 'translate-y-full',
+          'fixed inset-x-0 bottom-0 z-[601] max-h-[85%] overflow-y-auto rounded-t-3xl bg-surface shadow-[0_-16px_40px_-16px_rgba(10,33,28,.4)] transition-transform duration-300',
+          open ? 'translate-y-0' : 'translate-y-full pointer-events-none invisible',
         )}
       >
         <div className="sticky top-0 flex justify-center bg-surface pt-3">

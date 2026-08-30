@@ -65,14 +65,18 @@ class ReviewListView(APIView):
     permission_classes = [IsStaffOrAdmin]
 
     def get(self, request):
-        names = request.query_params.getlist("status") or ["pending"]
+        user_id = request.query_params.get("user_id")
+        names = request.query_params.getlist("status")
+        if not names:
+            names = ["pending", "approved", "hidden", "rejected"] if user_id else ["pending"]
         statuses = tuple(_STATUS_BY_NAME[n] for n in names if n in _STATUS_BY_NAME)
         severity = request.query_params.get("severity")
         page = ListReportsForReview(container.posts()).execute(
             page_request(request),
-            statuses=statuses or (PostStatus.PENDING,),
+            statuses=statuses or (PostStatus.PENDING, PostStatus.APPROVED, PostStatus.HIDDEN, PostStatus.REJECTED),
             severity=int(severity) if severity else None,
-            include_deleted="rejected" in names,
+            include_deleted="rejected" in names or user_id is not None,
+            reporter_id=UserId(int(user_id)) if user_id else None,
         )
         return paginated_response(page, AdminPostSerializer)
 

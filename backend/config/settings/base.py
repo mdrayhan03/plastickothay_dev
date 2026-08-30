@@ -9,6 +9,7 @@ hand-rolled factory - Django already gives that for free (LLD §1.1, discussion)
 import os
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -116,7 +117,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Image storage: Google Drive when credentials are wired, local filesystem otherwise.

@@ -99,6 +99,12 @@ class MapMarkerSerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     severity = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, marker) -> str:
+        if getattr(marker, "image", ""):
+            return container.image_storage().public_url(marker.image)
+        return ""
 
 
 class AdminPostSerializer(serializers.Serializer):
@@ -118,6 +124,7 @@ class AdminPostSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     created = serializers.DateTimeField()
     approved_at = serializers.DateTimeField(allow_null=True)
+    likes = serializers.SerializerMethodField()
 
     def get_reporter_name(self, post: Post) -> str:
         return post.reporter.name
@@ -139,6 +146,15 @@ class AdminPostSerializer(serializers.Serializer):
 
     def get_status(self, post: Post) -> int:
         return int(post.status)
+
+    def get_likes(self, post: Post) -> int:
+        ctx = self.context.get("likes")
+        if ctx is not None:
+            return ctx.get(post.id, 0)
+        from core.domain.value_objects import EngagementType
+
+        counts = container.engagements().counts_for([post.id], EngagementType.LIKE)
+        return counts.get(post.id, 0)
 
 
 class UpdateDescriptionSerializer(serializers.Serializer):

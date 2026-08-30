@@ -259,21 +259,29 @@ class DjangoPostRepository(PostRepository):
     def list_map_markers(self) -> list[MapMarker]:
         rows = orm.Post.objects.filter(
             status=int(PostStatus.APPROVED), deleted_at__isnull=True
-        ).values("pk", "lat", "lon", "severity")
-        from core.domain.value_objects import Severity
+        ).values("pk", "lat", "lon", "severity", "image_provider", "image_external_id")
+        from core.domain.value_objects import ImageRef, Severity
 
         return [
             MapMarker(
-                id=PostId(r["pk"]), lat=r["lat"], lon=r["lon"], severity=Severity(r["severity"])
+                id=PostId(r["pk"]),
+                lat=r["lat"],
+                lon=r["lon"],
+                severity=Severity(r["severity"]),
+                image=ImageRef(
+                    provider=r["image_provider"], external_id=r["image_external_id"]
+                )
+                if r.get("image_external_id")
+                else None,
             )
             for r in rows
         ]
 
     def list_admin_map_markers(self) -> list[AdminMapMarker]:
-        from core.domain.value_objects import Severity
+        from core.domain.value_objects import ImageRef, Severity
 
         rows = orm.Post.objects.filter(deleted_at__isnull=True).values(
-            "pk", "lat", "lon", "severity", "status"
+            "pk", "lat", "lon", "severity", "status", "image_provider", "image_external_id"
         )
         return [
             AdminMapMarker(
@@ -282,6 +290,11 @@ class DjangoPostRepository(PostRepository):
                 lon=r["lon"],
                 severity=Severity(r["severity"]),
                 status=PostStatus(r["status"]),
+                image=ImageRef(
+                    provider=r["image_provider"], external_id=r["image_external_id"]
+                )
+                if r.get("image_external_id")
+                else None,
             )
             for r in rows
         ]

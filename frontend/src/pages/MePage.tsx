@@ -1,11 +1,14 @@
-import { Moon, Pencil } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { ArrowUpDown, Clock, Heart, MapPin, Moon, Pencil } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { PostSheet } from '@/components/feed/PostSheet'
 import { TopBar } from '@/components/layout/TopBar'
 import { useAuth } from '@/context/auth-context'
 import { useOwnPosts } from '@/hooks/usePosts'
 import { useBadges, useContribution } from '@/hooks/useScoring'
 import { useTheme } from '@/hooks/useTheme'
-import { severityLabel } from '@/lib/severity'
+import { severityClass, severityLabel } from '@/lib/severity'
 import type { PostStatus } from '@/types'
 
 const statusChip: Record<PostStatus, { label: string; cls: string }> = {
@@ -57,8 +60,37 @@ export function MePage() {
   const { data: c } = useContribution()
   const { data: badges } = useBadges()
   const own = useOwnPosts()
-  const posts = own.data?.pages.flatMap((p) => p.results) ?? []
+  const rawPosts = own.data?.pages.flatMap((p) => p.results) ?? []
   const earned = new Set(badges?.map((b) => b.code))
+
+  const [statusFilter, setStatusFilter] = useState<'all' | PostStatus>('all')
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest')
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
+
+  // Status Counts
+  const counts = useMemo(
+    () => ({
+      all: rawPosts.length,
+      approved: rawPosts.filter((p) => p.status === 1).length,
+      pending: rawPosts.filter((p) => p.status === 2).length,
+      rejected: rawPosts.filter((p) => p.status === 0).length,
+    }),
+    [rawPosts],
+  )
+
+  // Filtered & Sorted Timeline Posts
+  const filteredPosts = useMemo(() => {
+    let result = [...rawPosts]
+    if (statusFilter !== 'all') {
+      result = result.filter((p) => p.status === statusFilter)
+    }
+    result.sort((a, b) => {
+      const timeA = new Date(a.created).getTime()
+      const timeB = new Date(b.created).getTime()
+      return sortOrder === 'latest' ? timeB - timeA : timeA - timeB
+    })
+    return result
+  }, [rawPosts, statusFilter, sortOrder])
 
   // A small fixed badge catalogue for the "locked" placeholders (icons match the seed).
   const catalogue = [
@@ -157,29 +189,139 @@ export function MePage() {
         })}
       </div>
 
-      <div className="mx-4.5 mb-3 mt-6 flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold">My reports</h2>
+      {/* --- Timeline / My Reports Header --- */}
+      <div className="mx-4.5 mb-3 mt-7 flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-lg font-bold">My reports timeline</h2>
+          <p className="text-xs font-semibold text-ink-3">Your pollution reports from latest to oldest</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSortOrder((prev) => (prev === 'latest' ? 'oldest' : 'latest'))}
+          className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink shadow-sm transition hover:bg-surface-2"
+        >
+          <ArrowUpDown className="size-3.5 text-brand" />
+          <span>{sortOrder === 'latest' ? 'Latest first' : 'Oldest first'}</span>
+        </button>
       </div>
-      {posts.length === 0 && (
-        <p className="px-8 pb-6 text-center text-sm text-ink-3">
-          You haven't reported anything yet.
-        </p>
+
+      {/* --- Filter Pills Bar --- */}
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-4.5 pb-3">
+        {[
+          { id: 'all', label: 'All', count: counts.all },
+          { id: 1, label: 'Approved', count: counts.approved },
+          { id: 2, label: 'Pending', count: counts.pending },
+          { id: 0, label: 'Rejected', count: counts.rejected },
+        ].map((item) => {
+          const isActive = statusFilter === item.id
+          return (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => setStatusFilter(item.id as 'all' | PostStatus)}
+              className={`flex flex-none items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                isActive
+                  ? 'bg-brand text-white shadow-sm'
+                  : 'border border-line bg-surface text-ink-2 hover:bg-surface-2'
+              }`}
+            >
+              <span>{item.label}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-surface-2 text-ink-3'
+                }`}
+              >
+                {item.count}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* --- Timeline Feed Posts (Facebook Profile Style) --- */}
+      {filteredPosts.length === 0 ? (
+        <div className="mx-4.5 my-4 rounded-2xl border border-dashed border-line bg-surface-2 p-8 text-center">
+          <p className="text-sm font-semibold text-ink-3">No reports found matching this filter.</p>
+        </div>
+      ) : (
+        <div className="space-y-4 px-4.5 pb-6">
+          {filteredPosts.map((p) => {
+            const chip = statusChip[p.status]
+            return (
+              <div
+                key={p.id}
+                onClick={() => setSelectedPostId(p.id)}
+                className="group cursor-pointer overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm transition hover:border-brand-soft"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="grid size-9 place-items-center rounded-full bg-brand-soft font-display font-bold text-brand-deep">
+                      {user?.first_name?.[0] || 'Y'}
+                    </div>
+                    <div>
+                      <b className="block text-sm font-bold text-ink">
+                        {user ? `${user.first_name} ${user.last_name}` : 'You'}
+                      </b>
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-ink-3">
+                        <Clock className="size-3" />
+                        {formatDistanceToNow(new Date(p.created), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className={`rounded-full px-2.5 py-1 text-[10.5px] font-extrabold uppercase ${chip.cls}`}>
+                    {chip.label}
+                  </span>
+                </div>
+
+                {/* Cover Image */}
+                <div className="relative overflow-hidden rounded-xl bg-surface-2">
+                  <img
+                    src={p.image_url}
+                    alt=""
+                    className="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <span
+                    className={`absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10.5px] font-bold text-white shadow-md ${severityClass[p.severity]}`}
+                  >
+                    {severityLabel[p.severity]} severity
+                  </span>
+                </div>
+
+                {/* Content Details */}
+                <div className="pt-3">
+                  {p.place_name && (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-brand">
+                      <MapPin className="size-3.5 flex-none" />
+                      <span className="truncate">{p.place_name}</span>
+                    </div>
+                  )}
+                  {p.description && (
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-ink-2">
+                      {p.description}
+                    </p>
+                  )}
+
+                  {/* Actions Footer */}
+                  <div className="mt-3 flex items-center justify-between border-t border-line pt-2.5 text-xs font-semibold text-ink-3">
+                    <span className="flex items-center gap-1.5">
+                      <Heart className="size-4 text-heart" fill={p.liked_by_me ? 'currentColor' : 'none'} />
+                      {p.likes} {p.likes === 1 ? 'like' : 'likes'}
+                    </span>
+                    <span className="text-brand font-bold">View details →</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
-      {posts.map((p) => {
-        const chip = statusChip[p.status]
-        return (
-          <div key={p.id} className="flex items-center gap-3 border-b border-line px-4.5 py-3">
-            <img src={p.image_url} alt="" className="size-13 flex-none rounded-xl object-cover" style={{ background: 'var(--surface-2)' }} />
-            <div className="flex-1">
-              <b className="text-sm font-bold">{severityLabel[p.severity]} severity</b>
-              <span className="block text-xs font-semibold text-ink-3">{p.description}</span>
-            </div>
-            <span className={`rounded-full px-2.5 py-1 text-[10.5px] font-extrabold uppercase ${chip.cls}`}>
-              {chip.label}
-            </span>
-          </div>
-        )
-      })}
+
+      {/* --- Detail Slide-Up Modal --- */}
+      <PostSheet postId={selectedPostId} onClose={() => setSelectedPostId(null)} />
     </>
   )
 }
+

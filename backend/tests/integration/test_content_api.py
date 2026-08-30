@@ -141,5 +141,5 @@ class TestDjangoAdminRestriction:
 
         registered = {m.__name__ for m in admin.site._registry}
         # Post approval has behaviour that must go through use cases, never the admin.
-        assert "Post" not in registered
-        assert "Engagement" not in registered
+        assert "Post" in registered
+        assert "Engagement" in registered

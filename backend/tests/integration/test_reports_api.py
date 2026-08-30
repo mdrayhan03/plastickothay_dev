@@ -92,7 +92,7 @@ class TestPublicReads:
         markers = client.get("/api/map/posts/").data
         assert len(markers) == 1
         assert markers[0]["id"] == approved
-        assert set(markers[0].keys()) == {"id", "lat", "lon", "severity"}
+        assert set(markers[0].keys()) == {"id", "lat", "lon", "severity", "image_url"}
 
 
 class TestPIIneverLeaks:

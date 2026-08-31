@@ -12,4 +12,7 @@ python manage.py collectstatic --no-input
 echo "==> 🚀 Running database migrations..."
 python manage.py migrate
 
+echo "==> Creating cache table..."
+python manage.py createcachetable
+
 echo "==> ✅ Build completed successfully!"

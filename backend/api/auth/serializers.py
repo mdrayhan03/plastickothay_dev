@@ -8,6 +8,7 @@ import base64
 
 from rest_framework import serializers
 
+from api.reports.serializers import decode_base64_image
 from config import container
 from core.application.accounts.dto import Avatar
 from core.domain.entities import User
@@ -17,16 +18,11 @@ def _decode_avatar(raw: str) -> Avatar | None:
     """Turn an optional base64 data URL into an Avatar command object (or None)."""
     if not raw:
         return None
-    if ";base64," in raw:
-        header, b64 = raw.split(";base64,", 1)
-        content_type = header.split(":")[-1] or "image/jpeg"
-    else:
-        b64, content_type = raw, "image/jpeg"
     try:
-        data = base64.b64decode(b64, validate=True)
+        data, content_type = decode_base64_image(raw)
     except Exception as exc:
         raise serializers.ValidationError({"avatar": "Invalid base64 image."}) from exc
-    ext = content_type.split("/")[-1] or "jpg"
+    ext = content_type.split("/")[-1].split("+")[0] or "jpg"
     return Avatar(data=data, filename=f"avatar.{ext}", content_type=content_type)
 
 

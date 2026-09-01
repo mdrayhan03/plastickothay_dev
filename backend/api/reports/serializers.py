@@ -6,11 +6,58 @@ Base64 photo decoding happens here (transport concern), never in a use case.
 """
 
 import base64
+import re
 
 from rest_framework import serializers
 
 from config import container
 from core.domain.entities import Post
+
+
+def decode_base64_image(raw: str) -> tuple[bytes, str]:
+    """Robust base64 image decoder handling data URLs, whitespace, urlsafe chars, and padding."""
+    if not isinstance(raw, str) or not raw.strip():
+        raise ValueError("Empty image data")
+
+    raw = raw.strip()
+    content_type = "image/jpeg"
+
+    if raw.startswith("data:"):
+        if "," in raw:
+            header, b64 = raw.split(",", 1)
+            header_parts = header.split(";")
+            if header_parts:
+                mime = header_parts[0].replace("data:", "").strip()
+                if mime:
+                    content_type = mime
+        else:
+            b64 = raw
+    elif ";base64," in raw.lower():
+        idx = raw.lower().find(";base64,")
+        header = raw[:idx]
+        b64 = raw[idx + len(";base64,"):]
+        content_type = header.split(":")[-1] or "image/jpeg"
+    else:
+        b64 = raw
+
+    # Replace spaces (' ') with '+' FIRST, since spaces in HTTP body are converted '+'
+    b64 = b64.replace(" ", "+").replace("-", "+").replace("_", "/")
+    # Remove any remaining newlines, tabs, or non-base64 whitespace
+    b64 = re.sub(r"\s+", "", b64)
+
+    missing_padding = len(b64) % 4
+    if missing_padding:
+        b64 += "=" * (4 - missing_padding)
+
+    try:
+        data = base64.b64decode(b64)
+    except Exception as exc:
+        raise ValueError("Invalid base64 encoding") from exc
+
+    if not data:
+        raise ValueError("Decoded image is empty")
+
+    return data, content_type
 
 
 def _image_url(post: Post) -> str:
@@ -33,17 +80,13 @@ class SubmitReportSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         raw = attrs["photo"]
-        if ";base64," in raw:
-            header, b64 = raw.split(";base64,", 1)
-            content_type = header.split(":")[-1] or "image/jpeg"
-        else:
-            b64, content_type = raw, "image/jpeg"
         try:
-            attrs["photo_bytes"] = base64.b64decode(b64, validate=True)
+            photo_bytes, content_type = decode_base64_image(raw)
         except Exception as exc:
             raise serializers.ValidationError({"photo": "Invalid base64 image."}) from exc
+        attrs["photo_bytes"] = photo_bytes
         attrs["content_type"] = content_type
-        ext = content_type.split("/")[-1] or "jpg"
+        ext = content_type.split("/")[-1].split("+")[0] or "jpg"
         attrs["filename"] = f"upload.{ext}"
         return attrs
 

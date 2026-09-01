@@ -1,14 +1,13 @@
-import { CameraOff, Image, RefreshCw, X } from 'lucide-react'
+import { CameraOff, RefreshCw, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { readImageAsDataUrl } from '@/lib/image'
 import { cn } from '@/lib/utils'
 
 const MAX_WIDTH = 1280 // downscale so the base64 payload stays reasonable
 
 type Status = 'loading' | 'ready' | 'denied' | 'missing'
 
-/** Full-screen live camera with gallery fallback and robust video binding. */
+/** Full-screen live camera. No gallery upload - reports must be shot in real time. */
 export function CameraCapture({
   onCapture,
   onClose,
@@ -18,7 +17,6 @@ export function CameraCapture({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<Status>('loading')
 
   const stop = useCallback(() => {
@@ -88,48 +86,23 @@ export function CameraCapture({
     onCapture(canvas.toDataURL('image/jpeg', 0.82))
   }
 
-  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    try {
-      const dataUrl = await readImageAsDataUrl(file, MAX_WIDTH)
-      stop()
-      onCapture(dataUrl)
-    } catch {
-      toast.error('Could not load the selected photo.')
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileSelect}
-      />
-
-      <div className="flex items-center justify-between p-4 text-white">
+      {/* Header bar */}
+      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
         <button
           onClick={close}
           aria-label="Close camera"
-          className="grid size-10 place-items-center rounded-full bg-white/15"
+          className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur-sm transition-transform active:scale-95"
         >
           <X className="size-5" />
         </button>
         <span className="text-sm font-semibold">Capture the pollution</span>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          aria-label="Upload photo from gallery"
-          className="grid size-10 place-items-center rounded-full bg-white/15 text-white"
-          title="Choose photo from device"
-        >
-          <Image className="size-5" />
-        </button>
+        <span className="size-10" />
       </div>
 
-      <div className="relative flex-1 bg-black">
+      {/* Camera View Area */}
+      <div className="relative size-full bg-black flex items-center justify-center overflow-hidden">
         <video
           ref={videoRef}
           autoPlay
@@ -154,49 +127,32 @@ export function CameraCapture({
               </p>
               <p className="mx-auto mt-1.5 max-w-xs text-[13px] text-white/70">
                 {status === 'denied'
-                  ? 'Reports need a live photo. Enable camera access or choose a photo from your gallery.'
-                  : 'No usable camera was detected on this device. You can select a photo from your device.'}
+                  ? 'Reports need a live photo. Allow camera access for this site, then try again. If the prompt doesn’t appear, enable the camera in your browser’s site settings.'
+                  : 'This device has no usable camera, so a report can’t be photographed here.'}
               </p>
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                {status === 'denied' && (
-                  <button
-                    onClick={start}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black"
-                  >
-                    <RefreshCw className="size-4" /> Enable camera
-                  </button>
-                )}
+              {status === 'denied' && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm"
+                  onClick={start}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black"
                 >
-                  <Image className="size-4" /> Upload from gallery
+                  <RefreshCw className="size-4" /> Enable camera
                 </button>
-              </div>
+              )}
             </div>
           </div>
         )}
-      </div>
 
-      {status === 'ready' && (
-        <div className="flex items-center justify-around p-6">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center gap-1 text-xs font-semibold text-white/80"
-          >
-            <div className="grid size-11 place-items-center rounded-full bg-white/20">
-              <Image className="size-5" />
-            </div>
-            Gallery
-          </button>
-          <button
-            onClick={shoot}
-            aria-label="Take photo"
-            className="size-18 rounded-full border-4 border-white/40 bg-white ring-2 ring-white active:scale-95"
-          />
-          <div className="w-11" />
-        </div>
-      )}
+        {/* Shutter Capture Button */}
+        {status === 'ready' && (
+          <div className="absolute bottom-8 inset-x-0 z-20 flex items-center justify-center pb-safe">
+            <button
+              onClick={shoot}
+              aria-label="Take photo"
+              className="size-18 rounded-full border-4 border-white/40 bg-white ring-2 ring-white shadow-xl transition-transform active:scale-90"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

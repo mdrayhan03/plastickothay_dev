@@ -62,6 +62,17 @@ class TestSubmission:
         resp = submit(client, photo="data:image/png;base64,@@@notbase64@@@")
         assert resp.status_code == 400
 
+    def test_base64_with_spaces_and_missing_padding_accepted(self, client):
+        # Base64 string with '+' replaced by space, missing '=', and extra whitespace
+        space_photo = PHOTO.replace("+", " ").rstrip("=") + "\n"
+        resp = submit(client, photo=space_photo)
+        assert resp.status_code == 201
+
+    def test_urlsafe_base64_accepted(self, client):
+        urlsafe_photo = PHOTO.replace("+", "-").replace("/", "_")
+        resp = submit(client, photo=urlsafe_photo)
+        assert resp.status_code == 201
+
     def test_out_of_range_severity_rejected(self, client):
         assert submit(client, severity=9).status_code == 400
 

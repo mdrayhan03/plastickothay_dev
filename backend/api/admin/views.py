@@ -73,7 +73,8 @@ class ReviewListView(APIView):
         severity = request.query_params.get("severity")
         page = ListReportsForReview(container.posts()).execute(
             page_request(request),
-            statuses=statuses or (PostStatus.PENDING, PostStatus.APPROVED, PostStatus.HIDDEN, PostStatus.REJECTED),
+            statuses=statuses
+            or (PostStatus.PENDING, PostStatus.APPROVED, PostStatus.HIDDEN, PostStatus.REJECTED),
             severity=int(severity) if severity else None,
             include_deleted="rejected" in names or user_id is not None,
             reporter_id=UserId(int(user_id)) if user_id else None,

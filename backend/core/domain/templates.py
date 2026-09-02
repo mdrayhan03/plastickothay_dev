@@ -1,6 +1,5 @@
 """Email template definitions with consistent HTML layout (Header & Footer)."""
 
-from typing import Tuple
 from core.domain.entities import Post
 from core.domain.value_objects import OTPPurpose
 
@@ -51,7 +50,7 @@ class EmailTemplateRenderer:
     """Generates subject and HTML content for domain notifications."""
 
     @staticmethod
-    def render_otp(code: int, purpose: OTPPurpose) -> Tuple[str, str, str]:
+    def render_otp(code: int, purpose: OTPPurpose) -> tuple[str, str, str]:
         subjects = {
             OTPPurpose.REGISTRATION: "Verify your PlasticKothay account",
             OTPPurpose.PASSWORD_RESET: "Reset your PlasticKothay password",
@@ -71,7 +70,7 @@ class EmailTemplateRenderer:
         return subject, _wrap_html(html_content), plain_text
 
     @staticmethod
-    def render_post_approved(post: Post) -> Tuple[str, str, str]:
+    def render_post_approved(post: Post) -> tuple[str, str, str]:
         subject = "Your PlasticKothay report was approved"
         html_content = """
             <h2>Report Approved! 🎉</h2>
@@ -83,14 +82,16 @@ class EmailTemplateRenderer:
         return subject, _wrap_html(html_content), plain_text
 
     @staticmethod
-    def render_post_rejected(post: Post, reason: str) -> Tuple[str, str, str]:
+    def render_post_rejected(post: Post, reason: str) -> tuple[str, str, str]:
         subject = "Your PlasticKothay report was not approved"
         reason_block = f"<p><strong>Reason provided:</strong> {reason}</p>" if reason else ""
         tail = f"\n\nReason: {reason}" if reason else ""
 
         html_content = f"""
             <h2>Report Status Update</h2>
-            <p>Your report was reviewed, but unfortunately it could not be published at this time.</p>
+            <p>
+                Your report was reviewed, but unfortunately it could not be published at this time.
+            </p>
             {reason_block}
             <p>If you believe this was an error, feel free to submit an updated report.</p>
         """

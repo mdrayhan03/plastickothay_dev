@@ -6,18 +6,17 @@ EMAIL_BACKEND, chosen in settings. The domain never sees a subject line or an HT
 
 No Celery, so send() is synchronous inside the request. A short timeout is enforced by the
 caller's use case wrapper; a hard failure raises NotificationFailed.
-"""
 
-"""Email notifier via Django's mail layer."""
+Email notifier via Django's mail layer."""
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
 from core.domain.entities import Post
 from core.domain.errors import NotificationFailed
+from core.domain.templates import EmailTemplateRenderer
 from core.domain.value_objects import OTPPurpose
 from core.ports.notifications import Notifier
-from core.domain.templates import EmailTemplateRenderer
 
 
 class MailjetNotifier(Notifier):

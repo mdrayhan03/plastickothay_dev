@@ -25,4 +25,3 @@ if settings.DEBUG:
 urlpatterns += [
     re_path(r"^(?!api/|django-admin/|media/).*$", SPAView.as_view(), name="spa"),
 ]
-

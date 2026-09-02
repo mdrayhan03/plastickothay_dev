@@ -35,7 +35,7 @@ def decode_base64_image(raw: str) -> tuple[bytes, str]:
     elif ";base64," in raw.lower():
         idx = raw.lower().find(";base64,")
         header = raw[:idx]
-        b64 = raw[idx + len(";base64,"):]
+        b64 = raw[idx + len(";base64,") :]
         content_type = header.split(":")[-1] or "image/jpeg"
     else:
         b64 = raw

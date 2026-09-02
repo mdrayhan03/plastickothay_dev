@@ -19,10 +19,17 @@ from django.contrib.sessions.models import Session
 from adapters.persistence.django_orm import models as orm
 
 
-
 @admin.register(orm.User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("username", "email", "phone", "is_verified", "is_staff", "is_superuser", "date_joined")
+    list_display = (
+        "username",
+        "email",
+        "phone",
+        "is_verified",
+        "is_staff",
+        "is_superuser",
+        "date_joined",
+    )
     list_filter = ("is_verified", "is_staff", "is_superuser")
     search_fields = ("username", "email", "phone")
 
@@ -36,7 +43,15 @@ class OTPAdmin(admin.ModelAdmin):
 
 @admin.register(orm.Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("id", "reporter_name", "reporter_email", "severity", "status", "created", "approved_at")
+    list_display = (
+        "id",
+        "reporter_name",
+        "reporter_email",
+        "severity",
+        "status",
+        "created",
+        "approved_at",
+    )
     list_filter = ("severity", "status")
     search_fields = ("reporter_name", "reporter_email", "description", "place_name")
 
@@ -117,6 +132,7 @@ class PostModerationLogAdmin(admin.ModelAdmin):
 
 # --- Django Built-in System Models ---
 
+
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ("name", "content_type", "codename")
@@ -142,6 +158,3 @@ class LogEntryAdmin(admin.ModelAdmin):
     list_display = ("action_time", "user", "content_type", "object_repr", "action_flag")
     list_filter = ("action_flag", "content_type")
     search_fields = ("object_repr", "change_message")
-
-
-

@@ -14,15 +14,23 @@ jobs:
         working-directory: plastickothay_dev/backend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      
+      - name: Set up Python with Pip Cache
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "plastickothay_dev/backend/requirements*.txt"
+
       - name: Install
         run: |
           python -m pip install -q -r requirements-dev.txt
+          
       - name: Import boundary (core stays framework-free)
         run: lint-imports
+        
       - name: Lint
         run: ruff check .
+        
       - name: Tests
         run: pytest

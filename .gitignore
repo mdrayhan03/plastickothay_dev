@@ -54,3 +54,6 @@ node_modules/
 
 # custom
 backend_old/
+
+# Render Blueprint (not used - services created manually in the dashboard)
+render.yaml

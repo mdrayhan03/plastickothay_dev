@@ -60,7 +60,12 @@ export function MePage() {
   const { data: c } = useContribution()
   const { data: badges } = useBadges()
   const own = useOwnPosts()
-  const rawPosts = own.data?.pages.flatMap((p) => p.results) ?? []
+  // Memoise off the stable `own.data`: flatMap makes a fresh array each render, so without this
+  // the downstream useMemos (counts/filteredPosts) would recompute every render regardless.
+  const rawPosts = useMemo(
+    () => own.data?.pages.flatMap((p) => p.results) ?? [],
+    [own.data],
+  )
   const earned = new Set(badges?.map((b) => b.code))
 
   const [statusFilter, setStatusFilter] = useState<'all' | PostStatus>('all')

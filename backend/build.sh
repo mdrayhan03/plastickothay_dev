@@ -15,4 +15,7 @@ python manage.py migrate
 echo "==> Creating cache table..."
 python manage.py createcachetable
 
+echo "==> 🌱 Seeding rules..."
+python manage.py seed_rules
+
 echo "==> ✅ Build completed successfully!"

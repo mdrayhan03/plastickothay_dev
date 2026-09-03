@@ -4,8 +4,6 @@ These validate transport shape and translate to/from use-case commands and domai
 They never touch the ORM.
 """
 
-import base64
-
 from rest_framework import serializers
 
 from api.reports.serializers import decode_base64_image

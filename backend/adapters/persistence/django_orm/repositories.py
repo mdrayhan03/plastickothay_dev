@@ -268,9 +268,7 @@ class DjangoPostRepository(PostRepository):
                 lat=r["lat"],
                 lon=r["lon"],
                 severity=Severity(r["severity"]),
-                image=ImageRef(
-                    provider=r["image_provider"], external_id=r["image_external_id"]
-                )
+                image=ImageRef(provider=r["image_provider"], external_id=r["image_external_id"])
                 if r.get("image_external_id")
                 else None,
             )
@@ -290,9 +288,7 @@ class DjangoPostRepository(PostRepository):
                 lon=r["lon"],
                 severity=Severity(r["severity"]),
                 status=PostStatus(r["status"]),
-                image=ImageRef(
-                    provider=r["image_provider"], external_id=r["image_external_id"]
-                )
+                image=ImageRef(provider=r["image_provider"], external_id=r["image_external_id"])
                 if r.get("image_external_id")
                 else None,
             )

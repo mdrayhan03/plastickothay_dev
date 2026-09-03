@@ -221,7 +221,8 @@ function UserDrawer({
     enabled: !!user,
   })
 
-  const userReports = reportsData?.results ?? []
+  // Memoise off the stable query data so the downstream useMemos don't recompute every render.
+  const userReports = useMemo(() => reportsData?.results ?? [], [reportsData])
 
   // Status counts for filter pills
   const counts = useMemo(

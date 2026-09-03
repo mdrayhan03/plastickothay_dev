@@ -22,6 +22,7 @@ PROVIDER = "gdrive"
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "143-8VgTr2KPveoPtcJ4s2SZGrT1w8Vth")
 TIMEOUT = int(os.getenv("GOOGLE_DRIVE_TIMEOUT", "30"))  # seconds - no Celery, so cap the hang
+THUMB_WIDTH = int(os.getenv("GOOGLE_DRIVE_THUMB_WIDTH", "1000"))  # max px width for the img URL
 
 
 def _credentials():
@@ -73,6 +74,10 @@ class GoogleDriveImageStorage(ImageStorage):
                 )
                 .execute()
             )
+            # Make it readable by anyone with the link, otherwise the public image URL 403s.
+            self.service.permissions().create(
+                fileId=uploaded["id"], body={"type": "anyone", "role": "reader"}
+            ).execute()
         except ImageUploadFailed:
             raise
         except Exception as exc:
@@ -86,4 +91,7 @@ class GoogleDriveImageStorage(ImageStorage):
             raise ImageDeleteFailed(str(exc)) from exc
 
     def public_url(self, ref: ImageRef) -> str:
-        return f"https://drive.google.com/uc?id={ref.external_id}"
+        # The `uc?id=` link is broken for <img> embedding (Google serves an interstitial page).
+        # The thumbnail endpoint returns real image bytes, resized to <= sz width. Requires the
+        # file to be link-readable (granted on upload above).
+        return f"https://drive.google.com/thumbnail?id={ref.external_id}&sz=w{THUMB_WIDTH}"

@@ -14,13 +14,17 @@ REFRESH_MAX_AGE = 7 * 24 * 3600  # matches REFRESH_TTL
 
 
 def set_refresh_cookie(response, refresh_token: str):
+    # SameSite comes from settings (REFRESH_COOKIE_SAMESITE): "Lax" same-origin, "None" for a
+    # cross-origin deploy. SameSite=None is only valid when Secure, so force Secure in that case.
+    samesite = getattr(settings, "REFRESH_COOKIE_SAMESITE", "Lax")
+    secure = not settings.DEBUG or samesite.lower() == "none"
     response.set_cookie(
         REFRESH_COOKIE,
         refresh_token,
         max_age=REFRESH_MAX_AGE,
         httponly=True,
-        secure=not settings.DEBUG,  # Secure in prod; relaxed on http://localhost in dev
-        samesite="Lax",
+        secure=secure,
+        samesite=samesite,
         path=REFRESH_PATH,
     )
     return response

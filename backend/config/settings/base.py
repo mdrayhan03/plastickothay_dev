@@ -49,14 +49,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# --- CORS & CSRF Settings ---------------------------------------------------
-# Allow cross-origin requests from frontends hosted separately on Render or locally
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True  # Required since you use JWTCookieAuthentication
+# --- CORS & CSRF ------------------------------------------------------------
+# Cross-origin deploy (frontend hosted separately): list the EXACT frontend origin(s) in
+# CORS_ALLOWED_ORIGINS (comma-separated, full scheme+host). Never use ALLOW_ALL / "*" with
+# credentials — the browser rejects a wildcard Access-Control-Allow-Origin on any request that
+# carries the cookie, so auth silently breaks. Empty = same-origin (no CORS needed).
+_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+CORS_ALLOW_CREDENTIALS = True  # required so the httpOnly refresh cookie rides cross-site
 
-# If you prefer strict origin matching over CORS_ALLOW_ALL_ORIGINS, use:
-# _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
-# CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+# The refresh cookie's SameSite. Same-origin -> "Lax". Cross-origin -> set "None" (which forces
+# Secure), otherwise the browser won't send it on the boot /api/auth/refresh/ XHR.
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
 
 _csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if _csrf_origins:

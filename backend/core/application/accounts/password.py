@@ -22,11 +22,11 @@ class RequestPasswordReset:
         self.issuer = _OTPIssuer(otps, notifier, clock)
 
     def execute(self, username: str) -> None:
-        user = self.users.get_by_username(username.strip().lower())
+        user = self.users.get_by_identifier(username.strip().lower())
         if user is None:
             # Silent success: distinguishing here would leak which accounts exist.
             return
-        self.issuer.issue(user.username, user.email, OTPPurpose.PASSWORD_RESET)
+        self.issuer.issue(username, user.email, OTPPurpose.PASSWORD_RESET)
 
 
 class ResetPassword:
@@ -46,7 +46,7 @@ class ResetPassword:
 
     def execute(self, cmd: ResetPasswordCommand) -> None:
         username = cmd.username.strip().lower()
-        user = self.users.get_by_username(username)
+        user = self.users.get_by_identifier(username)
         if user is None or user.id is None:
             raise UserNotFound()
 

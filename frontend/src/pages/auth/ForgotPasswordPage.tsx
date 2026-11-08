@@ -26,7 +26,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthLayout title="Reset your password" subtitle="We'll email you a code to reset it.">
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-        <FormField label="Username" error={form.formState.errors.username?.message} {...form.register('username')} />
+        <FormField label="Username or email" error={form.formState.errors.username?.message} {...form.register('username')} />
         <Btn type="submit" loading={form.formState.isSubmitting} className="mt-2">
           Send reset code
         </Btn>

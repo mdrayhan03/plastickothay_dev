@@ -7,7 +7,7 @@ export const queryClient = new QueryClient({
       staleTime: 30_000,
       refetchOnWindowFocus: false,
       retry: (count, error) => {
-        // Don't retry client errors (4xx) — only transient failures.
+        // Don't retry client errors (4xx) - only transient failures.
         const status = (error as AxiosError).response?.status
         if (status && status >= 400 && status < 500) return false
         return count < 2

@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import type { MapMarker } from '@/types'
 
-// Leaflet is heavy — load it only when the map actually renders.
+// Leaflet is heavy - load it only when the map actually renders.
 const ReportMap = lazy(() => import('./ReportMap').then((m) => ({ default: m.ReportMap })))
 
 interface Props {

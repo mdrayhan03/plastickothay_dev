@@ -1,5 +1,5 @@
 /**
- * API contract types — hand-mirrored from the backend serializers.
+ * API contract types - hand-mirrored from the backend serializers.
  * A backend change surfaces here as a type error, which is the point.
  */
 
@@ -58,6 +58,7 @@ export interface MapMarker {
   lat: number
   lon: number
   severity: Severity
+  image_url?: string
 }
 
 export interface AdminPost extends PublicPost {
@@ -67,7 +68,7 @@ export interface AdminPost extends PublicPost {
   approved_at: string | null
 }
 
-/** Admin density-map marker — all statuses, unlike the approved-only public map (BE-3). */
+/** Admin density-map marker - all statuses, unlike the approved-only public map (BE-3). */
 export interface AdminMapMarker {
   id: number
   lat: number
@@ -89,7 +90,7 @@ export interface AdminAnalytics {
 
 export type ModerationAction = 'approve' | 'reject' | 'hide' | 'unhide'
 
-/** Audit-log row — surfaces the backend's PostModerationLog (endpoint BE-1, pending). */
+/** Audit-log row - surfaces the backend's PostModerationLog (endpoint BE-1, pending). */
 export interface AuditEntry {
   id: number
   admin: string
@@ -197,6 +198,8 @@ export interface AdminUserDetail extends AdminUser {
   posts_approved: number
   likes_received: number
   total_points: number
+  level?: number
+  level_title?: string
 }
 
 export interface ContactMessage {

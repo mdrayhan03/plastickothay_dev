@@ -51,7 +51,7 @@ export function EditProfilePage() {
         <FormField label="Last name" error={form.formState.errors.last_name?.message} {...form.register('last_name')} />
         <FormField label="Phone" type="tel" error={form.formState.errors.phone?.message} {...form.register('phone')} />
 
-        {/* Read-only identity fields — not editable here. */}
+        {/* Read-only identity fields - not editable here. */}
         <div className="mt-1 space-y-1.5 rounded-[14px] border border-line bg-surface-2 p-3.5">
           <ReadOnly label="Username" value={user?.username} />
           <ReadOnly
@@ -76,7 +76,7 @@ function ReadOnly({ label, value, badge }: { label: string; value?: string; badg
     <div className="flex items-center justify-between gap-3 text-[13.5px]">
       <span className="font-semibold text-ink-3">{label}</span>
       <span className="flex items-center gap-1.5 truncate font-semibold text-ink">
-        {value || '—'}
+        {value || '-'}
         {badge && (
           <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-brand">
             <BadgeCheck className="size-3.5" /> {badge}

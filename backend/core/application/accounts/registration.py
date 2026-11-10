@@ -40,7 +40,7 @@ class _OTPIssuer:
 
     def issue(self, username: str, email: str, purpose: OTPPurpose) -> OTP:
         now = self.clock.now()
-        self.otps.purge_expired(now)  # opportunistic cleanup — no scheduler available
+        self.otps.purge_expired(now)  # opportunistic cleanup - no scheduler available
         self.otps.invalidate_for(username, purpose)  # only the newest code is ever valid
         otp = self.otps.add(
             OTP(
@@ -103,7 +103,7 @@ class RegisterUser:
             self.uow.commit()
 
         # After commit: Mailjet is synchronous (no Celery), and a mail failure must not
-        # roll back a created account — the user can request a fresh code.
+        # roll back a created account - the user can request a fresh code.
         self.issuer.issue(user.username, user.email, OTPPurpose.REGISTRATION)
         return user
 

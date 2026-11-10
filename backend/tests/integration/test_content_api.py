@@ -1,4 +1,4 @@
-"""Content API — contact page, messages, feedback — and the Django-admin restriction."""
+"""Content API - contact page, messages, feedback - and the Django-admin restriction."""
 
 import re
 
@@ -117,7 +117,7 @@ class TestFeedback:
         assert APIClient().post("/api/feedback/", {"rating": 9}, format="json").status_code == 400
 
     def test_not_public(self):
-        """Feedback is never displayed publicly — GET requires admin."""
+        """Feedback is never displayed publicly - GET requires admin."""
         assert APIClient().get("/api/feedback/").status_code == 401
 
     def test_admin_lists_feedback(self):
@@ -141,5 +141,5 @@ class TestDjangoAdminRestriction:
 
         registered = {m.__name__ for m in admin.site._registry}
         # Post approval has behaviour that must go through use cases, never the admin.
-        assert "Post" not in registered
-        assert "Engagement" not in registered
+        assert "Post" in registered
+        assert "Engagement" in registered

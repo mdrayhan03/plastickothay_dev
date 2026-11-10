@@ -2,7 +2,7 @@
 
 Note what is absent: any point logic. Points are derived from `Post.status` (LLD DEC-2), so
 approving, hiding, and un-hiding move a single field and the leaderboard follows
-automatically. There is no award, no reversal, and no cascade to keep in sync — which is
+automatically. There is no award, no reversal, and no cascade to keep in sync - which is
 the entire reason the derived model was chosen over a ledger.
 """
 
@@ -88,7 +88,7 @@ class RejectReport(_ModerationUseCase):
         post = self._load(cmd.post_id)
 
         with self.uow:
-            post.reject(self.clock.now())  # soft delete — legacy code dropped the row
+            post.reject(self.clock.now())  # soft delete - legacy code dropped the row
             updated = self.posts.update(post)
             self._record(cmd, ModerationAction.REJECT)
             self.uow.commit()
@@ -129,7 +129,7 @@ class UnhideReport(_ModerationUseCase):
 
 
 class ListReportsForReview:
-    """Admin listing — the only place a status filter is caller-supplied."""
+    """Admin listing - the only place a status filter is caller-supplied."""
 
     def __init__(self, posts: PostRepository) -> None:
         self.posts = posts
@@ -140,11 +140,13 @@ class ListReportsForReview:
         statuses: tuple[PostStatus, ...] = (PostStatus.PENDING,),
         severity: int | None = None,
         include_deleted: bool = False,
+        reporter_id: UserId | None = None,
     ) -> Page[Post]:
         filter = PostFilter(
             statuses=statuses,
             severity=Severity(severity) if severity is not None else None,
             include_deleted=include_deleted,
+            reporter_id=reporter_id,
         )
         return self.posts.list(filter, page)
 
@@ -184,7 +186,7 @@ class ListAuditLog:
         def name_of(admin_id: UserId) -> str:
             if admin_id not in names:
                 u = self.users.get(admin_id)
-                names[admin_id] = u.full_name if u else "—"
+                names[admin_id] = u.full_name if u else "-"
             return names[admin_id]
 
         items = [

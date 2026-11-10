@@ -9,18 +9,18 @@ a framework-free domain core with Django/DRF as one set of adapters around it.
 ## Layout
 
 ```
-core/         THE HEXAGON — pure Python, no framework imports (enforced by import-linter)
+core/         THE HEXAGON - pure Python, no framework imports (enforced by import-linter)
   domain/       entities, value objects, errors, point rules, periods
   ports/        abstract interfaces (repositories, storage, notifications, security, ...)
   application/  use cases
-adapters/     driven side — Django ORM, Google Drive / local storage, Mailjet, SimpleJWT
-api/          driving side — DRF views, serializers, auth, permissions, throttling
+adapters/     driven side - Django ORM, Google Drive / local storage, Mailjet, SimpleJWT
+api/          driving side - DRF views, serializers, auth, permissions, throttling
 config/       settings (base/dev/prod/test), urls, container (composition root)
 tests/        unit (no DB) · integration (DB) · contract (leaderboard: fake vs ORM)
 ```
 
 **The rule:** nothing under `core/` may import `django`, `rest_framework`, `psycopg`,
-`google`, etc. CI runs `import-linter` to enforce it — a green test suite won't catch a leak.
+`google`, etc. CI runs `import-linter` to enforce it - a green test suite won't catch a leak.
 
 ## Setup
 
@@ -30,7 +30,7 @@ python -m venv .venv
 cp .env.example .env                            # fill in as needed (works empty for dev)
 ```
 
-With an empty `.env` the backend uses SQLite, console email, and local file storage — no
+With an empty `.env` the backend uses SQLite, console email, and local file storage - no
 external services required.
 
 ## Run
@@ -49,7 +49,7 @@ external services required.
 
 ```bash
 .venv/bin/pytest            # 188 tests (unit + integration + contract)
-.venv/bin/lint-imports      # hexagon boundary — must stay 4/4
+.venv/bin/lint-imports      # hexagon boundary - must stay 4/4
 .venv/bin/ruff check .      # lint
 ```
 
@@ -65,7 +65,7 @@ export DJANGO_SETTINGS_MODULE=config.settings.prod
 #   GOOGLE_CREDENTIALS (or GOOGLE_SERVICE_ACCOUNT_FILE)
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py createcachetable throttle_cache   # required — throttles use DatabaseCache
+python manage.py createcachetable throttle_cache   # required - throttles use DatabaseCache
 python manage.py seed_rules
 python manage.py collectstatic --noinput
 gunicorn config.wsgi:application

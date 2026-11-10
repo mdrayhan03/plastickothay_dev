@@ -49,7 +49,7 @@ class GetUserDetail:
 
 
 class SetUserRole:
-    """Superuser only — enforced again at the HTTP layer by permission class."""
+    """Superuser only - enforced again at the HTTP layer by permission class."""
 
     def __init__(self, users: UserRepository, uow: UnitOfWork) -> None:
         self.users = users
@@ -96,7 +96,7 @@ class SetUserActive:
 
 
 class DeleteUser:
-    """Admin only, and only for an already-deactivated account — a deliberate two-step so
+    """Admin only, and only for an already-deactivated account - a deliberate two-step so
     an active member can't be deleted in one click."""
 
     def __init__(self, users: UserRepository, uow: UnitOfWork) -> None:

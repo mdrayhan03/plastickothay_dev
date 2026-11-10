@@ -1,5 +1,5 @@
 /**
- * Auth state — the only client (non-server) state we keep in Context.
+ * Auth state - the only client (non-server) state we keep in Context.
  *
  * On boot we call refresh once: the httpOnly cookie (if present) yields a fresh access token
  * and we hydrate the user, so a page reload restores the session even though the in-memory

@@ -1,7 +1,7 @@
-"""JWT token service — SimpleJWT behind the TokenService port.
+"""JWT token service - SimpleJWT behind the TokenService port.
 
 Access tokens are short and stateless; refresh tokens are revocable via SimpleJWT's blacklist
-app (installed in B1). That blacklist is what makes logout real — without server state, logout
+app (installed in B1). That blacklist is what makes logout real - without server state, logout
 would only mean "the client forgot" (LLD §8.1).
 
 The domain's TokenClaims carry role so permission checks never re-hit the DB for it.
@@ -72,7 +72,7 @@ class SimpleJWTTokenService(TokenService):
     def revoke(self, refresh_token: str) -> None:
         import contextlib
 
-        # Already invalid/expired — revoking is idempotent.
+        # Already invalid/expired - revoking is idempotent.
         with contextlib.suppress(TokenError):
             RefreshToken(refresh_token).blacklist()
 

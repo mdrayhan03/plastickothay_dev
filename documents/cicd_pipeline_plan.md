@@ -3,8 +3,8 @@
 **Status:** plan (not yet built) · **Scope:** backend · **Repo host:** GitHub Actions
 
 This plan defines two pipelines:
-1. **PR pipeline** — runs on every pull request into `main`. Gatekeeps quality. Never deploys.
-2. **Production pipeline** — runs on merge/push to `main`. Re-runs the gates, then deploys.
+1. **PR pipeline** - runs on every pull request into `main`. Gatekeeps quality. Never deploys.
+2. **Production pipeline** - runs on merge/push to `main`. Re-runs the gates, then deploys.
 
 ---
 
@@ -37,12 +37,12 @@ on SQLite" gap).
 | Stage | Command | Why |
 |---|---|---|
 | Install | `pip install -r requirements-dev.txt` | deps |
-| Import boundary | `lint-imports` | the hexagon rule — a green test suite won't catch a `core/` framework import |
+| Import boundary | `lint-imports` | the hexagon rule - a green test suite won't catch a `core/` framework import |
 | Lint | `ruff check .` | style/quality |
 | Tests | `pytest` (against a Postgres service) | 197 tests incl. the leaderboard contract suite |
 
 **Postgres service:** a throwaway `postgres:17` container in the workflow; `TEST_DATABASE_URL`
-points at it, so integration + contract tests run on real Postgres — never the production pooler.
+points at it, so integration + contract tests run on real Postgres - never the production pooler.
 
 ```yaml
 name: pr
@@ -85,12 +85,12 @@ branch matched what actually landed), then deploys.
 
 | Stage | What |
 |---|---|
-| Gates | same as PR — lint-imports, ruff, pytest on a Postgres service |
+| Gates | same as PR - lint-imports, ruff, pytest on a Postgres service |
 | Build | (frontend later) `npm run build` → `frontend/dist`; collectstatic |
 | Migrate | `manage.py migrate` against the **production** DB |
 | Cache table | `manage.py createcachetable throttle_cache` (idempotent) |
 | Seed | `manage.py seed_rules` (idempotent) |
-| Release | restart the app (gunicorn) — platform-specific (Render deploy hook / SSH / container push) |
+| Release | restart the app (gunicorn) - platform-specific (Render deploy hook / SSH / container push) |
 
 Deploy runs **only if the gates job succeeds** (`needs: gates`). Migrations run against prod
 using secrets, not committed values.
@@ -132,7 +132,7 @@ jobs:
 ```
 
 > **Migration safety:** run `migrate` against a pooled Supabase URL only if it's the session
-> pooler (5432) or direct — the transaction pooler (6543) is fine for the app but not ideal for
+> pooler (5432) or direct - the transaction pooler (6543) is fine for the app but not ideal for
 > DDL. Point the deploy's `DATABASE_URL` at the session/direct endpoint; the app runtime can
 > still use 6543.
 
@@ -165,7 +165,7 @@ This is what makes "nothing reaches main without passing" real rather than a con
 
 The pipeline above stops before the actual restart because it's host-specific. Options:
 
-- **Render / Railway:** a deploy hook URL — `curl -X POST $RENDER_DEPLOY_HOOK`. Render then pulls
+- **Render / Railway:** a deploy hook URL - `curl -X POST $RENDER_DEPLOY_HOOK`. Render then pulls
   main, installs, and runs a `build.sh` that does migrate/collectstatic.
 - **VPS (SSH):** an `appleboy/ssh-action` step that pulls, installs, migrates, and
   `systemctl restart gunicorn`.

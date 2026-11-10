@@ -1,4 +1,4 @@
-"""Point rules — the specification, in pure Python.
+"""Point rules - the specification, in pure Python.
 
 Points are DERIVED from current state (LLD DEC-2): there is no ledger and no score table.
 A user's score is a function of current post statuses x current engagements x active rules.
@@ -65,13 +65,13 @@ def engagement_earns_points(
     """Whether an engagement moves anyone's score.
 
     All four conditions must hold (LLD §5.3):
-      1. the actor is authenticated — anonymous engagement awards nothing to ANYONE,
+      1. the actor is authenticated - anonymous engagement awards nothing to ANYONE,
          including the post owner. This is a security control, not a product choice
          (DEC-1): an anonymous liker has no stable identity, so no unique constraint can
          bind them, and awarding the owner would let a shell loop print points forever.
       2. the post is publicly approved.
       3. the post is attributable to a user.
-      4. the actor is not the post owner — self-engagement awards zero to both sides.
+      4. the actor is not the post owner - self-engagement awards zero to both sides.
     """
     if engagement.actor_id is None:
         return False

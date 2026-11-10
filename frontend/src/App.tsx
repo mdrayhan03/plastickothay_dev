@@ -1,11 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { PhoneFrame } from '@/components/layout/PhoneFrame'
 import { Splash } from '@/components/layout/Splash'
 import { useAuth } from '@/context/auth-context'
 import { UserPortal } from '@/portals/UserPortal'
 
-// The admin portal (with Recharts) is staff-only — split it out of the user bundle.
+// The admin portal (with Recharts) is staff-only - split it out of the user bundle.
 const AdminPortal = lazy(() =>
   import('@/portals/AdminPortal').then((m) => ({ default: m.AdminPortal })),
 )
@@ -14,9 +13,9 @@ export default function App() {
   const { status } = useAuth()
   if (status === 'loading')
     return (
-      <PhoneFrame>
+      <div className="grid min-h-dvh place-items-center bg-ground">
         <Splash />
-      </PhoneFrame>
+      </div>
     )
 
   return (

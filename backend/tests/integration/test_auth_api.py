@@ -1,4 +1,4 @@
-"""Auth API — end-to-end through DRF, use cases, and the real ORM.
+"""Auth API - end-to-end through DRF, use cases, and the real ORM.
 
 Exercises register → OTP → verify → login → refresh → logout and the security properties
 around them (LLD §8.1). Email is captured by the locmem backend; the OTP is read out of it.

@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css'
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
-import { severityColor } from '@/lib/severity'
+import { Circle, Marker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
+import { createComboMarkerIcon } from '@/lib/marker'
 import type { MapMarker } from '@/types'
 
 /** Group markers into a coarse grid and surface cells with many reports as hotspot circles.
@@ -33,7 +33,7 @@ export function DensityMap({
   const spots = hotspots(markers)
   return (
     <MapContainer center={center} zoom={zoom} attributionControl={false} className="h-full w-full">
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {spots.map((s, i) => (
         <Circle
           key={i}
@@ -45,18 +45,13 @@ export function DensityMap({
         </Circle>
       ))}
       {markers.map((m) => (
-        <CircleMarker
+        <Marker
           key={m.id}
-          center={[m.lat, m.lon]}
-          radius={6}
-          pathOptions={{
-            color: '#fff',
-            weight: 1.5,
-            fillColor: severityColor[m.severity],
-            fillOpacity: 0.95,
-          }}
+          position={[m.lat, m.lon]}
+          icon={createComboMarkerIcon(m)}
         />
       ))}
     </MapContainer>
   )
 }
+

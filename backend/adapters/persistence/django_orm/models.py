@@ -1,4 +1,4 @@
-"""ORM models — a persistence detail, not the domain.
+"""ORM models - a persistence detail, not the domain.
 
 These are Active Record (they carry .save(), .objects). The domain never sees them: mappers.py
 translates between these and the pure dataclasses in core.domain.entities. If a use case ever
@@ -17,7 +17,7 @@ class User(AbstractUser):
     """Custom user (DEC-5). AUTH_USER_MODEL points here; set before the first migration.
 
     Role maps to Django flags in the mapper: superuser=ADMIN, staff=STAFF, neither=USER.
-    is_verified (completed OTP) is kept distinct from is_active (not banned) — the legacy
+    is_verified (completed OTP) is kept distinct from is_active (not banned) - the legacy
     model conflated them (LLD §9.1).
     """
 
@@ -51,7 +51,7 @@ class OTP(models.Model):
 
 
 class Post(models.Model):
-    # Contact block — always present (anonymous submissions supply it directly).
+    # Contact block - always present (anonymous submissions supply it directly).
     reporter_name = models.CharField(max_length=255)
     reporter_email = models.EmailField()
     reporter_phone = models.CharField(max_length=20)
@@ -113,7 +113,7 @@ class Engagement(models.Model):
         db_table = "engagement"
         constraints = [
             # ONE LIKE PER USER PER POST. Partial, so comments (later) stay unconstrained and
-            # anonymous likes (actor_user IS NULL) are not bound — nothing identifies them,
+            # anonymous likes (actor_user IS NULL) are not bound - nothing identifies them,
             # which is exactly why they earn no points (DEC-1, LLD §9.3).
             models.UniqueConstraint(
                 fields=["post", "actor_user"],
@@ -205,7 +205,7 @@ class Feedback(models.Model):
 
 
 class ContactPage(models.Model):
-    """Singleton — enforced by pinning the primary key to 1."""
+    """Singleton - enforced by pinning the primary key to 1."""
 
     id = models.IntegerField(primary_key=True, default=1)
     heading = models.CharField(max_length=255, blank=True)
@@ -215,7 +215,7 @@ class ContactPage(models.Model):
     address = models.CharField(max_length=512, blank=True)
     map_lat = models.FloatField(null=True, blank=True)
     map_lon = models.FloatField(null=True, blank=True)
-    socials = models.JSONField(default=list)  # [{platform, url, order}] — small, bounded list
+    socials = models.JSONField(default=list)  # [{platform, url, order}] - small, bounded list
     updated_at = models.DateTimeField(null=True, blank=True)
     updated_by = models.ForeignKey(
         "User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"

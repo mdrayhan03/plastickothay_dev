@@ -1,6 +1,6 @@
 """Health check.
 
-Public, unauthenticated, unthrottled — for load balancers, uptime monitors, and free-tier
+Public, unauthenticated, unthrottled - for load balancers, uptime monitors, and free-tier
 hosts that sleep idle services (the legacy app had a keep-alive for exactly this). Reports a
 liveness ping and a cheap database round-trip.
 """

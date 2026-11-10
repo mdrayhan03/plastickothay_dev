@@ -36,7 +36,7 @@ export function ContactPage() {
   async function onSubmit(values: ContactInput) {
     try {
       await contentService.submitContactMessage(values)
-      toast.success('Message sent — we’ll get back to you.')
+      toast.success('Message sent - we’ll get back to you.')
       form.reset({ ...values, subject: '', message: '' })
     } catch (e) {
       toast.error(apiErrorMessage(e))

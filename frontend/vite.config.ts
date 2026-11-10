@@ -1,11 +1,18 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Dev-only: where `npm run dev` proxies /api. Configurable so the backend can run on any
+  // host/port without editing this file. Defaults to the local Django dev server.
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const backend = env.VITE_BACKEND_URL || 'http://localhost:8000'
+  const port = Number(env.VITE_PORT) || 5173
+
+  return {
   plugins: [
     react(),
     tailwindcss(),
@@ -13,13 +20,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       workbox: {
-        // SPA deep-links resolve to the cached shell when offline; never for the API/admin.
+        // SPA deep-links resolve to the cached shell when offline; never for the API/admin/media/static.
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/],
+        navigateFallbackDenylist: [/^\/api/, /^\/django-admin/, /^\/media/, /^\/static/],
         runtimeCaching: [
           {
-            // Map tiles — cache-first so a previously-viewed map still renders offline.
-            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+            // Map tiles - cache-first so a previously-viewed map still renders offline.
+            urlPattern: /^https:\/\/[a-c]\.tile\.openstreetmap\.org\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'map-tiles',
@@ -28,7 +35,7 @@ export default defineConfig({
             },
           },
           {
-            // Public GET data — network-first, falling back to the last response offline.
+            // Public GET data - network-first, falling back to the last response offline.
             urlPattern: ({ url, request }: { url: URL; request: Request }) =>
               url.pathname.startsWith('/api/') && request.method === 'GET',
             handler: 'NetworkFirst',
@@ -62,10 +69,18 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') },
   },
   server: {
+    // Dev port from VITE_PORT (default 5173); strict so a conflict fails loudly instead of
+    // silently hopping to another port and breaking the proxy assumption.
+    port,
+    strictPort: true,
     // Same-origin in dev: the browser sees /api as first-party, so the httpOnly
     // refresh cookie works and there is no CORS. Prod serves the build from Django.
     proxy: {
-      '/api': { target: 'http://localhost:8000', changeOrigin: true },
+      '/api': { target: backend, changeOrigin: true },
+      '/media': { target: backend, changeOrigin: true },
+      '/django-admin': { target: backend, changeOrigin: true },
+      '/static': { target: backend, changeOrigin: true },
     },
   },
+  }
 })

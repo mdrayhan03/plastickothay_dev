@@ -76,7 +76,7 @@ class UpdateMessageStatusSerializer(serializers.Serializer):
 
 
 class SiteConfigSerializer(serializers.Serializer):
-    """Public shape — the frontend fetches this on boot."""
+    """Public shape - the frontend fetches this on boot."""
 
     def to_representation(self, cfg: SiteConfig):
         from config import container

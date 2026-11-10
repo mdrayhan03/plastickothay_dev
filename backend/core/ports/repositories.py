@@ -53,6 +53,9 @@ class UserRepository(ABC):
     def get_by_email(self, email: str) -> User | None: ...
 
     @abstractmethod
+    def get_by_identifier(self, identifier: str) -> User | None: ...
+
+    @abstractmethod
     def add(self, user: User, password: str) -> User:
         """Raises UsernameTaken / EmailTaken."""
 

@@ -101,6 +101,18 @@ class DjangoUserRepository(UserRepository):
         row = orm.User.objects.filter(email=email).first()
         return mappers.user_to_domain(row) if row else None
 
+    def get_by_identifier(self, identifier):
+        row = (
+            orm.User.objects
+            .filter(
+                Q(username__iexact = identifier)
+                | Q(email__iexact = identifier)
+                | Q(phone = identifier)
+            )
+            .first()
+        )
+        return mappers.user_to_domain(row) if row else None
+
     def add(self, user: User, password: str) -> User:
         is_superuser, is_staff = mappers.flags_from_role(user.role)
         try:

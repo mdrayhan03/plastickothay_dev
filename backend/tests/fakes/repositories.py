@@ -96,6 +96,9 @@ class InMemoryUserRepository(UserRepository):
     def get_by_email(self, email: str) -> User | None:
         return next((u for u in self.rows.values() if u.email == email), None)
 
+    def get_by_identifier(self, identifier: str) -> User | None:
+        return next((u for u in self.rows.values() if u.username == identifier or u.email == identifier or u.phone == identifier), None)
+
     def add(self, user: User, password: str) -> User:
         if self.get_by_username(user.username):
             raise UsernameTaken()

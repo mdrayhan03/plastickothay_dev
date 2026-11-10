@@ -52,7 +52,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get_or_create, NOT update_or_create: these values start from code defaults but the
-        # DATABASE is the source of truth once seeded — admins edit them at runtime. Re-running
+        # DATABASE is the source of truth once seeded - admins edit them at runtime. Re-running
         # (e.g. on every deploy) must only create rows that don't exist yet, never reset an
         # admin's change back to the code default. A NEW rule added to the lists below gets
         # created on the next run; existing rows are left untouched. Changing a shipped default

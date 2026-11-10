@@ -1,4 +1,4 @@
-"""Reports API — submission, public reads, and the PII guarantee.
+"""Reports API - submission, public reads, and the PII guarantee.
 
 The PII regression test is the point of this milestone: reporter email/phone must never appear
 in any public response (LLD §8.3).
@@ -62,6 +62,17 @@ class TestSubmission:
         resp = submit(client, photo="data:image/png;base64,@@@notbase64@@@")
         assert resp.status_code == 400
 
+    def test_base64_with_spaces_and_missing_padding_accepted(self, client):
+        # Base64 string with '+' replaced by space, missing '=', and extra whitespace
+        space_photo = PHOTO.replace("+", " ").rstrip("=") + "\n"
+        resp = submit(client, photo=space_photo)
+        assert resp.status_code == 201
+
+    def test_urlsafe_base64_accepted(self, client):
+        urlsafe_photo = PHOTO.replace("+", "-").replace("/", "_")
+        resp = submit(client, photo=urlsafe_photo)
+        assert resp.status_code == 201
+
     def test_out_of_range_severity_rejected(self, client):
         assert submit(client, severity=9).status_code == 400
 
@@ -81,7 +92,7 @@ class TestPublicReads:
         assert pending not in ids
 
     def test_detail_of_pending_is_404_not_403(self, client):
-        """404, not 403 — a 403 would confirm the post exists and leak the queue."""
+        """404, not 403 - a 403 would confirm the post exists and leak the queue."""
         pid = submit(client).data["id"]
         assert client.get(f"/api/posts/{pid}/").status_code == 404
 
@@ -92,7 +103,7 @@ class TestPublicReads:
         markers = client.get("/api/map/posts/").data
         assert len(markers) == 1
         assert markers[0]["id"] == approved
-        assert set(markers[0].keys()) == {"id", "lat", "lon", "severity"}
+        assert set(markers[0].keys()) == {"id", "lat", "lon", "severity", "image_url"}
 
 
 class TestPIIneverLeaks:

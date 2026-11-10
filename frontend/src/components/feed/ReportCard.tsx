@@ -12,7 +12,7 @@ export function ReportCard({ post, onOpen }: { post: PublicPost; onOpen?: (id: n
   const like = useLike()
 
   return (
-    <article className="mx-4.5 mb-3 flex gap-3 rounded-[20px] border border-line bg-surface p-3 shadow-sm">
+    <article className="flex gap-3 rounded-[20px] border border-line bg-surface p-3 shadow-sm">
       <button
         type="button"
         onClick={() => onOpen?.(post.id)}

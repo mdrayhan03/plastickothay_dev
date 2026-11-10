@@ -1,7 +1,7 @@
 """Like / unlike.
 
 Anonymous callers may like (recorded, counted, displayed) but the like awards nothing to
-anyone — including the post owner (LLD DEC-1). That is a security control: an anonymous
+anyone - including the post owner (LLD DEC-1). That is a security control: an anonymous
 liker has no stable identity, so no unique constraint can bind them, and awarding the owner
 3 points per anonymous like would let a five-line script print unlimited points with no
 account. Enforced in core.domain.points.engagement_earns_points.

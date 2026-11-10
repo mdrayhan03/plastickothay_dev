@@ -1,7 +1,7 @@
 """Period boundaries must be computed in Dhaka time, not UTC.
 
 The legacy code mixed datetime.utcnow() and datetime.now(). If periods bucketed in UTC, the
-weekly leaderboard would reset at 06:00 Monday local — mid-morning for every user.
+weekly leaderboard would reset at 06:00 Monday local - mid-morning for every user.
 """
 
 from datetime import UTC, datetime

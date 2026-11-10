@@ -7,7 +7,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
 }
 
-/** The app's primary CTA — the gradient button from the prototype. */
+/** The app's primary CTA - the gradient button from the prototype. */
 export function Btn({ variant = 'primary', loading, disabled, className, children, ...rest }: Props) {
   return (
     <button

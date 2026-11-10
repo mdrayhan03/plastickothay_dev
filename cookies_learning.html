@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login Cookies — Deep Notes</title>
+<style>
+:root{
+  --bg:#f6f8f7; --surface:#ffffff; --ink:#0e1f1a; --ink-2:#43605a; --ink-3:#7d938c;
+  --line:#e2eae6; --line-2:#d0ded8;
+  --brand:#0a9c74; --brand-deep:#066a4e; --brand-soft:#e2f3ec;
+  --warn:#e5484d; --warn-soft:#fdecec; --warn-ink:#a3232a;
+  --ok:#2fa96a; --gold:#b9820f; --gold-soft:#fbf1d8;
+  --code-bg:#eef3f0; --code-ink:#0d3a2c;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0a1512; --surface:#0f1e19; --ink:#e9f1ed; --ink-2:#9fb6ad; --ink-3:#6f867e;
+    --line:#1c2e28; --line-2:#263a33;
+    --brand:#26c998; --brand-deep:#33dcab; --brand-soft:#12302a;
+    --warn:#ff6369; --warn-soft:#2c1618; --warn-ink:#ff9ea1;
+    --ok:#3fbd7a; --gold:#e6b34e; --gold-soft:#2a2413;
+    --code-bg:#132520; --code-ink:#a7e8cf;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:60rem;margin:0 auto;padding:56px 24px 96px}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.12;margin:10px 0 8px;letter-spacing:-.02em}
+.sub{color:var(--ink-2);font-size:16.5px;max-width:44rem}
+h2{font-size:23px;letter-spacing:-.01em;margin:52px 0 6px;padding-top:8px;scroll-margin-top:20px}
+h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:10px}
+h3{font-size:17px;margin:26px 0 6px}
+p{margin:12px 0}
+a{color:var(--brand-deep);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-color:currentColor}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);color:var(--code-ink);
+  padding:.12em .4em;border-radius:5px;white-space:nowrap}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+  overflow-x:auto;margin:16px 0}
+pre code{background:none;padding:0;white-space:pre;color:var(--code-ink);font-size:13px;line-height:1.6}
+strong{font-weight:700}
+ul,ol{padding-left:22px;margin:12px 0}
+li{margin:6px 0}
+hr{border:none;border-top:1px solid var(--line);margin:44px 0}
+
+/* table of contents */
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin:28px 0}
+.toc b{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.toc ol{columns:2;column-gap:36px;margin:12px 0 0;padding-left:20px;font-size:14.5px}
+.toc a{color:var(--ink-2)}
+@media(max-width:640px){.toc ol{columns:1}}
+
+/* tables */
+.tablewrap{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td code{white-space:normal}
+
+/* callouts */
+.box{border-radius:14px;padding:16px 20px;margin:22px 0;border:1px solid var(--line);background:var(--surface)}
+.box .t{font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.key{background:var(--brand-soft);border-color:transparent}
+.key .t{color:var(--brand-deep)}
+.warn{background:var(--warn-soft);border-color:transparent}
+.warn .t{color:var(--warn-ink)}
+.gold{background:var(--gold-soft);border-color:transparent}
+.gold .t{color:var(--gold)}
+.pill{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--code-bg);color:var(--code-ink)}
+.tick{color:var(--ok);font-weight:800}
+.cross{color:var(--warn);font-weight:800}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">PlasticKothay · Engineering notes</div>
+  <h1>How login cookies work</h1>
+  <p class="sub">Stateful vs stateless auth, same-origin vs cross-origin, and the exact reason a
+  cross-site deploy logs you out on every page refresh — worked out from first principles.</p>
+</header>
+
+<nav class="toc">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#s1">What a cookie actually is</a></li>
+    <li><a href="#s2">Stateful vs stateless auth</a></li>
+    <li><a href="#s3">This app's hybrid model</a></li>
+    <li><a href="#s4">Origin vs Site</a></li>
+    <li><a href="#s5">SameSite, precisely</a></li>
+    <li><a href="#s6">CORS &amp; cookies: two gates</a></li>
+    <li><a href="#s7">The three topologies</a></li>
+    <li><a href="#s8">The refresh-on-reload bug</a></li>
+    <li><a href="#s9">Security lens: XSS &amp; CSRF</a></li>
+    <li><a href="#s10">Decision cheat-sheet</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>What a cookie actually is</h2>
+<p>A cookie is just a <strong>key=value string the server asks the browser to store and replay</strong>.
+Two HTTP headers do all the work:</p>
+<pre><code>Server → browser:   Set-Cookie: refresh_token=abc; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/; Max-Age=604800
+Browser → server:   Cookie: refresh_token=abc          (attached automatically)</code></pre>
+<p>The browser keeps a <strong>cookie jar</strong> keyed by <code>Domain</code> + <code>Path</code>. On every
+outgoing request it asks: <em>"do I hold cookies whose Domain / Path / Secure / SameSite rules match this
+request?"</em> — and if so, attaches them. You never do this in JS; the browser does. The attributes decide
+<em>when</em> it will attach:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Attribute</th><th>Meaning</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td><code>HttpOnly</code></td><td>JS (<code>document.cookie</code>) <strong>cannot read it</strong></td><td>XSS can't steal the token</td></tr>
+<tr><td><code>Secure</code></td><td>Only sent over <strong>HTTPS</strong></td><td>Stops sniffing; <strong>required</strong> for <code>SameSite=None</code></td></tr>
+<tr><td><code>Domain</code></td><td>Which host(s) own it (+ subdomains if set)</td><td>Controls who receives it</td></tr>
+<tr><td><code>Path</code></td><td>URL-prefix scope (<code>/api/auth/</code> here)</td><td>Cookie only sent to the refresh routes</td></tr>
+<tr><td><code>Max-Age</code>/<code>Expires</code></td><td>Lifetime</td><td>Session vs persistent</td></tr>
+<tr><td><strong><code>SameSite</code></strong></td><td>Sent on cross-<strong>site</strong> requests? <code>Strict</code>/<code>Lax</code>/<code>None</code></td><td><strong>The crux of the bug</strong> (§5)</td></tr>
+</tbody></table></div>
+
+<h2 id="s2"><span class="n">2</span>Stateful vs stateless authentication</h2>
+<p>The real question after login: <strong>where does "who is this user" live — on the server, or inside the
+token itself?</strong></p>
+
+<h3>Stateful (session-based) — Django's default</h3>
+<ol>
+  <li>You log in. The server writes a <strong>session record</strong> to a store (DB/Redis):
+    <code>session_id abc → {user:42, exp:…}</code>.</li>
+  <li>It sends <code>Set-Cookie: sessionid=abc</code>.</li>
+  <li>Each later request carries <code>Cookie: sessionid=abc</code>; the server <strong>looks abc up</strong>
+    to find user 42.</li>
+</ol>
+<p>The cookie is an <strong>opaque pointer</strong>; the truth lives server-side.</p>
+<ul>
+  <li><span class="tick">✓</span> <strong>Revocation is trivial</strong> — delete the row, session dies instantly.</li>
+  <li><span class="tick">✓</span> Cookie is tiny.</li>
+  <li><span class="cross">✗</span> Every request hits the store; scaling needs a <strong>shared</strong> store, not per-process memory.</li>
+</ul>
+
+<h3>Stateless (token / JWT)</h3>
+<ol>
+  <li>You log in. The server <strong>signs</strong> a token of claims <code>{sub:42, exp:…}</code> with a secret. <strong>Nothing is stored.</strong></li>
+  <li>The client sends the token on each request.</li>
+  <li>The server <strong>verifies the signature</strong> and reads the claims — no lookup. The token <em>is</em> the proof.</li>
+</ol>
+<ul>
+  <li><span class="tick">✓</span> <strong>No server state</strong> → any instance validates; scales trivially.</li>
+  <li><span class="cross">✗</span> <strong>Revocation is hard</strong> — a signed token is valid until it expires. To kill it early you need a <strong>blocklist</strong> (a bit of state back). That's why this app uses <code>simplejwt.token_blacklist</code> — logout blacklists the refresh token.</li>
+</ul>
+
+<h2 id="s3"><span class="n">3</span>This app's hybrid model</h2>
+<p>It deliberately splits the two, taking the safer half of each:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Token</th><th>Lifetime</th><th>Stored where</th><th>Sent how</th><th>Model</th></tr></thead>
+<tbody>
+<tr><td><strong>Access</strong></td><td>short (minutes)</td><td><strong>in-memory JS variable</strong></td><td><code>Authorization: Bearer …</code></td><td>stateless — signature-verified</td></tr>
+<tr><td><strong>Refresh</strong></td><td>long (7 days)</td><td><strong>httpOnly cookie</strong>, path <code>/api/auth/</code></td><td>browser auto-sends</td><td>stateless + blacklist on logout</td></tr>
+</tbody></table></div>
+<p>Why this shape:</p>
+<ul>
+  <li>Access token <strong>in memory, not localStorage</strong> → XSS can't scrape it from storage, and it's short-lived so a leak is low-value.</li>
+  <li>Access token as a <strong>Bearer header, not a cookie</strong> → the browser doesn't auto-attach it, so API calls are <strong>CSRF-immune</strong> (a foreign page can't forge a custom header).</li>
+  <li>Refresh token in an <strong>httpOnly cookie</strong> → JS literally cannot read it. On boot the SPA calls
+    <code>/api/auth/refresh/</code>, the browser attaches the cookie, and the server mints a fresh access token —
+    <strong>that's how a page reload restores your session</strong> even though the in-memory access token was wiped.</li>
+</ul>
+<div class="box key"><div class="t">◆ Key consequence</div>
+The entire "stay logged in across refresh" behaviour hinges on <strong>the browser being willing to send
+that refresh cookie on the boot request.</strong> Everything below is about when it will — and won't.</div>
+
+<h2 id="s4"><span class="n">4</span>Origin vs Site — the distinction everything rests on</h2>
+<ul>
+  <li><strong>Origin</strong> = <code>scheme + host + port</code>. <code>https://app.example.org</code> ≠
+    <code>https://api.example.org</code> ≠ <code>http://app.example.org</code>.</li>
+  <li><strong>Site</strong> = the <strong>registrable domain</strong> (eTLD+1). <code>app.example.org</code> and
+    <code>api.example.org</code> are the <strong>same site</strong> (<code>example.org</code>).</li>
+</ul>
+<p>The two gatekeepers use <em>different</em> definitions:</p>
+<ul>
+  <li><strong>CORS</strong> cares about <strong>origin</strong> — <em>can JS read this cross-origin response?</em></li>
+  <li><strong><code>SameSite</code> cookies</strong> care about <strong>site</strong> — <em>send this cookie on a cross-site request?</em></li>
+</ul>
+<div class="box gold"><div class="t">▲ Remember this</div>
+Two subdomains of one domain are <strong>cross-origin but same-site</strong> — CORS applies, yet
+<code>SameSite</code> cookies still flow. This single fact is the difference between a fragile deploy and a solid one.</div>
+
+<h2 id="s5"><span class="n">5</span>SameSite, precisely</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Value</th><th>Cookie IS sent on…</th><th>NOT sent on…</th></tr></thead>
+<tbody>
+<tr><td><code>Strict</code></td><td>only same-site requests</td><td>even a top-level link click from another site</td></tr>
+<tr><td><code>Lax</code> (default)</td><td>same-site requests + <strong>top-level GET navigations</strong> from other sites</td><td><strong>cross-site subresource requests: XHR/<code>fetch</code>, images, iframes</strong></td></tr>
+<tr><td><code>None</code></td><td><strong>everything, incl. cross-site XHR</strong></td><td>— but <strong>requires <code>Secure</code></strong> (HTTPS)</td></tr>
+</tbody></table></div>
+<p>Your refresh happens via <code>axios</code> — an XHR/<code>fetch</code>. If that call is <strong>cross-site</strong>,
+a <code>Lax</code> cookie is in the "not sent on cross-site subresource" bucket → the server sees no cookie →
+refresh fails → you're logged out. <strong>That is the bug in one sentence.</strong></p>
+
+<h2 id="s6"><span class="n">6</span>CORS &amp; cookies: two separate gates — pass both</h2>
+<p>For a cross-origin request carrying a cookie, <strong>two independent checks</strong> run:</p>
+<ol>
+  <li><strong>Will the browser SEND the cookie?</strong> → decided by <strong><code>SameSite</code></strong>
+    (+ Secure/Domain/Path). Cross-site needs <code>SameSite=None; Secure</code>.</li>
+  <li><strong>Will the browser let JS READ the response?</strong> → decided by <strong>CORS</strong>. For a
+    credentialed request the server must return:
+    <ul>
+      <li><code>Access-Control-Allow-Origin: https://your-frontend</code> — the <strong>exact</strong> origin, <strong>never <code>*</code></strong>, and</li>
+      <li><code>Access-Control-Allow-Credentials: true</code>,</li>
+    </ul>
+    and the client must set <code>withCredentials: true</code>.</li>
+</ol>
+<div class="box warn"><div class="t">✕ The classic double failure</div>
+Miss gate&nbsp;1 → the request arrives <em>unauthenticated</em>. Miss gate&nbsp;2 → JS can't read the reply
+(and <code>Access-Control-Allow-Origin: *</code> <em>with</em> credentials is a hard browser error). The original
+config failed <strong>both</strong>: <code>SameSite=Lax</code> (gate 1) and <code>CORS_ALLOW_ALL_ORIGINS = *</code>
+with credentials (gate 2).</div>
+
+<h2 id="s7"><span class="n">7</span>The three topologies, mapped</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Topology</th><th>Example</th><th>Origin</th><th>Site</th><th>Cookie needs</th><th>CORS?</th><th>Robustness</th></tr></thead>
+<tbody>
+<tr><td><strong>Same-origin</strong></td><td>Django serves the SPA; one domain</td><td>same</td><td>same</td><td><code>SameSite=Lax</code></td><td><strong>No</strong></td><td>★★★ bulletproof</td></tr>
+<tr><td><strong>Cross-origin, same-site</strong></td><td><code>app.x.org</code> + <code>api.x.org</code></td><td>different</td><td><strong>same</strong></td><td><code>Lax</code> still works</td><td>Yes</td><td>★★ good</td></tr>
+<tr><td><strong>Cross-origin, cross-site</strong></td><td><code>frontend.onrender.com</code> + <code>api.onrender.com</code>; Vercel+Render</td><td>different</td><td>different</td><td><strong><code>None; Secure</code></strong></td><td>Yes</td><td>★ fragile</td></tr>
+</tbody></table></div>
+<p>Why the last row is fragile: a <code>SameSite=None</code> cookie on a <em>different site</em> is a
+<strong>third-party cookie</strong>. Safari (ITP), Brave, and "block third-party cookies" settings <strong>drop it</strong>
+— so some users log out no matter what your headers say. <code>*.onrender.com</code> is on the Public Suffix
+List, so each subdomain is its <strong>own site</strong> → you land squarely in the fragile row. The upgrade path is
+<strong>custom subdomains of one domain</strong> (<code>app.</code> + <code>api.yourdomain</code>) → that moves you to
+the middle row: first-party cookie, <code>Lax</code> works.</p>
+
+<h2 id="s8"><span class="n">8</span>The refresh-on-reload bug, end to end</h2>
+<ol>
+  <li><strong>Login</strong> (works even cross-site): <code>POST /api/auth/login/</code> returns the access token in
+    the JSON body → app is authed <em>in memory</em>. A <code>Set-Cookie</code> for the refresh token comes back too.</li>
+  <li><strong>Reload</strong>: the in-memory access token is gone. On boot the SPA calls
+    <code>GET /api/auth/refresh/</code> to mint a new one.</li>
+  <li><strong>Cross-site + <code>SameSite=Lax</code></strong>: the browser <em>withholds</em> the refresh cookie on that
+    XHR → server sees no token → <code>401</code> → app falls back to anonymous → <strong>you must log in again.</strong></li>
+</ol>
+<div class="box key"><div class="t">◆ The fix (cross-origin)</div>
+Both gates, together: <code>REFRESH_COOKIE_SAMESITE=None</code> (→ <code>Secure</code>) so the cookie is sent,
+<strong>and</strong> <code>CORS_ALLOWED_ORIGINS = &lt;exact frontend origin&gt;</code> + <code>CORS_ALLOW_CREDENTIALS=True</code>
+so JS can read the reply, <strong>and</strong> <code>CSRF_TRUSTED_ORIGINS</code> for the Django-admin/session bits,
+<strong>and</strong> <code>withCredentials:true</code> on the client. Same-origin needs none of this — <code>Lax</code>
+just works.</div>
+
+<h2 id="s9"><span class="n">9</span>The security lens — why this design</h2>
+<ul>
+  <li><strong>XSS</strong> (malicious JS in your page) can read anything in <code>localStorage</code> and any
+    non-<code>HttpOnly</code> cookie. → Access token lives in a <strong>closure variable</strong> (harder to reach,
+    short-lived); refresh token in an <strong><code>HttpOnly</code> cookie</strong> (unreadable by JS).</li>
+  <li><strong>CSRF</strong> (another site forging a request with your cookies) only works on
+    <strong>auto-sent credentials</strong> = cookies. → API auth uses a <strong>Bearer header</strong> (not auto-sent →
+    CSRF-immune); the one cookie is <strong>path-scoped to <code>/api/auth/</code></strong> and <code>SameSite</code>-guarded,
+    and refresh <strong>rotates + blacklists</strong> on use.</li>
+  <li><strong>Net:</strong> cookies carry the <em>refresh</em> leg safely (httpOnly beats XSS); Bearer carries the
+    <em>API</em> leg safely (no cookie → no CSRF). The hybrid takes the safer half of each.</li>
+</ul>
+
+<h2 id="s10"><span class="n">10</span>Decision cheat-sheet</h2>
+<ul>
+  <li><strong>Want it bulletproof?</strong> Serve the SPA from Django (<span class="pill">same-origin</span>).
+    <code>SameSite=Lax</code>, zero CORS. Nothing here bites you.</li>
+  <li><strong>Must split frontend/backend?</strong> Use <strong>subdomains of one custom domain</strong>
+    (<span class="pill">cross-origin, same-site</span>) → keep <code>Lax</code>, add CORS. Robust.</li>
+  <li><strong>Different sites</strong> (e.g. default <code>*.onrender.com</code>, or Vercel + Render →
+    <span class="pill">cross-site</span>): you <em>can</em> make it work with <code>SameSite=None; Secure</code> + specific
+    CORS, but accept that <strong>strict-privacy browsers may still drop the cookie.</strong></li>
+</ul>
+
+<footer>
+  PlasticKothay — refresh cookie is <code>httpOnly · Secure · SameSite</code>-configurable, scoped to
+  <code>/api/auth/</code>. Access token: in-memory, Bearer. Same-origin by design (DEC-7); cross-origin needs the
+  four-part fix in §8.
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-"""Dashboard analytics — weekly submitted/approved series and active-user count."""
+"""Dashboard analytics - weekly submitted/approved series and active-user count."""
 
 from core.application.reports.moderation import GetPostAnalytics
 from core.domain.value_objects import PostStatus

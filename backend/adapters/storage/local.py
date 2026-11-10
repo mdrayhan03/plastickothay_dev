@@ -1,6 +1,6 @@
 """Local filesystem image storage.
 
-The dev/test implementation of the ImageStorage port — no Google credentials required. Files
+The dev/test implementation of the ImageStorage port - no Google credentials required. Files
 land under MEDIA_ROOT and are served by Django/Whitenoise. The Drive adapter drops in for prod
 by swapping this in the container; nothing above the port changes.
 """

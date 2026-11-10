@@ -1,13 +1,15 @@
 """Base settings shared by every environment.
 
-Database selection follows the agreed strategy: if DATABASE_URL is set (Supabase/Postgres in
-prod), use it; otherwise fall back to local SQLite. Engine choice is a settings value, not a
-hand-rolled factory — Django already gives that for free (LLD §1.1, discussion).
+Database selection is driven by the MODE env var (DEV | PROD | TEST). Only PROD uses the real
+Postgres (DATABASE_URL); DEV and TEST use local SQLite even if DATABASE_URL is set, so local and
+test runs can never touch the production database. Engine choice is a settings value, not a
+hand-rolled factory - Django already gives that for free (LLD §1.1, discussion).
 """
 
 import os
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -19,6 +21,9 @@ SECRET_KEY = os.getenv("DJANGO_KEY", "dev-insecure-key-change-me")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# Enable HTTPS Proxy Header Trust for Render
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -26,12 +31,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",  # required by admin only
     "django.contrib.messages",  # required by admin only
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",  # makes logout real (B2)
     "adapters.persistence.django_orm",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -41,6 +48,23 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# --- CORS & CSRF ------------------------------------------------------------
+# Cross-origin deploy (frontend hosted separately): list the EXACT frontend origin(s) in
+# CORS_ALLOWED_ORIGINS (comma-separated, full scheme+host). Never use ALLOW_ALL / "*" with
+# credentials — the browser rejects a wildcard Access-Control-Allow-Origin on any request that
+# carries the cookie, so auth silently breaks. Empty = same-origin (no CORS needed).
+_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+CORS_ALLOW_CREDENTIALS = True  # required so the httpOnly refresh cookie rides cross-site
+
+# The refresh cookie's SameSite. Same-origin -> "Lax". Cross-origin -> set "None" (which forces
+# Secure), otherwise the browser won't send it on the boot /api/auth/refresh/ XHR.
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
+
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -65,28 +89,33 @@ TEMPLATES = [
 # cursors and long-lived connections. When the URL points at the pooler, set:
 #   DB_POOLED=true  -> DISABLE_SERVER_SIDE_CURSORS + CONN_MAX_AGE=0
 # Direct connection (5432) needs neither. (LLD §11.3 / B1 note.)
-_database_url = os.getenv("DATABASE_URL")
-_pooled = os.getenv("DB_POOLED", "false").lower() == "true"
+# MODE (DEV | PROD | TEST) is the single switch for which database is used. ONLY PROD talks to
+# the real Postgres (DATABASE_URL). DEV and TEST always use local SQLite — even when a
+# DATABASE_URL is present in the environment — so local development and tests can never read or
+# write the production database by accident. (test.py further specialises to in-memory SQLite.)
+MODE = os.getenv("MODE", "DEV").upper()
 
-if _database_url:
+if MODE == "PROD":
+    _database_url = os.getenv("DATABASE_URL")
+    if not _database_url:
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured("MODE=PROD requires DATABASE_URL to be set.")
+    # Supabase pooler (port 6543, pgBouncer transaction mode) breaks server-side cursors and
+    # long-lived connections. When the URL points at the pooler, set DB_POOLED=true. A direct
+    # connection (5432) needs neither. (LLD §11.3 / B1 note.)
+    _pooled = os.getenv("DB_POOLED", "false").lower() == "true"
     DATABASES = {
-        "default": dj_database_url.parse(
-            _database_url,
-            conn_max_age=0 if _pooled else 600,
-        )
+        "default": dj_database_url.parse(_database_url, conn_max_age=0 if _pooled else 600)
     }
     if _pooled:
-        # Supabase's transaction pooler (Supavisor, port 6543) hands each transaction a
-        # different backend connection. That breaks two psycopg3 defaults:
-        #   - server-side cursors (a cursor opened on one backend is gone on the next)
-        #   - prepared statements (prepare_threshold defaults to 5; a statement prepared on
-        #     one backend "does not exist" on another → intermittent errors under load)
-        # Disable both. For the session pooler (5432) neither is needed, but both are harmless.
+        # The transaction pooler (Supavisor) hands each transaction a different backend, which
+        # breaks two psycopg3 defaults: server-side cursors (gone on the next backend) and
+        # prepared statements (prepare_threshold=5 → "statement does not exist" under load).
         DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
         DATABASES["default"].setdefault("OPTIONS", {})["prepare_threshold"] = None
 else:
-    # Local/dev fallback. Integration + contract tests that need real Postgres behaviour
-    # (concurrency, partial indexes under load) must run against DATABASE_URL, not this.
+    # DEV / TEST → local SQLite, regardless of DATABASE_URL (production-database safety).
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -94,7 +123,7 @@ else:
         }
     }
 
-AUTH_USER_MODEL = "django_orm.User"  # ⚠️ set BEFORE the first migration — irreversible (DEC-5)
+AUTH_USER_MODEL = "django_orm.User"  # ⚠️ set BEFORE the first migration - irreversible (DEC-5)
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -110,7 +139,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Image storage: Google Drive when credentials are wired, local filesystem otherwise.
@@ -155,7 +184,7 @@ EMAIL_TIMEOUT = 10  # seconds
 
 # Throttle counters must be shared across Gunicorn workers. LocMemCache is per-process, so a
 # "10/hour" limit would become ~10×workers/hour and drift by which worker serves the request.
-# DatabaseCache (a Postgres table via `manage.py createcachetable`) is shared and correct —
+# DatabaseCache (a Postgres table via `manage.py createcachetable`) is shared and correct -
 # slower than Redis, fine at this scale (LLD §8.6, DEC-8). Tests override this in test.py.
 CACHES = {
     "default": {
@@ -168,3 +197,37 @@ CACHES = {
 # catch-all route (config.urls) returns index.html so client-side routing survives a hard
 # refresh. CORS is therefore unnecessary in production.
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+# Logger
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}

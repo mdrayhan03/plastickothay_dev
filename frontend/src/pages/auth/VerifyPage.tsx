@@ -18,7 +18,7 @@ export function VerifyPage() {
   async function onSubmit(values: OtpInput) {
     try {
       await authService.verify(username, Number(values.code))
-      toast.success('Account verified — you can sign in now.')
+      toast.success('Account verified - you can sign in now.')
       navigate('/login', { replace: true })
     } catch (e) {
       toast.error(apiErrorMessage(e, 'Verification failed'))

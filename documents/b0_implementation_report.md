@@ -1,4 +1,4 @@
-# B0 Implementation Report — Hexagon Skeleton
+# B0 Implementation Report - Hexagon Skeleton
 
 **Milestone:** B0 · **Branch:** `backend` · **Date:** 2026-07-17
 **Status:** ✅ Complete. All exit criteria verified.
@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Exit criteria — verified, not assumed
+## 1. Exit criteria - verified, not assumed
 
 | Criterion | Result |
 |---|---|
@@ -41,7 +41,7 @@ a framework, none of it could run.
 | `layered core` | `application → ports → domain`, never upward |
 
 This is the highest-value artefact in B0. A green test suite would *not* catch someone
-importing `django.utils.timezone` "just here" — and one such import is all it takes for the
+importing `django.utils.timezone` "just here" - and one such import is all it takes for the
 DB port to quietly become fiction. **Wire `lint-imports` into CI before B1.**
 
 ---
@@ -63,7 +63,7 @@ backend/
     ├── conftest.py         fixtures + builders (no Django, no settings, no DB)
     ├── fakes/              system.py, repositories.py, seed.py
     ├── unit/               domain/ (41 tests), application/ (35 tests)
-    └── contract/           empty — populated at B5
+    └── contract/           empty - populated at B5
 ```
 
 ### Use cases implemented (all 27)
@@ -91,11 +91,11 @@ backend/
 
 ### Rules proven green, with no database
 
-- ✅ Anonymous like awards **nobody** — including the post owner (DEC-1)
+- ✅ Anonymous like awards **nobody** - including the post owner (DEC-1)
 - ✅ Self-like awards zero to **both** sides
 - ✅ Likes on pending/hidden posts award nothing
 - ✅ **Hiding an approved post strips its points *and* its likes' points**
-- ✅ **Un-hiding restores both** — no re-award path exists
+- ✅ **Un-hiding restores both** - no re-award path exists
 - ✅ Inactive rules pay zero but still count the engagement
 - ✅ Rule changes are retroactive (DEC-2, accepted; mitigated by POL-1)
 - ✅ Posts bucket by approval date, not creation date (DEC-3)
@@ -139,7 +139,7 @@ password reset.
 
 ## 5. Findings
 
-### 5.1 A test was wrong — and the code was right
+### 5.1 A test was wrong - and the code was right
 
 `test_inactive_rule_contributes_zero` asserted that a like under an inactive rule is "still
 counted" for the receiver but that the **giver vanishes entirely**. Those two claims
@@ -154,7 +154,7 @@ because it can never earn.
 ### 5.2 `def list()` shadows the builtin
 
 `PostRepository.list()` made the later annotation `-> list[MapMarker]` resolve to the method,
-not the builtin — `TypeError: 'function' object is not subscriptable` at import. Fixed with
+not the builtin - `TypeError: 'function' object is not subscriptable` at import. Fixed with
 `from __future__ import annotations` in both affected modules. Worth knowing before writing
 the Django repositories at B1, which have the same shape.
 
@@ -162,16 +162,16 @@ the Django repositories at B1, which have the same shape.
 
 `backend_old/` is gitignored (`.gitignore:56`). It is reference material for porting
 behaviour (OTP flow, filter semantics, Drive/Mailjet calls) and never enters this branch.
-The real history lives on `main`. Nothing to do — just be aware the reference disappears on
+The real history lives on `main`. Nothing to do - just be aware the reference disappears on
 a fresh clone.
 
 ---
 
-## 6. Open — needs a decision
+## 6. Open - needs a decision
 
 | # | Item | Detail |
 |---|---|---|
-| **1** | **Level thresholds are a placeholder** | `tests/fakes/seed.py` uses 0/100/300/700/1500 (Newcomer → Champion). **These are my guess, not your decision.** The legacy "every 5 points = 1 level" is meaningless now one approved post is worth 100. Table-driven, so changing them is data — but they need a product call before launch. |
+| **1** | **Level thresholds are a placeholder** | `tests/fakes/seed.py` uses 0/100/300/700/1500 (Newcomer → Champion). **These are my guess, not your decision.** The legacy "every 5 points = 1 level" is meaningless now one approved post is worth 100. Table-driven, so changing them is data - but they need a product call before launch. |
 | **2** | **Week starts Monday** | `periods.py` uses ISO-8601 (Monday). Bangladesh commonly treats the week as starting Sunday. One constant (`WEEK_STARTS_ON_MONDAY`), but it silently changes every weekly leaderboard. Confirm. |
 | **3** | **Docker for integration tests?** | Still unanswered. The leaderboard SQL is Postgres-only by choice, so its contract test can only run against real Postgres. Docker → throwaway container. No docker → Supabase test schema, slower CI. Needed by B5, decided at B1. |
 
@@ -181,12 +181,12 @@ a fresh clone.
 
 B0 is the hexagon only. Deliberately absent:
 
-- No Django project, settings, or `manage.py` — B1
-- No ORM models, migrations, or mappers — B1
-- No DRF views, serializers, or URLs — B2+
-- No real adapters (Drive, Mailjet, SimpleJWT, Postgres) — B1–B3
-- `tests/contract/` is an empty package — B5, when there are two implementations to compare
-- No CI pipeline — **wire `lint-imports` in before B1**
+- No Django project, settings, or `manage.py` - B1
+- No ORM models, migrations, or mappers - B1
+- No DRF views, serializers, or URLs - B2+
+- No real adapters (Drive, Mailjet, SimpleJWT, Postgres) - B1–B3
+- `tests/contract/` is an empty package - B5, when there are two implementations to compare
+- No CI pipeline - **wire `lint-imports` in before B1**
 
 ---
 
@@ -199,8 +199,8 @@ B0 is the hexagon only. Deliberately absent:
 | `DATABASE_URL` | ⛔ blocks B1 entirely |
 | Pooler (6543) or direct (5432)? | Pooler runs pgBouncer in transaction mode → needs `DISABLE_SERVER_SIDE_CURSORS = True` and `CONN_MAX_AGE = 0`. Better decided now than debugged at B5. |
 | `DJANGO_KEY` | I can generate a dev one |
-| Mailjet keys | soft — console backend stubs it (B2) |
-| Drive service account | soft — fake adapter stubs it (B3) |
+| Mailjet keys | soft - console backend stubs it (B2) |
+| Drive service account | soft - fake adapter stubs it (B3) |
 
 **The irreversible bit:** `AUTH_USER_MODEL` must be set before the first migration runs.
 Changing it afterwards is one of the genuinely painful operations in Django, so B1 should be

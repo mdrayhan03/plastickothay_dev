@@ -1,4 +1,4 @@
-"""Admin users API (BE-0) — list, activate/deactivate (staff), role change (admin)."""
+"""Admin users API (BE-0) - list, activate/deactivate (staff), role change (admin)."""
 
 import re
 

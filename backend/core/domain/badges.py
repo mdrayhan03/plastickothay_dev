@@ -1,4 +1,4 @@
-"""Badge award rules — pure domain logic.
+"""Badge award rules - pure domain logic.
 
 A badge is earned when a user's stat reaches the rule's threshold. Awards are permanent: once
 earned they stay, even if the stat later drops (achievements don't un-earn). So the only thing

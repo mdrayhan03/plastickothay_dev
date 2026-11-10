@@ -8,12 +8,10 @@ __pycache__
 *.env
 .env
 .env.*
-!.env.example
-!.env.*.example
-# *.sqlite3
+*.sqlite3
 
 # Django
-# db.sqlite3
+db.sqlite3
 media/
 staticfiles/
 
@@ -39,7 +37,7 @@ Thumbs.db
 # JSON config files you don't want exposed
 file.json
 
-# Migrations (OPTIONAL — remove if you want migrations tracked)
+# Migrations (OPTIONAL - remove if you want migrations tracked)
 # */migrations/*.py
 # !*/migrations/__init__.py
 
@@ -56,3 +54,6 @@ node_modules/
 
 # custom
 backend_old/
+
+# Render Blueprint (not used - services created manually in the dashboard)
+render.yaml

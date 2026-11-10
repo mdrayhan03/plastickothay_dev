@@ -1,4 +1,4 @@
-"""Content API — contact page, contact messages, feedback.
+"""Content API - contact page, contact messages, feedback.
 
 Public: read the contact page, submit a message, submit feedback (all AllowAny, throttled).
 Admin: edit the contact page, list messages + update status, list feedback.

@@ -1,12 +1,13 @@
 import { CameraOff, RefreshCw, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const MAX_WIDTH = 1280 // downscale so the base64 payload stays reasonable
 
 type Status = 'loading' | 'ready' | 'denied' | 'missing'
 
-/** Full-screen live camera. No gallery/upload — reports must be shot in real time. */
+/** Full-screen live camera. No gallery upload - reports must be shot in real time. */
 export function CameraCapture({
   onCapture,
   onClose,
@@ -19,8 +20,10 @@ export function CameraCapture({
   const [status, setStatus] = useState<Status>('loading')
 
   const stop = useCallback(() => {
-    streamRef.current?.getTracks().forEach((t) => t.stop())
-    streamRef.current = null
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
+    }
   }, [])
 
   const start = useCallback(async () => {
@@ -35,7 +38,10 @@ export function CameraCapture({
         audio: false,
       })
       streamRef.current = stream
-      if (videoRef.current) videoRef.current.srcObject = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play().catch(() => {})
+      }
       setStatus('ready')
     } catch (err) {
       const name = (err as DOMException)?.name
@@ -54,6 +60,13 @@ export function CameraCapture({
     return stop
   }, [start, stop])
 
+  useEffect(() => {
+    if (status === 'ready' && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(() => {})
+    }
+  }, [status])
+
   function close() {
     stop()
     onClose()
@@ -62,29 +75,42 @@ export function CameraCapture({
   function shoot() {
     const video = videoRef.current
     if (!video || status !== 'ready') return
-    const scale = Math.min(1, MAX_WIDTH / video.videoWidth)
+    const width = video.videoWidth || 640
+    const height = video.videoHeight || 480
+    const scale = Math.min(1, MAX_WIDTH / width)
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth * scale
-    canvas.height = video.videoHeight * scale
+    canvas.width = Math.round(width * scale)
+    canvas.height = Math.round(height * scale)
     canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
     stop()
     onCapture(canvas.toDataURL('image/jpeg', 0.82))
   }
 
   return (
-    <div className="fixed inset-0 z-[999] flex flex-col bg-black">
-      <div className="flex items-center justify-between p-4 text-white">
-        <button onClick={close} aria-label="Close camera" className="grid size-10 place-items-center rounded-full bg-white/15">
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
+      {/* Header bar */}
+      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
+        <button
+          onClick={close}
+          aria-label="Close camera"
+          className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur-sm transition-transform active:scale-95"
+        >
           <X className="size-5" />
         </button>
         <span className="text-sm font-semibold">Capture the pollution</span>
         <span className="size-10" />
       </div>
 
-      <div className="relative flex-1">
-        {status === 'ready' && (
-          <video ref={videoRef} autoPlay playsInline muted className="size-full object-cover" />
-        )}
+      {/* Camera View Area */}
+      <div className="relative size-full bg-black flex items-center justify-center overflow-hidden">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          onLoadedMetadata={() => videoRef.current?.play().catch(() => {})}
+          className={cn('size-full object-cover', status !== 'ready' && 'hidden')}
+        />
 
         {status === 'loading' && (
           <div className="grid h-full place-items-center text-white/70">
@@ -115,17 +141,18 @@ export function CameraCapture({
             </div>
           </div>
         )}
-      </div>
 
-      {status === 'ready' && (
-        <div className="flex items-center justify-center p-6">
-          <button
-            onClick={shoot}
-            aria-label="Take photo"
-            className="size-18 rounded-full border-4 border-white/40 bg-white ring-2 ring-white active:scale-95"
-          />
-        </div>
-      )}
+        {/* Shutter Capture Button */}
+        {status === 'ready' && (
+          <div className="absolute bottom-8 inset-x-0 z-20 flex items-center justify-center pb-safe">
+            <button
+              onClick={shoot}
+              aria-label="Take photo"
+              className="size-18 rounded-full border-4 border-white/40 bg-white ring-2 ring-white shadow-xl transition-transform active:scale-90"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

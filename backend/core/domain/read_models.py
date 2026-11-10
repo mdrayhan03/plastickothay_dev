@@ -42,11 +42,12 @@ class MapMarker:
     lat: float
     lon: float
     severity: Severity
+    image: ImageRef | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class AdminMapMarker:
-    """Like MapMarker but with status — the admin density map shows all non-deleted reports,
+    """Like MapMarker but with status - the admin density map shows all non-deleted reports,
     not just approved ones, so pending hot-spots are visible for triage (LLD §8.4)."""
 
     id: PostId
@@ -54,6 +55,7 @@ class AdminMapMarker:
     lon: float
     severity: Severity
     status: PostStatus
+    image: ImageRef | None = None
 
 
 @dataclass(frozen=True, slots=True)

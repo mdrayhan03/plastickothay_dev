@@ -2,7 +2,7 @@
 
 Award-on-read: when a user's badges are fetched, compute their current stats, award any
 newly-qualified badges (persisting earned_at), and return the full earned set. This needs no
-event system or scheduler — awards are idempotent (unique per user+badge) and the returned set
+event system or scheduler - awards are idempotent (unique per user+badge) and the returned set
 is always correct even before persistence catches up.
 """
 

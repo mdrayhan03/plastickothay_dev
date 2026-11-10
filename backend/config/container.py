@@ -1,4 +1,4 @@
-"""Composition root — the one place ports are wired to concrete adapters.
+"""Composition root - the one place ports are wired to concrete adapters.
 
 Plain factory functions, no DI framework: a monolith this size does not need one. The API
 layer (B2+) calls these to build use cases per request. LeaderboardRepository arrives in B5.

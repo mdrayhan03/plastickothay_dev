@@ -1,4 +1,4 @@
-"""Domain entities — plain dataclasses with identity.
+"""Domain entities - plain dataclasses with identity.
 
 These are NOT ORM models and must never gain a ``.save()``. The persistence adapter maps
 between these and Django models (LLD §2.2). If this module ever imports Django, the DB port
@@ -43,7 +43,7 @@ class User:
     phone: str
     role: Role = Role.USER
     is_verified: bool = False  # completed OTP
-    is_active: bool = True  # not banned — Django's meaning
+    is_active: bool = True  # not banned - Django's meaning
     avatar: ImageRef | None = None  # profile photo; None => show initials
     date_joined: datetime | None = None
     last_login: datetime | None = None
@@ -93,7 +93,7 @@ class Post:
     status: PostStatus = PostStatus.PENDING
     place_name: str = ""  # reverse-geocoded label, e.g. "Hatirjheel, Dhaka"; blank if none
     created: datetime | None = None
-    approved_at: datetime | None = None  # first approval only — stable leaderboard bucket
+    approved_at: datetime | None = None  # first approval only - stable leaderboard bucket
     deleted_at: datetime | None = None
 
     @property
@@ -210,7 +210,7 @@ class BadgeRule:
 
 @dataclass
 class UserBadge:
-    """An earned badge. Permanent once awarded — an achievement is not lost if the underlying
+    """An earned badge. Permanent once awarded - an achievement is not lost if the underlying
     stat later drops (e.g. a post is hidden)."""
 
     user_id: UserId

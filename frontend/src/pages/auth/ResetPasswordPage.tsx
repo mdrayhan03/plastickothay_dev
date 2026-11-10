@@ -18,7 +18,7 @@ export function ResetPasswordPage() {
   async function onSubmit(values: ResetInput) {
     try {
       await authService.resetPassword(username, Number(values.code), values.new_password)
-      toast.success('Password reset — sign in with your new password.')
+      toast.success('Password reset - sign in with your new password.')
       navigate('/login', { replace: true })
     } catch (e) {
       toast.error(apiErrorMessage(e, 'Reset failed'))

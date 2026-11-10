@@ -1,4 +1,4 @@
-"""Report serializers — the public/admin split (LLD §8.3).
+"""Report serializers - the public/admin split (LLD §8.3).
 
 This is where the legacy PII leak is closed. The public serializers expose reporter NAME only;
 email and phone are reachable exclusively through the admin serializer, behind an admin token.
@@ -6,11 +6,58 @@ Base64 photo decoding happens here (transport concern), never in a use case.
 """
 
 import base64
+import re
 
 from rest_framework import serializers
 
 from config import container
 from core.domain.entities import Post
+
+
+def decode_base64_image(raw: str) -> tuple[bytes, str]:
+    """Robust base64 image decoder handling data URLs, whitespace, urlsafe chars, and padding."""
+    if not isinstance(raw, str) or not raw.strip():
+        raise ValueError("Empty image data")
+
+    raw = raw.strip()
+    content_type = "image/jpeg"
+
+    if raw.startswith("data:"):
+        if "," in raw:
+            header, b64 = raw.split(",", 1)
+            header_parts = header.split(";")
+            if header_parts:
+                mime = header_parts[0].replace("data:", "").strip()
+                if mime:
+                    content_type = mime
+        else:
+            b64 = raw
+    elif ";base64," in raw.lower():
+        idx = raw.lower().find(";base64,")
+        header = raw[:idx]
+        b64 = raw[idx + len(";base64,") :]
+        content_type = header.split(":")[-1] or "image/jpeg"
+    else:
+        b64 = raw
+
+    # Replace spaces (' ') with '+' FIRST, since spaces in HTTP body are converted '+'
+    b64 = b64.replace(" ", "+").replace("-", "+").replace("_", "/")
+    # Remove any remaining newlines, tabs, or non-base64 whitespace
+    b64 = re.sub(r"\s+", "", b64)
+
+    missing_padding = len(b64) % 4
+    if missing_padding:
+        b64 += "=" * (4 - missing_padding)
+
+    try:
+        data = base64.b64decode(b64)
+    except Exception as exc:
+        raise ValueError("Invalid base64 encoding") from exc
+
+    if not data:
+        raise ValueError("Decoded image is empty")
+
+    return data, content_type
 
 
 def _image_url(post: Post) -> str:
@@ -33,17 +80,13 @@ class SubmitReportSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         raw = attrs["photo"]
-        if ";base64," in raw:
-            header, b64 = raw.split(";base64,", 1)
-            content_type = header.split(":")[-1] or "image/jpeg"
-        else:
-            b64, content_type = raw, "image/jpeg"
         try:
-            attrs["photo_bytes"] = base64.b64decode(b64, validate=True)
+            photo_bytes, content_type = decode_base64_image(raw)
         except Exception as exc:
             raise serializers.ValidationError({"photo": "Invalid base64 image."}) from exc
+        attrs["photo_bytes"] = photo_bytes
         attrs["content_type"] = content_type
-        ext = content_type.split("/")[-1] or "jpg"
+        ext = content_type.split("/")[-1].split("+")[0] or "jpg"
         attrs["filename"] = f"upload.{ext}"
         return attrs
 
@@ -86,7 +129,7 @@ class PublicPostSerializer(serializers.Serializer):
 
 
 class OwnPostSerializer(PublicPostSerializer):
-    """The reporter's own posts — adds status so they can see pending/hidden state."""
+    """The reporter's own posts - adds status so they can see pending/hidden state."""
 
     status = serializers.SerializerMethodField()
 
@@ -99,10 +142,16 @@ class MapMarkerSerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     severity = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, marker) -> str:
+        if getattr(marker, "image", ""):
+            return container.image_storage().public_url(marker.image)
+        return ""
 
 
 class AdminPostSerializer(serializers.Serializer):
-    """Admin-only — the ONLY place reporter email/phone are exposed."""
+    """Admin-only - the ONLY place reporter email/phone are exposed."""
 
     id = serializers.IntegerField()
     reporter_name = serializers.SerializerMethodField()
@@ -118,6 +167,7 @@ class AdminPostSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     created = serializers.DateTimeField()
     approved_at = serializers.DateTimeField(allow_null=True)
+    likes = serializers.SerializerMethodField()
 
     def get_reporter_name(self, post: Post) -> str:
         return post.reporter.name
@@ -139,6 +189,15 @@ class AdminPostSerializer(serializers.Serializer):
 
     def get_status(self, post: Post) -> int:
         return int(post.status)
+
+    def get_likes(self, post: Post) -> int:
+        ctx = self.context.get("likes")
+        if ctx is not None:
+            return ctx.get(post.id, 0)
+        from core.domain.value_objects import EngagementType
+
+        counts = container.engagements().counts_for([post.id], EngagementType.LIKE)
+        return counts.get(post.id, 0)
 
 
 class UpdateDescriptionSerializer(serializers.Serializer):

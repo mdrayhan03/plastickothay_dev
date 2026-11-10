@@ -1,7 +1,7 @@
 """Cursor pagination primitives.
 
 Cursors are opaque strings to the domain; the repository adapter encodes and decodes them
-(LLD §8.4 — cursor over ``(created DESC, id DESC)``).
+(LLD §8.4 - cursor over ``(created DESC, id DESC)``).
 """
 
 from dataclasses import dataclass, field

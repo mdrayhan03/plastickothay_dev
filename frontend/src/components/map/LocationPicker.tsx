@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { Marker, MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 
-// HTML pin as a divIcon — avoids the bundler/marker-image issue entirely.
+// HTML pin as a divIcon - avoids the bundler/marker-image issue entirely.
 const pinIcon = L.divIcon({
   className: '',
   html: `<div style="width:26px;height:26px;transform:translate(-13px,-26px)">
@@ -36,7 +36,7 @@ export function LocationPicker({
       attributionControl={false}
       className="h-full w-full"
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Events onPick={onChange} />
       {value && (
         <Marker

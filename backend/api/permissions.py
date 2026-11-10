@@ -1,7 +1,7 @@
 """Permission classes.
 
 Default is IsAuthenticated (set in REST_FRAMEWORK). Public endpoints override with AllowAny
-EXPLICITLY — every such override is on the checklist in LLD §10. Forget one and the public map
+EXPLICITLY - every such override is on the checklist in LLD §10. Forget one and the public map
 breaks or reporter PII leaks.
 """
 

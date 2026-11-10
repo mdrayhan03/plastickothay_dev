@@ -1,4 +1,4 @@
-"""Public user-profile serialization. No email/phone — this is world-readable."""
+"""Public user-profile serialization. No email/phone - this is world-readable."""
 
 from rest_framework import serializers
 

@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { MobileShell } from '@/components/layout/MobileShell'
-import { PhoneFrame } from '@/components/layout/PhoneFrame'
+import { AppShell } from '@/components/layout/AppShell'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { AboutPage } from '@/pages/AboutPage'
 import { ContactPage } from '@/pages/ContactPage'
@@ -18,20 +17,19 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { VerifyPage } from '@/pages/auth/VerifyPage'
 
-/** The mobile user portal, rendered inside the phone frame. */
+/** The user portal — responsive: bottom-tab shell on mobile, sidebar on desktop. */
 export function UserPortal() {
   return (
-    <PhoneFrame>
-      <Routes>
-        {/* full-screen auth stack */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/verify" element={<VerifyPage />} />
-        <Route path="/forgot" element={<ForgotPasswordPage />} />
-        <Route path="/reset" element={<ResetPasswordPage />} />
+    <Routes>
+      {/* full-screen auth stack (centred, no shell) */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify" element={<VerifyPage />} />
+      <Route path="/forgot" element={<ForgotPasswordPage />} />
+      <Route path="/reset" element={<ResetPasswordPage />} />
 
-        {/* bottom-tab shell */}
-        <Route element={<MobileShell />}>
+      {/* app shell */}
+      <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
           <Route path="report" element={<ReportPage />} />
@@ -58,8 +56,7 @@ export function UserPortal() {
           <Route path="about" element={<AboutPage />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </PhoneFrame>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }

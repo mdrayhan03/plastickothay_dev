@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 
-/** F0 placeholder — real content lands in later milestones. Keeps routing testable now. */
+/** F0 placeholder - real content lands in later milestones. Keeps routing testable now. */
 export function Placeholder({
   title,
   icon: Icon,

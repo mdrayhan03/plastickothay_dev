@@ -1,4 +1,4 @@
-"""B7 hardening — throttling actually enforces, and the SPA catch-all serves."""
+"""B7 hardening - throttling actually enforces, and the SPA catch-all serves."""
 
 import pytest
 from rest_framework.test import APIClient
@@ -42,7 +42,7 @@ class TestThrottling:
         assert codes[5] == 429
 
     def test_login_is_rate_limited(self):
-        """login is 10/hour/IP — blunts credential stuffing. The 11th attempt is 429."""
+        """login is 10/hour/IP - blunts credential stuffing. The 11th attempt is 429."""
         client = APIClient()
         codes = [
             client.post(

@@ -14,7 +14,7 @@ class SubmitReportCommand:
     severity: int
     lat: float
     lon: float
-    photo_bytes: bytes  # already decoded — base64 is transport, handled at the edge
+    photo_bytes: bytes  # already decoded - base64 is transport, handled at the edge
     filename: str
     content_type: str
     description: str = ""

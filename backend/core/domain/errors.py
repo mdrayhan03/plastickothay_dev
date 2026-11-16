@@ -37,11 +37,31 @@ class UserNotFound(NotFoundError):
     code = "user_not_found"
     default_message = "This user does not exist."
 
+class OAuthProviderNotFound(NotFoundError):
+    code = "provider_not_found"
+    default_message = "This provider does not exist."
+
 
 class ContactPageNotFound(NotFoundError):
     code = "contact_page_not_found"
     default_message = "The contact page has not been configured."
 
+# --- third party request ---------------------------------------------------
+class ExternalServiceError(DomainError):
+    code = "external_service_error"
+    default_message = "An external service is temporarily unavailable. Please try again later."
+
+class GoogleOAuthError(ExternalServiceError):
+    code = "google_auth_failed"
+    default_message = "Unable to sign in with Google. Please try again."
+
+class GitHubOAuthError(ExternalServiceError):
+    code = "github_auth_failed"
+    default_message = "Unable to sign in with GitHub. Please try again."
+
+class FacebookOAuthError(ExternalServiceError):
+    code = "facebook_auth_failed"
+    default_message = "Unable to sign in with Facebook. Please try again."
 
 # --- conflict --------------------------------------------------------------
 

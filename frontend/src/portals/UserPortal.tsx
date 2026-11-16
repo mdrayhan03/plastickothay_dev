@@ -16,6 +16,7 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { VerifyPage } from '@/pages/auth/VerifyPage'
+import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 
 /** The user portal — responsive: bottom-tab shell on mobile, sidebar on desktop. */
 export function UserPortal() {
@@ -27,6 +28,7 @@ export function UserPortal() {
       <Route path="/verify" element={<VerifyPage />} />
       <Route path="/forgot" element={<ForgotPasswordPage />} />
       <Route path="/reset" element={<ResetPasswordPage />} />
+      <Route path="/auth/callback/:provider" element={<OAuthCallbackPage/>} />
 
       {/* app shell */}
       <Route element={<AppShell />}>

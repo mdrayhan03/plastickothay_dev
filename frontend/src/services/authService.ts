@@ -1,11 +1,19 @@
 import { api } from '@/lib/api'
 import type { AuthUser, LoginResponse, RefreshResponse } from '@/types'
 
+export type OAuthProvider = 'google' | 'github' | 'facebook';
+
 export const authService = {
   async login(username: string, password: string) {
     const { data } = await api.post<LoginResponse>('/auth/login/', { username, password })
     return data
   },
+
+  async oauthLogin(provider: OAuthProvider, code: string, redirect_uri: string) {
+    const { data } = await api.post<LoginResponse>(`/auth/oauth/${provider}`, {code, redirect_uri})
+    return data
+  },
+
   async refresh() {
     const { data } = await api.post<RefreshResponse>('/auth/refresh/')
     return data

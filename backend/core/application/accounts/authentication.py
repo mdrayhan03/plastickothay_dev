@@ -25,7 +25,6 @@ class Login:
             raise InvalidCredentials()
         if not self.users.verify_password(user.id, cmd.password):
             raise InvalidCredentials()
-
         # Checked only after the password: answering "not verified" to a wrong password
         # would confirm the account exists.
         if not user.is_verified:

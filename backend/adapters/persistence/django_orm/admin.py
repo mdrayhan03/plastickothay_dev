@@ -129,6 +129,11 @@ class PostModerationLogAdmin(admin.ModelAdmin):
     list_display = ("post", "admin", "action", "at")
     list_filter = ("action",)
 
+@admin.register(orm.SocialIdentity)
+class SocialIdentityAdmin(admin.ModelAdmin):
+    list_display = ("user_id", "provider", "provider_user_id")
+    list_filter = ("provider",)
+
 
 # --- Django Built-in System Models ---
 

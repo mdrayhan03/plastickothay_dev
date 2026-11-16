@@ -231,3 +231,7 @@ LOGGING = {
         },
     },
 }
+
+# Google OAuth Credentials
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")

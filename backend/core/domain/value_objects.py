@@ -108,3 +108,9 @@ class SocialLink:
     platform: str
     url: str
     order: int = 0
+
+class OAuthProvider(StrEnum) :
+    """OAuth Provider for signup and login."""
+    GOOGLE = "google"
+    GITHUB = "github"
+    FACEBOOK = "facebook"

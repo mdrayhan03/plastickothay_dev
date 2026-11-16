@@ -279,3 +279,27 @@ class PostModerationLog(models.Model):
     class Meta:
         db_table = "post_moderation_log"
         indexes = [models.Index(fields=["post", "at"])]
+
+class SocialIdentity(models.Model):
+    """Social Identity capture via OAuth Provider"""
+    GOOGLE = "google"
+    GITHUB = "github"
+    FACEBOOK = "facebook"
+
+    PROVIDER_CHOICE = [
+        (GOOGLE, "Google"),
+        (GITHUB, "Github"),
+        (FACEBOOK, "Facebook")
+    ]
+    
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE, related_name="user")
+    provider = models.CharField(max_length=16, choices=PROVIDER_CHOICE) # GOOGLE | FACEBOOK | GITHUB
+    provider_user_id = models.CharField(max_length=255)
+    created = models.DateTimeField()
+
+    class Meta :
+        db_table = "social_identity"
+        indexes = [
+            models.Index(fields=["user_id"]),
+            models.Index(fields=["provider_user_id"])
+        ]

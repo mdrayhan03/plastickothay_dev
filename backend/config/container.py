@@ -110,3 +110,8 @@ def badges():
     from adapters.persistence.django_orm.repositories import DjangoBadgeRepository
 
     return DjangoBadgeRepository()
+
+def social_identity():
+    from adapters.persistence.django_orm.repositories import DjangoSocialIdentityRepository
+
+    return DjangoSocialIdentityRepository()

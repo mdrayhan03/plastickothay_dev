@@ -7,6 +7,7 @@ import { AvatarPicker } from '@/components/AvatarPicker'
 import { Btn } from '@/components/Btn'
 import { FormField } from '@/components/FormField'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { OAuthButtons } from '@/components/OAuthButtons'
 import { apiErrorMessage } from '@/lib/api'
 import { registerSchema, type RegisterInput } from '@/lib/schemas'
 import { authService } from '@/services/authService'
@@ -43,6 +44,7 @@ export function RegisterPage() {
           Create account
         </Btn>
       </form>
+      <OAuthButtons />
       <p className="mt-5 text-center text-sm text-ink-2">
         Already have an account?{' '}
         <Link to="/login" className="font-bold text-brand">

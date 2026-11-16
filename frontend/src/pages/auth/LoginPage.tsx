@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Btn } from '@/components/Btn'
 import { FormField } from '@/components/FormField'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { OAuthButtons } from '@/components/OAuthButtons'
 import { useAuth } from '@/context/auth-context'
 import { apiErrorMessage } from '@/lib/api'
 import { loginSchema, type LoginInput } from '@/lib/schemas'
@@ -58,6 +59,7 @@ export function LoginPage() {
           Sign in
         </Btn>
       </form>
+      <OAuthButtons />
       <p className="mt-5 text-center text-sm text-ink-2">
         New here?{' '}
         <Link to="/register" className="font-bold text-brand">

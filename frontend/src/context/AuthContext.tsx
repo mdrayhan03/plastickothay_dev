@@ -9,6 +9,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { setAccessToken, setOnAuthLost } from '@/lib/api'
 import { authService } from '@/services/authService'
 import type { AuthUser } from '@/types'
+import type { OAuthProvider } from '@/services/oauthProviderService'
 import { AuthContext, type AuthState } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -43,6 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authed')
   }
 
+  async function loginWithOAuth(provider: OAuthProvider, code: string, redirect_uri: string) {
+    const { access, user } = await authService.oauthLogin(provider, code, redirect_uri)
+    setAccessToken(access)
+    setUser(user)
+    setStatus('authed')
+  }
+
   async function logout() {
     try {
       await authService.logout()
@@ -56,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isStaff = user?.role === 'staff' || user?.role === 'admin'
 
   return (
-    <AuthContext.Provider value={{ user, status, login, logout, setUser, isStaff }}>
+    <AuthContext.Provider value={{ user, status, login, loginWithOAuth, logout, setUser, isStaff }}>
       {children}
     </AuthContext.Provider>
   )

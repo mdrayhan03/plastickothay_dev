@@ -11,12 +11,14 @@ from rest_framework.views import APIView
 
 from adapters.notifications.mailjet import MailjetNotifier
 from adapters.security.jwt_service import SimpleJWTTokenService
+from adapters.oauth_provider.google_oauth import GoogleOAuthProvider
 from api.auth.serializers import (
     ForgotPasswordSerializer,
     LoginSerializer,
     RegisterSerializer,
     ResendOTPSerializer,
     ResetPasswordSerializer,
+    SocialIdentitySerializer,
     UpdateProfileSerializer,
     UserSerializer,
     VerifyOTPSerializer,
@@ -25,6 +27,7 @@ from api.authentication import actor_id
 from api.cookies import clear_refresh_cookie, read_refresh_cookie, set_refresh_cookie
 from config import container
 from core.application.accounts.authentication import Login, Logout, RefreshToken
+from core.application.accounts.oauth_provider import AuthenticateOAuth
 from core.application.accounts.dto import (
     LoginCommand,
     RegisterCommand,
@@ -36,7 +39,7 @@ from core.application.accounts.password import RequestPasswordReset, ResetPasswo
 from core.application.accounts.profile import GetProfile, UpdateProfile
 from core.application.accounts.registration import RegisterUser, ResendOTP, VerifyOTP
 from core.domain.errors import InvalidToken
-from core.domain.value_objects import OTPPurpose
+from core.domain.value_objects import OTPPurpose, OAuthProvider
 
 
 def _tokens():
@@ -166,4 +169,25 @@ class MeView(APIView):
         user = UpdateProfile(
             container.users(), container.unit_of_work(), container.image_storage()
         ).execute(UpdateProfileCommand(**data), actor_id(request))
+        return Response(UserSerializer(user).data)
+
+class OAuthCallbackView(APIView) :
+    permission_classes = [AllowAny]
+
+    def post(self, request, provider):
+        data = _validated(SocialIdentitySerializer, request)
+
+        print("Step 1: API View hit")
+        print("==============")
+        print(request)
+        print(data)
+
+        providers = {
+            OAuthProvider.GOOGLE : GoogleOAuthProvider(),
+        }
+
+        user = AuthenticateOAuth(
+            providers, container.social_identity, container.users, container.clock, container.unit_of_work,
+        ).execute(provider, data["code"], data["redirect_uri"])
+
         return Response(UserSerializer(user).data)

@@ -96,3 +96,7 @@ class UpdateProfileSerializer(serializers.Serializer):
         if "avatar" in attrs:
             attrs["avatar"] = _decode_avatar(attrs.get("avatar") or "")
         return attrs
+
+class SocialIdentitySerializer(serializers.Serializer):
+    code = serializers.CharField(max_length = 150)
+    redirect_uri = serializers.CharField()

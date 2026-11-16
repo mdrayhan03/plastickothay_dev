@@ -25,13 +25,16 @@ from core.domain.entities import (
     Engagement,
     Feedback,
     LevelRule,
+    OAuthProvider,
     Post,
     PostModerationLog,
+    SocialIdentity,
     User,
 )
 from core.domain.errors import (
     AlreadyLiked,
     EmailTaken,
+    
     UsernameTaken,
     UserNotFound,
 )
@@ -58,6 +61,7 @@ from core.ports.repositories import (
     PointRuleRepository,
     PostRepository,
     SiteConfigRepository,
+    SocialIdentityRepository,
     UserRepository,
 )
 
@@ -126,7 +130,6 @@ class DjangoUserRepository(UserRepository):
                     first_name=user.first_name,
                     last_name=user.last_name,
                     phone=user.phone,
-                    password=make_password(password),
                     is_superuser=is_superuser,
                     is_staff=is_staff,
                     is_verified=user.is_verified,
@@ -135,6 +138,10 @@ class DjangoUserRepository(UserRepository):
                     avatar_external_id=user.avatar.external_id if user.avatar else "",
                     date_joined=user.date_joined,
                 )
+                if password:
+                    row.set_password(make_password(password))
+                else :
+                    row.set_unusable_password()
         except IntegrityError as exc:
             # Translate the DB's unique violation rather than pre-checking: a check-then-act
             # would race under concurrent registration.
@@ -558,3 +565,22 @@ class DjangoSiteConfigRepository(SiteConfigRepository):
         row.updated_by_id = config.updated_by
         row.save()
         return mappers.site_config_to_domain(row)
+
+class DjangoSocialIdentityRepository(SocialIdentityRepository):
+    def get_by_provider_and_id(self, provider: OAuthProvider, provider_user_id: str) -> SocialIdentity | None :
+            row = orm.SocialIdentity.objects.filter(
+                provider = provider,
+                provider_user_id = provider_user_id
+            ).first()
+
+            return mappers.social_identity_to_domain(row) if row else None
+    
+    def create(self, entity: SocialIdentity) -> SocialIdentity :
+            row = orm.SocialIdentity.objects.create(
+                user_id = entity.User_id,
+                provider = entity.provider,
+                provider_user_id = entity.provider_user_id,
+                created = entity.created,
+            )
+
+            return mappers.social_identity_to_domain(row)

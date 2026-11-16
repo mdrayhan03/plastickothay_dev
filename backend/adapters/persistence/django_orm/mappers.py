@@ -15,6 +15,7 @@ from core.domain.entities import (
     LevelRule,
     Post,
     PostModerationLog,
+    SocialIdentity,
     SiteConfig,
     User,
     UserBadge,
@@ -26,6 +27,7 @@ from core.domain.ids import (
     ModerationLogId,
     OTPId,
     PostId,
+    SocialIdentityId,
     UserId,
 )
 from core.domain.value_objects import (
@@ -34,6 +36,7 @@ from core.domain.value_objects import (
     GeoPoint,
     ImageRef,
     ModerationAction,
+    OAuthProvider,
     OTPPurpose,
     PostStatus,
     Reporter,
@@ -260,4 +263,13 @@ def moderation_log_to_domain(row: orm.PostModerationLog) -> PostModerationLog:
         action=ModerationAction(row.action),
         reason=row.reason,
         at=row.at,
+    )
+
+def social_identity_to_domain(row: orm.SocialIdentity) -> SocialIdentity :
+    return SocialIdentity(
+        id = SocialIdentityId(row.pk),
+        User_id = UserId(row.user_id),
+        provider = OAuthProvider(row.provider),
+        provider_user_id = row.provider_user_id,
+        created = row.created,
     )

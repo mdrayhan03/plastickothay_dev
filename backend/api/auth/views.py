@@ -173,6 +173,8 @@ class MeView(APIView):
 
 class OAuthCallbackView(APIView) :
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
 
     def post(self, request, provider):
         data = _validated(SocialIdentitySerializer, request)

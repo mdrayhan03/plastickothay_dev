@@ -27,26 +27,32 @@ class GoogleOAuthProvider(OAuthProviderPort) :
             },
             timeout=10,
         )
-
+        print("Token:", token_res.text)
         if token_res.status_code != 200 :
             raise GoogleOAuthError()
-        # token_res.raise_for_status()
+        
         tokens = token_res.json()
         access_token = tokens["access_token"]
+        auth_headers = {"Authorization": f"Bearer {access_token}"}
 
         # 2. Fetch userinfo from Google API
         userinfo_res = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers=auth_headers,
             timeout=10,
         )
-        userinfo_res.raise_for_status()
+
+        if userinfo_res.status_code != 200 :
+            raise GoogleOAuthError()
+        
         data = userinfo_res.json()
 
         return ExternalOAuthProvider(
             provider=OAuthProvider.GOOGLE,
             provider_user_id=data["sub"],
             email=data["email"],
+            phone="",
             first_name=data.get("given_name", ""),
             last_name=data.get("family_name", ""),
+            avater_url=data.get("picture")
         )

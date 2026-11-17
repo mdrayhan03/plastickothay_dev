@@ -20,6 +20,7 @@ from core.domain.entities import (
     Post,
     PostModerationLog,
     SiteConfig,
+    SocialIdentity,
     User,
     UserBadge,
 )
@@ -31,6 +32,7 @@ from core.domain.ids import (
     ModerationLogId,
     OTPId,
     PostId,
+    SocialIdentityId,
     UserId,
 )
 from core.domain.pagination import Page, PageRequest
@@ -51,7 +53,7 @@ from core.domain.read_models import (
     StatusCounts,
     WeeklyPoint,
 )
-from core.domain.value_objects import EngagementType, OTPPurpose, PostStatus, Role
+from core.domain.value_objects import EngagementType, OAuthProvider, OTPPurpose, PostStatus, Role
 from core.ports.repositories import (
     BadgeRepository,
     ContactRepository,
@@ -64,6 +66,7 @@ from core.ports.repositories import (
     PointRuleRepository,
     PostRepository,
     SiteConfigRepository,
+    SocialIdentityRepository,
     UserRepository,
 )
 
@@ -512,3 +515,18 @@ class InMemoryBadgeRepository(BadgeRepository):
 
     def list_earned(self, user_id: UserId) -> list[UserBadge]:
         return sorted((b for b in self.earned if b.user_id == user_id), key=lambda b: b.earned_at)
+
+class InMemorySocialIdentityRepository(SocialIdentityRepository):
+    def __init__(self):
+        self.rows = dict[SocialIdentityId, SocialIdentity]
+        self._seq = 0
+
+    def get_by_provider_and_id(self, provider: OAuthProvider, provider_user_id: str) -> SocialIdentity | None :
+        return next((u for u in self.rows.values() if (u.provider == provider and u.provider_user_id == provider_user_id)), None)
+
+    def create(self, entity: SocialIdentity) -> SocialIdentity :
+        self._seq += 1
+        entity.id = SocialIdentityId(self._seq)
+        self.rows[entity.id] = entity
+
+        return entity

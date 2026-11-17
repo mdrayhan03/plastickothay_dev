@@ -179,17 +179,13 @@ class OAuthCallbackView(APIView) :
     def post(self, request, provider):
         data = _validated(SocialIdentitySerializer, request)
 
-        print("Step 1: API View hit")
-        print("==============")
-        print(request)
-        print(data)
-
         providers = {
             OAuthProvider.GOOGLE : GoogleOAuthProvider(),
         }
 
-        user = AuthenticateOAuth(
-            providers, container.social_identity, container.users, container.clock, container.unit_of_work,
+        user, pair = AuthenticateOAuth(
+            providers, container.social_identity(), container.users(), container.clock(), container.token_service(), container.unit_of_work(),
         ).execute(provider, data["code"], data["redirect_uri"])
 
-        return Response(UserSerializer(user).data)
+        response = Response({"access": pair.access, "user": UserSerializer(user).data})
+        return set_refresh_cookie(response, pair.refresh)

@@ -7,6 +7,7 @@ class ExternalOAuthProvider :
     provider: OAuthProvider
     provider_user_id: str
     email: str
+    phone: str
     first_name: str
     last_name: str
     avater_url: str

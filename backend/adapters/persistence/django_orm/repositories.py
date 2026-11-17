@@ -34,7 +34,6 @@ from core.domain.entities import (
 from core.domain.errors import (
     AlreadyLiked,
     EmailTaken,
-    
     UsernameTaken,
     UserNotFound,
 )

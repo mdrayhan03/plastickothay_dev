@@ -15,8 +15,8 @@ from core.domain.entities import (
     LevelRule,
     Post,
     PostModerationLog,
-    SocialIdentity,
     SiteConfig,
+    SocialIdentity,
     User,
     UserBadge,
 )

@@ -1,9 +1,11 @@
 import os
+
 import requests
 
 from core.domain.entities import OAuthProvider
 from core.domain.errors import GoogleOAuthError
-from core.ports.oauth_provider import OAuthProviderPort, ExternalOAuthProvider
+from core.ports.oauth_provider import ExternalOAuthProvider, OAuthProviderPort
+
 
 def _credentials() :
     GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")

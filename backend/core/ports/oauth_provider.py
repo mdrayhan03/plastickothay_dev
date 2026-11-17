@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
 from core.domain.value_objects import OAuthProvider
+
 
 @dataclass(frozen=True)
 class ExternalOAuthProvider :

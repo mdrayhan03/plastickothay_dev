@@ -35,7 +35,7 @@ from core.domain.read_models import (
     AdminMapMarker,
     Contribution,
     LeaderboardRow,
-    MapMarker, 
+    MapMarker,
     PostAnalytics,
     PostFilter,
     StatusCounts,

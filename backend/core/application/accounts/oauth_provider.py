@@ -1,11 +1,12 @@
+from core.domain.entities import SocialIdentity, User
 from core.domain.errors import AccountDisabled, OAuthProviderNotFound, UserNotFound
-from core.domain.entities import User, SocialIdentity
-from core.domain.value_objects import ImageRef, OAuthProvider, Role 
+from core.domain.value_objects import ImageRef, OAuthProvider, Role
 from core.ports.clock import Clock
-from core.ports.security import TokenService, TokenPair
-from core.ports.repositories import UserRepository, SocialIdentityRepository
-from core.ports.oauth_provider import OAuthProviderPort, ExternalOAuthProvider
+from core.ports.oauth_provider import ExternalOAuthProvider, OAuthProviderPort
+from core.ports.repositories import SocialIdentityRepository, UserRepository
+from core.ports.security import TokenPair, TokenService
 from core.ports.unit_of_work import UnitOfWork
+
 
 class AuthenticateOAuth:
     def __init__(

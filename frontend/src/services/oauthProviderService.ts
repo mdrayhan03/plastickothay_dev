@@ -30,7 +30,6 @@ export const oauthProviderService = {
           access_type: 'offline',
           prompt: 'select_account',
         })
-        console.log(params.toString());
         return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
       }
 

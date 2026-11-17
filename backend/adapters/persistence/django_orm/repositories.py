@@ -139,12 +139,14 @@ class DjangoUserRepository(UserRepository):
                     date_joined=user.date_joined,
                 )
                 if password:
-                    row.set_password(make_password(password))
+                    row.set_password(password)
                 else :
                     row.set_unusable_password()
+                row.save(update_fields=["password"])
         except IntegrityError as exc:
             # Translate the DB's unique violation rather than pre-checking: a check-then-act
             # would race under concurrent registration.
+            print("Error", exc)
             if "email" in str(exc).lower():
                 raise EmailTaken() from exc
             raise UsernameTaken() from exc
@@ -578,7 +580,7 @@ class DjangoSocialIdentityRepository(SocialIdentityRepository):
     def create(self, entity: SocialIdentity) -> SocialIdentity :
             row = orm.SocialIdentity.objects.create(
                 user_id = entity.User_id,
-                provider = entity.provider,
+                provider = entity.provider.value,
                 provider_user_id = entity.provider_user_id,
                 created = entity.created,
             )

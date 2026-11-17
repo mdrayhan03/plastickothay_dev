@@ -11,16 +11,18 @@ enforce; adding a model here is a design decision, not a convenience.
 """
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
+from django.utils.html import format_html
 
 from adapters.persistence.django_orm import models as orm
 
 
 @admin.register(orm.User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     list_display = (
         "username",
         "email",
@@ -32,6 +34,43 @@ class UserAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_verified", "is_staff", "is_superuser")
     search_fields = ("username", "email", "phone")
+    list_display_links = ("email",)
+
+    # Show larger preview on the User detail/edit page
+    readonly_fields = BaseUserAdmin.readonly_fields + ("avatar_preview",)
+
+    fieldsets = BaseUserAdmin.fieldsets + (
+        (
+            "Profile & Avatar",
+            {
+                "fields": (
+                    "phone",
+                    "is_verified",
+                    "avatar_provider",
+                    "avatar_external_id",
+                    "avatar_preview",
+                )
+            },
+        ),
+    )
+
+    @admin.display(description="Avatar Preview")
+    def avatar_preview(self, obj: orm.User):
+        url = self._get_avatar_url(obj)
+        if not url:
+            return "No avatar set"
+        return format_html(
+            '<img src="{}" style="width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 1px solid #ccc;" referrerpolicy="no-referrer" />',
+            url,
+        )
+
+    def _get_avatar_url(self, obj: orm.User) -> str | None:
+        if not obj.avatar_external_id:
+            return None
+        if obj.avatar_external_id.startswith(("http://", "https://")):
+            return obj.avatar_external_id
+        # Extend here later if you add Cloudinary / S3 / local media providers
+        return None
 
 
 @admin.register(orm.OTP)

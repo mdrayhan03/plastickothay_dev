@@ -292,14 +292,20 @@ class SocialIdentity(models.Model):
         (FACEBOOK, "Facebook")
     ]
     
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE, related_name="user")
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="social_identities")
     provider = models.CharField(max_length=16, choices=PROVIDER_CHOICE) # GOOGLE | FACEBOOK | GITHUB
     provider_user_id = models.CharField(max_length=255)
     created = models.DateTimeField()
 
     class Meta :
         db_table = "social_identity"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_user_id"],
+                name="unique_provider_user_identity",
+            )
+        ]
         indexes = [
-            models.Index(fields=["user_id"]),
+            models.Index(fields=["user"]),
             models.Index(fields=["provider_user_id"])
         ]

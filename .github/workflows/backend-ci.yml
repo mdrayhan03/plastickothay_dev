@@ -3,10 +3,14 @@ name: backend-ci
 on:
   push:
     branches: [main]
-    paths: ["plastickothay_dev/backend/**", ".github/workflows/backend-ci.yml"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
   pull_request:
     branches: [main]
-    paths: ["plastickothay_dev/backend/**"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
 
 jobs:
   gates:
@@ -16,7 +20,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python with Pip Cache
         uses: actions/setup-python@v5
         with:
@@ -28,12 +32,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -q -r requirements-dev.txt
-          
+
       - name: Import boundary (core stays framework-free)
         run: lint-imports
-        
+
       - name: Lint
         run: ruff check .
-        
+
       - name: Tests
         run: pytest

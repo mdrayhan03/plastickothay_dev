@@ -13,6 +13,7 @@ function renderLogin(login = vi.fn()) {
     user: null,
     status: 'anon' as const,
     login,
+    loginWithOAuth: vi.fn(),
     logout: vi.fn(),
     setUser: vi.fn(),
     isStaff: false,

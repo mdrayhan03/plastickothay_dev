@@ -11,7 +11,6 @@ export const authService = {
 
   async oauthLogin(provider: OAuthProvider, code: string, redirect_uri: string) {
     const { data } = await api.post<LoginResponse>(`/auth/oauth/${provider}`, {code, redirect_uri})
-    console.log(provider, code, redirect_uri, data)
     return data
   },
 

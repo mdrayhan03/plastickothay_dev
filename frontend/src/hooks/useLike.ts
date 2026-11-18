@@ -1,10 +1,11 @@
 import { type InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query'
+import { qk } from '@/lib/queryClient'
 import { engagementService } from '@/services/engagementService'
 import type { Page, PublicPost } from '@/types'
 
 type FeedData = InfiniteData<Page<PublicPost>>
 
-/** Optimistic like/unlike across every cached posts feed. */
+/** Optimistic like/unlike across every cached posts feed and single-post detail query. */
 export function useLike() {
   const qc = useQueryClient()
 
@@ -13,8 +14,14 @@ export function useLike() {
       post.liked_by_me ? engagementService.unlike(post.id) : engagementService.like(post.id),
 
     onMutate: async ({ post }) => {
-      await qc.cancelQueries({ queryKey: ['posts'] })
+      const postKey = qk.post(post.id)
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['posts'] }),
+        qc.cancelQueries({ queryKey: postKey }),
+      ])
+
       const snapshots = qc.getQueriesData<FeedData>({ queryKey: ['posts'] })
+      const postSnapshot = qc.getQueryData<PublicPost>(postKey)
 
       const patch = (p: PublicPost): PublicPost =>
         p.id === post.id
@@ -28,11 +35,19 @@ export function useLike() {
           pages: data.pages.map((pg) => ({ ...pg, results: pg.results.map(patch) })),
         })
       }
-      return { snapshots }
+
+      if (postSnapshot) {
+        qc.setQueryData<PublicPost>(postKey, patch(postSnapshot))
+      }
+
+      return { snapshots, postKey, postSnapshot }
     },
 
     onError: (_e, _v, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+      if (ctx?.postSnapshot) {
+        qc.setQueryData(ctx.postKey, ctx.postSnapshot)
+      }
     },
   })
 }

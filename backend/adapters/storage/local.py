@@ -15,6 +15,7 @@ from core.domain.value_objects import ImageRef
 from core.ports.storage import ImageStorage
 
 PROVIDER = "local"
+OAUTH_PROVIDER = "oauth"
 
 
 class LocalImageStorage(ImageStorage):
@@ -41,4 +42,6 @@ class LocalImageStorage(ImageStorage):
             raise ImageDeleteFailed(str(exc)) from exc
 
     def public_url(self, ref: ImageRef) -> str:
+        if ref.provider == OAUTH_PROVIDER :
+            return ref.external_id
         return f"{self.base_url}{ref.external_id}"

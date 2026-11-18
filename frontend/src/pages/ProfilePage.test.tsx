@@ -16,6 +16,7 @@ const anon = {
   user: null,
   status: 'anon' as const,
   login: vi.fn(),
+  loginWithOAuth: vi.fn(),
   logout: vi.fn(),
   setUser: vi.fn(),
   isStaff: false,

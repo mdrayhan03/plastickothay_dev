@@ -26,7 +26,7 @@ function renderPage(setUser = vi.fn()) {
   render(
     <MemoryRouter>
       <AuthContext.Provider
-        value={{ user, status: 'authed', login: vi.fn(), logout: vi.fn(), setUser, isStaff: false }}
+        value={{ user, status: 'authed', login: vi.fn(), loginWithOAuth: vi.fn(), logout: vi.fn(), setUser, isStaff: false }}
       >
         <EditProfilePage />
       </AuthContext.Provider>

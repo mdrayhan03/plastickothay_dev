@@ -4,6 +4,9 @@ No view ever writes a status code for a domain failure. One error envelope every
     {"error": {"code": "...", "message": "...", "details": {}}}
 """
 
+import logging
+
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_default_handler
@@ -17,6 +20,8 @@ from core.domain.errors import (
     NotFoundError,
     ValidationError,
 )
+
+logger = logging.getLogger(__name__)
 
 _STATUS_BY_TYPE = [
     (NotFoundError, status.HTTP_404_NOT_FOUND),
@@ -36,19 +41,48 @@ def _status_for(exc: DomainError) -> int:
 
 
 def domain_exception_handler(exc, context):
+    view = context.get("view")
+    view_name = view.__class__.__name__ if view else "UnknownView"
+    request = context.get("request")
+    endpoint = f"{request.method} {request.path}" if request else "UnknownEndpoint"
+
+    # 1. Domain exceptions raised by your application/domain/adapters
     if isinstance(exc, DomainError):
+        http_status = _status_for(exc)
+        log_fn = logger.error if http_status >= 500 else logger.warning
+        log_fn(
+            "[%s] %s | DomainError [%s]: %s | details=%s",
+            endpoint,
+            view_name,
+            exc.code,
+            exc.message,
+            exc.details,
+            exc_info=settings.DEBUG,  # Shows exact `raise` file & line in dev console
+        )
         return Response(
             {"error": {"code": exc.code, "message": exc.message, "details": exc.details}},
-            status=_status_for(exc),
+            status=http_status,
         )
 
-    # Fall back to DRF for its own exceptions (auth, throttle, validation), then wrap the body
-    # in the same envelope so the client sees one shape.
+    # 2. DRF built-in exceptions (serializer validation, auth, permissions, 404, throttle)
     response = drf_default_handler(exc, context)
     if response is not None:
         code = getattr(exc, "default_code", "error")
-        response.data = {"error": {"code": code, "message": _message(response.data), "details": {}}}
-    return response
+        message = _message(response.data)
+        logger.warning(
+            "[%s] %s | DRF (%s) [%s]: %s",
+            endpoint,
+            view_name,
+            response.status_code,
+            code,
+            message,
+        )
+        response.data = {"error": {"code": code, "message": message, "details": {}}}
+        return response
+
+    # 3. Unexpected 500 crashes (unhandled Python/DB exceptions)
+    logger.exception("[%s] %s | Unhandled internal server error", endpoint, view_name)
+    return None
 
 
 def _message(data) -> str:

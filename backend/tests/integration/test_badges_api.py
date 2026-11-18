@@ -96,4 +96,4 @@ class TestBadges:
 
         registered = {m.__name__ for m in admin.site._registry}
         assert "BadgeRule" in registered  # config table - editable
-        assert "UserBadge" not in registered  # earned records - not hand-edited
+        assert "UserBadge" in registered

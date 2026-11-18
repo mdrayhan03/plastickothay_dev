@@ -13,29 +13,35 @@ pytestmark = pytest.mark.django_db
 
 
 def make_verified_user(client, username, role=Role.USER):
-    client.post(
+    reg = client.post(
         "/api/auth/register/",
         {
             "username": username,
             "email": f"{username}@example.com",
             "first_name": username,
             "last_name": "T",
-            "phone": "+880170",
+            "phone": "+8801700000000",  # Check if "+880170" failed phone validation!
             "password": "s3cretpass",
         },
         format="json",
     )
+    assert reg.status_code == 201, f"Register failed ({reg.status_code}): {reg.data}"
+
     code = int(re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
-    client.post("/api/auth/verify/", {"username": username, "code": code}, format="json")
+    ver = client.post("/api/auth/verify/", {"username": username, "code": code}, format="json")
+    assert ver.status_code == 200, f"Verify failed ({ver.status_code}): {ver.data}"
+
     if role is not Role.USER:
         u = orm.User.objects.get(username=username)
         u.is_superuser = role is Role.ADMIN
         u.is_staff = role in (Role.STAFF, Role.ADMIN)
         u.save()
-    access = client.post(
+
+    login = client.post(
         "/api/auth/login/", {"username": username, "password": "s3cretpass"}, format="json"
-    ).data["access"]
-    return access
+    )
+    assert login.status_code == 200, f"Login failed ({login.status_code}): {login.data}"
+    return login.data["access"]
 
 
 def client_for(username, role=Role.USER):

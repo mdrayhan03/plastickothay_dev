@@ -20,12 +20,11 @@ class Login:
         self.clock = clock
 
     def execute(self, cmd: LoginCommand) -> tuple[User, TokenPair]:
-        user = self.users.get_by_username(cmd.username.strip().lower())
+        user = self.users.get_by_identifier(cmd.username.strip().lower())
         if user is None or user.id is None:
             raise InvalidCredentials()
         if not self.users.verify_password(user.id, cmd.password):
             raise InvalidCredentials()
-
         # Checked only after the password: answering "not verified" to a wrong password
         # would confirm the account exists.
         if not user.is_verified:

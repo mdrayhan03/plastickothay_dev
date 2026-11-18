@@ -36,6 +36,8 @@ class AdminUserDetailSerializer(AdminUserSerializer):
     posts_approved = serializers.SerializerMethodField()
     likes_received = serializers.SerializerMethodField()
     total_points = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+    level_title = serializers.SerializerMethodField()
 
     def get_posts_approved(self, user: User) -> int:
         return self.context["contribution"].posts_approved
@@ -45,6 +47,12 @@ class AdminUserDetailSerializer(AdminUserSerializer):
 
     def get_total_points(self, user: User) -> int:
         return self.context["contribution"].total_points
+
+    def get_level(self, user: User) -> int:
+        return self.context["contribution"].level
+
+    def get_level_title(self, user: User) -> str:
+        return self.context["contribution"].level_title
 
 
 class AuditLogSerializer(serializers.Serializer):
@@ -62,9 +70,15 @@ class AdminMapMarkerSerializer(serializers.Serializer):
     lon = serializers.FloatField()
     severity = serializers.IntegerField()
     status = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     def get_status(self, marker) -> int:
         return int(marker.status)
+
+    def get_image_url(self, marker) -> str:
+        if getattr(marker, "image", None):
+            return container.image_storage().public_url(marker.image)
+        return ""
 
 
 class SetActiveSerializer(serializers.Serializer):

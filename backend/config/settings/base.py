@@ -9,6 +9,7 @@ hand-rolled factory - Django already gives that for free (LLD §1.1, discussion)
 import os
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -20,6 +21,9 @@ SECRET_KEY = os.getenv("DJANGO_KEY", "dev-insecure-key-change-me")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# Enable HTTPS Proxy Header Trust for Render
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -27,12 +31,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",  # required by admin only
     "django.contrib.messages",  # required by admin only
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",  # makes logout real (B2)
     "adapters.persistence.django_orm",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -42,6 +48,23 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# --- CORS & CSRF ------------------------------------------------------------
+# Cross-origin deploy (frontend hosted separately): list the EXACT frontend origin(s) in
+# CORS_ALLOWED_ORIGINS (comma-separated, full scheme+host). Never use ALLOW_ALL / "*" with
+# credentials — the browser rejects a wildcard Access-Control-Allow-Origin on any request that
+# carries the cookie, so auth silently breaks. Empty = same-origin (no CORS needed).
+_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+CORS_ALLOW_CREDENTIALS = True  # required so the httpOnly refresh cookie rides cross-site
+
+# The refresh cookie's SameSite. Same-origin -> "Lax". Cross-origin -> set "None" (which forces
+# Secure), otherwise the browser won't send it on the boot /api/auth/refresh/ XHR.
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
+
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -116,7 +139,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Image storage: Google Drive when credentials are wired, local filesystem otherwise.
@@ -174,3 +197,41 @@ CACHES = {
 # catch-all route (config.urls) returns index.html so client-side routing survives a hard
 # refresh. CORS is therefore unnecessary in production.
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+# Logger
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
+
+# Google OAuth Credentials
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")

@@ -36,7 +36,7 @@ export function LocationPicker({
       attributionControl={false}
       className="h-full w-full"
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Events onPick={onChange} />
       {value && (
         <Marker

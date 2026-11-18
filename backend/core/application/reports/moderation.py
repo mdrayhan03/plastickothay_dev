@@ -140,11 +140,13 @@ class ListReportsForReview:
         statuses: tuple[PostStatus, ...] = (PostStatus.PENDING,),
         severity: int | None = None,
         include_deleted: bool = False,
+        reporter_id: UserId | None = None,
     ) -> Page[Post]:
         filter = PostFilter(
             statuses=statuses,
             severity=Severity(severity) if severity is not None else None,
             include_deleted=include_deleted,
+            reporter_id=reporter_id,
         )
         return self.posts.list(filter, page)
 

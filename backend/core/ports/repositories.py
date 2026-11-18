@@ -24,6 +24,7 @@ from core.domain.entities import (
     Post,
     PostModerationLog,
     SiteConfig,
+    SocialIdentity,
     User,
     UserBadge,
 )
@@ -39,7 +40,7 @@ from core.domain.read_models import (
     PostFilter,
     StatusCounts,
 )
-from core.domain.value_objects import EngagementType, OTPPurpose, Role
+from core.domain.value_objects import EngagementType, OAuthProvider, OTPPurpose, Role
 
 
 class UserRepository(ABC):
@@ -53,7 +54,10 @@ class UserRepository(ABC):
     def get_by_email(self, email: str) -> User | None: ...
 
     @abstractmethod
-    def add(self, user: User, password: str) -> User:
+    def get_by_identifier(self, identifier: str) -> User | None: ...
+
+    @abstractmethod
+    def add(self, user: User, password: str | None = None) -> User:
         """Raises UsernameTaken / EmailTaken."""
 
     @abstractmethod
@@ -257,3 +261,13 @@ class BadgeRepository(ABC):
 
     @abstractmethod
     def rules_by_code(self) -> dict[str, BadgeRule]: ...
+
+class SocialIdentityRepository(ABC):
+    @abstractmethod
+    def get_by_provider_and_id(self, provider: OAuthProvider, provider_user_id: str) -> SocialIdentity | None :
+        pass
+
+    @abstractmethod
+    def create(self, entity: SocialIdentity) -> SocialIdentity :
+        pass
+    

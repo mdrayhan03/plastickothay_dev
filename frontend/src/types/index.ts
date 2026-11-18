@@ -58,6 +58,7 @@ export interface MapMarker {
   lat: number
   lon: number
   severity: Severity
+  image_url?: string
 }
 
 export interface AdminPost extends PublicPost {
@@ -197,6 +198,8 @@ export interface AdminUserDetail extends AdminUser {
   posts_approved: number
   likes_received: number
   total_points: number
+  level?: number
+  level_title?: string
 }
 
 export interface ContactMessage {

@@ -10,6 +10,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from adapters.notifications.mailjet import MailjetNotifier
+from adapters.oauth_provider.google_oauth import GoogleOAuthProvider
 from adapters.security.jwt_service import SimpleJWTTokenService
 from api.auth.serializers import (
     ForgotPasswordSerializer,
@@ -17,6 +18,7 @@ from api.auth.serializers import (
     RegisterSerializer,
     ResendOTPSerializer,
     ResetPasswordSerializer,
+    SocialIdentitySerializer,
     UpdateProfileSerializer,
     UserSerializer,
     VerifyOTPSerializer,
@@ -32,11 +34,12 @@ from core.application.accounts.dto import (
     UpdateProfileCommand,
     VerifyOTPCommand,
 )
+from core.application.accounts.oauth_provider import AuthenticateOAuth
 from core.application.accounts.password import RequestPasswordReset, ResetPassword
 from core.application.accounts.profile import GetProfile, UpdateProfile
 from core.application.accounts.registration import RegisterUser, ResendOTP, VerifyOTP
 from core.domain.errors import InvalidToken
-from core.domain.value_objects import OTPPurpose
+from core.domain.value_objects import OAuthProvider, OTPPurpose
 
 
 def _tokens():
@@ -167,3 +170,22 @@ class MeView(APIView):
             container.users(), container.unit_of_work(), container.image_storage()
         ).execute(UpdateProfileCommand(**data), actor_id(request))
         return Response(UserSerializer(user).data)
+
+class OAuthCallbackView(APIView) :
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
+    def post(self, request, provider):
+        data = _validated(SocialIdentitySerializer, request)
+
+        providers = {
+            OAuthProvider.GOOGLE : GoogleOAuthProvider(),
+        }
+
+        user, pair = AuthenticateOAuth(
+            providers, container.social_identity(), container.users(), container.clock(), container.token_service(), container.unit_of_work(),
+        ).execute(provider, data["code"], data["redirect_uri"])
+
+        response = Response({"access": pair.access, "user": UserSerializer(user).data})
+        return set_refresh_cookie(response, pair.refresh)

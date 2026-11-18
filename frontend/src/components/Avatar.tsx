@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 function initials(name?: string) {
@@ -10,7 +11,7 @@ function initials(name?: string) {
     .toUpperCase()
 }
 
-/** Avatar: shows the uploaded photo when present, otherwise a gradient initials circle. */
+/** Avatar: shows the uploaded/external photo when present and loaded, otherwise a gradient initials circle. */
 export function Avatar({
   name,
   src,
@@ -20,8 +21,26 @@ export function Avatar({
   src?: string | null
   className?: string
 }) {
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+
   const base = cn('grid place-items-center overflow-hidden rounded-full text-white', className)
-  if (src) return <img src={src} alt={name ?? ''} className={cn(base, 'object-cover')} />
+
+  if (src && !failed) {
+    return (
+      <img
+        src={src}
+        alt={name ?? ''}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className={cn(base, 'object-cover')}
+      />
+    )
+  }
+
   return (
     <span
       className={base}

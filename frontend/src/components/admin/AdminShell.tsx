@@ -1,4 +1,5 @@
 import {
+  Award,
   CheckSquare,
   ChevronDown,
   ExternalLink,
@@ -14,6 +15,7 @@ import {
   Settings,
   Smartphone,
   Star,
+  Trophy,
   User,
   Users,
 } from 'lucide-react'
@@ -38,6 +40,7 @@ const groups: { title?: string; items: NavItem[] }[] = [
     title: 'Community',
     items: [
       { to: '/admin/users', icon: Users, label: 'Users' },
+      { to: '/admin/contributors', icon: Trophy, label: 'Contributors' },
       { to: '/admin/messages', icon: MessageSquare, label: 'Messages' },
       { to: '/admin/feedback', icon: Star, label: 'Feedback' },
     ],
@@ -45,6 +48,7 @@ const groups: { title?: string; items: NavItem[] }[] = [
   {
     title: 'System',
     items: [
+      { to: '/admin/rules', icon: Award, label: 'Rules' },
       { to: '/admin/audit', icon: ScrollText, label: 'Audit Log' },
       { to: '/admin/settings', icon: Settings, label: 'Settings' },
     ],

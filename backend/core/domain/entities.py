@@ -15,6 +15,7 @@ from core.domain.ids import (
     ModerationLogId,
     OTPId,
     PostId,
+    SocialIdentityId,
     UserId,
 )
 from core.domain.value_objects import (
@@ -23,6 +24,7 @@ from core.domain.value_objects import (
     GeoPoint,
     ImageRef,
     ModerationAction,
+    OAuthProvider,
     OTPPurpose,
     PostStatus,
     Reporter,
@@ -251,3 +253,12 @@ class PostModerationLog:
     action: ModerationAction
     reason: str
     at: datetime
+
+@dataclass
+class SocialIdentity:
+    """OAuth connected for signup or login."""
+    id: SocialIdentityId | None
+    User_id: UserId
+    provider: OAuthProvider
+    provider_user_id: str
+    created: datetime | None = None

@@ -25,8 +25,10 @@ from core.domain.entities import (
     Engagement,
     Feedback,
     LevelRule,
+    OAuthProvider,
     Post,
     PostModerationLog,
+    SocialIdentity,
     User,
 )
 from core.domain.errors import (
@@ -58,6 +60,7 @@ from core.ports.repositories import (
     PointRuleRepository,
     PostRepository,
     SiteConfigRepository,
+    SocialIdentityRepository,
     UserRepository,
 )
 
@@ -101,6 +104,18 @@ class DjangoUserRepository(UserRepository):
         row = orm.User.objects.filter(email=email).first()
         return mappers.user_to_domain(row) if row else None
 
+    def get_by_identifier(self, identifier):
+        row = (
+            orm.User.objects
+            .filter(
+                Q(username__iexact = identifier)
+                | Q(email__iexact = identifier)
+                | Q(phone = identifier)
+            )
+            .first()
+        )
+        return mappers.user_to_domain(row) if row else None
+
     def add(self, user: User, password: str) -> User:
         is_superuser, is_staff = mappers.flags_from_role(user.role)
         try:
@@ -114,7 +129,6 @@ class DjangoUserRepository(UserRepository):
                     first_name=user.first_name,
                     last_name=user.last_name,
                     phone=user.phone,
-                    password=make_password(password),
                     is_superuser=is_superuser,
                     is_staff=is_staff,
                     is_verified=user.is_verified,
@@ -123,9 +137,15 @@ class DjangoUserRepository(UserRepository):
                     avatar_external_id=user.avatar.external_id if user.avatar else "",
                     date_joined=user.date_joined,
                 )
+                if password:
+                    row.set_password(password)
+                else :
+                    row.set_unusable_password()
+                row.save(update_fields=["password"])
         except IntegrityError as exc:
             # Translate the DB's unique violation rather than pre-checking: a check-then-act
             # would race under concurrent registration.
+            print("Error", exc)
             if "email" in str(exc).lower():
                 raise EmailTaken() from exc
             raise UsernameTaken() from exc
@@ -259,21 +279,27 @@ class DjangoPostRepository(PostRepository):
     def list_map_markers(self) -> list[MapMarker]:
         rows = orm.Post.objects.filter(
             status=int(PostStatus.APPROVED), deleted_at__isnull=True
-        ).values("pk", "lat", "lon", "severity")
-        from core.domain.value_objects import Severity
+        ).values("pk", "lat", "lon", "severity", "image_provider", "image_external_id")
+        from core.domain.value_objects import ImageRef, Severity
 
         return [
             MapMarker(
-                id=PostId(r["pk"]), lat=r["lat"], lon=r["lon"], severity=Severity(r["severity"])
+                id=PostId(r["pk"]),
+                lat=r["lat"],
+                lon=r["lon"],
+                severity=Severity(r["severity"]),
+                image=ImageRef(provider=r["image_provider"], external_id=r["image_external_id"])
+                if r.get("image_external_id")
+                else None,
             )
             for r in rows
         ]
 
     def list_admin_map_markers(self) -> list[AdminMapMarker]:
-        from core.domain.value_objects import Severity
+        from core.domain.value_objects import ImageRef, Severity
 
         rows = orm.Post.objects.filter(deleted_at__isnull=True).values(
-            "pk", "lat", "lon", "severity", "status"
+            "pk", "lat", "lon", "severity", "status", "image_provider", "image_external_id"
         )
         return [
             AdminMapMarker(
@@ -282,6 +308,9 @@ class DjangoPostRepository(PostRepository):
                 lon=r["lon"],
                 severity=Severity(r["severity"]),
                 status=PostStatus(r["status"]),
+                image=ImageRef(provider=r["image_provider"], external_id=r["image_external_id"])
+                if r.get("image_external_id")
+                else None,
             )
             for r in rows
         ]
@@ -537,3 +566,22 @@ class DjangoSiteConfigRepository(SiteConfigRepository):
         row.updated_by_id = config.updated_by
         row.save()
         return mappers.site_config_to_domain(row)
+
+class DjangoSocialIdentityRepository(SocialIdentityRepository):
+    def get_by_provider_and_id(self, provider: OAuthProvider, provider_user_id: str) -> SocialIdentity | None :
+            row = orm.SocialIdentity.objects.filter(
+                provider = provider,
+                provider_user_id = provider_user_id
+            ).first()
+
+            return mappers.social_identity_to_domain(row) if row else None
+    
+    def create(self, entity: SocialIdentity) -> SocialIdentity :
+            row = orm.SocialIdentity.objects.create(
+                user_id = entity.User_id,
+                provider = entity.provider.value,
+                provider_user_id = entity.provider_user_id,
+                created = entity.created,
+            )
+
+            return mappers.social_identity_to_domain(row)

@@ -22,6 +22,9 @@ extend-exclude = ["*/migrations/*", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",  # Line too long
+]
 
 [tool.ruff.lint.per-file-ignores]
 # The point rules are a chain of documented guard clauses, one per rule in LLD §5.3.

@@ -161,12 +161,13 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "api.exception_handler.domain_exception_handler",
     "DEFAULT_THROTTLE_RATES": {
         "anon_post_submit": "5/hour",
+        "auth_post_submit": "20/hour",
         "anon_like": "30/hour",
-        "auth_like": "200/day",
+        "auth_like": "200/hour",
         "contact_submit": "5/hour",
         "feedback_submit": "5/hour",
         "login": "10/hour",
-        "otp_resend": "3/hour",
+        "otp_resend": "6/hour",
     },
     # Cursor pagination is handled per-view via api.pagination (use cases return domain Pages,
     # not querysets), so no DEFAULT_PAGINATION_CLASS.

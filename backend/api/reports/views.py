@@ -50,6 +50,7 @@ class ReportListCreateView(APIView):
 
     def get_throttles(self):
         # Only throttle submission, not reads.
+        self.throttle_scope = "auth_post_submit" if actor_id(self.request) else "anon_post_submit"
         return [ScopedRateThrottle()] if self.request.method == "POST" else []
 
     def get(self, request):

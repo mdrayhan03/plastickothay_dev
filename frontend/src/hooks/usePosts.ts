@@ -3,7 +3,12 @@ import { qk } from '@/lib/queryClient'
 import { postService, type SubmitReportPayload } from '@/services/postService'
 
 export function useMapMarkers() {
-  return useQuery({ queryKey: qk.mapMarkers, queryFn: postService.mapMarkers })
+  return useQuery({ 
+    queryKey: qk.mapMarkers, 
+    queryFn: postService.mapMarkers,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  })
 }
 
 export function usePost(id: number | null) {

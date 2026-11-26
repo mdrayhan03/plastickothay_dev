@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'date-fns'
-import { ArrowUpDown, Clock, Heart, MapPin, Moon, Pencil } from 'lucide-react'
+import { ArrowDown, Clock, Heart, MapPin, Moon, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PostSheet } from '@/components/feed/PostSheet'
@@ -204,10 +204,15 @@ export function MePage() {
         <button
           type="button"
           onClick={() => setSortOrder((prev) => (prev === 'latest' ? 'oldest' : 'latest'))}
+          aria-label={sortOrder === 'latest' ? 'Sort oldest first' : 'Sort latest first'}
           className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink shadow-sm transition hover:bg-surface-2"
         >
-          <ArrowUpDown className="size-3.5 text-brand" />
-          <span>{sortOrder === 'latest' ? 'Latest first' : 'Oldest first'}</span>
+          <ArrowDown
+            className={`size-3.5 text-brand transition-transform duration-200 ${
+              sortOrder === 'oldest' ? 'rotate-180' : ''
+            }`}
+          />
+          <span>Latest</span>
         </button>
       </div>
 

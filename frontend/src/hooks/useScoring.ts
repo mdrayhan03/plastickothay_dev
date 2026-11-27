@@ -6,6 +6,8 @@ export function useLeaderboard(period: 'all' | 'year' | 'month' | 'week') {
   return useQuery({
     queryKey: qk.leaderboard(period),
     queryFn: () => scoringService.leaderboard(period),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   })
 }
 

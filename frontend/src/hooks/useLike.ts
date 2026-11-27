@@ -1,4 +1,5 @@
 import { type InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/context/auth-context'
 import { qk } from '@/lib/queryClient'
 import { engagementService } from '@/services/engagementService'
 import type { Page, PublicPost } from '@/types'
@@ -8,12 +9,20 @@ type FeedData = InfiniteData<Page<PublicPost>>
 /** Optimistic like/unlike across every cached posts feed and single-post detail query. */
 export function useLike() {
   const qc = useQueryClient()
+  const { user } = useAuth()
 
+  const isAnonOrOwnPost = (post: PublicPost) =>
+    user?.id == null || post.reporter_id === user.id
+  
   return useMutation({
-    mutationFn: ({ post }: { post: PublicPost }) =>
-      post.liked_by_me ? engagementService.unlike(post.id) : engagementService.like(post.id),
+    mutationFn: async ({ post }: { post: PublicPost }) => {
+      if (isAnonOrOwnPost(post)) return
+      return post.liked_by_me ? engagementService.unlike(post.id) : engagementService.like(post.id)
+    },
 
-    onMutate: async ({ post }) => {
+    onMutate: async ({ post }: {post: PublicPost}) => {
+      if (isAnonOrOwnPost(post)) return
+
       const postKey = qk.post(post.id)
       await Promise.all([
         qc.cancelQueries({ queryKey: ['posts'] }),

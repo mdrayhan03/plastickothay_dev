@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-const MAX_WIDTH = 1280 // downscale so the base64 payload stays reasonable
+const MAX_WIDTH = 1920 // downscale so the base64 payload stays reasonable
 
 type Status = 'loading' | 'ready' | 'denied' | 'missing'
 
@@ -34,7 +34,11 @@ export function CameraCapture({
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
+        video: { 
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
         audio: false,
       })
       streamRef.current = stream
@@ -81,9 +85,16 @@ export function CameraCapture({
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(width * scale)
     canvas.height = Math.round(height * scale)
-    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    const ctx = canvas.getContext('2d')
+
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    }
+    
     stop()
-    onCapture(canvas.toDataURL('image/jpeg', 0.82))
+    onCapture(canvas.toDataURL('image/jpeg', 0.92))
   }
 
   return (

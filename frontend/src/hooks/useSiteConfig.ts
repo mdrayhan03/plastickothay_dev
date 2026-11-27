@@ -7,6 +7,7 @@ export function useSiteConfig() {
   return useQuery({
     queryKey: qk.siteConfig,
     queryFn: configService.siteConfig,
-    staleTime: 5 * 60_000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   })
 }

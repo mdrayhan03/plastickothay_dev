@@ -152,7 +152,8 @@ export function ReportPage() {
       {/* location */}
       <div className="mx-4.5 mt-9">
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-[12.5px] font-bold text-ink-2">Location</label>
+          <label className="text-[12.5px] font-bold text-ink-2">Location<span aria-hidden="true" className="ml-0.5 text-sev-5">*</span>
+          </label>
           <button
             type="button"
             onClick={locate}

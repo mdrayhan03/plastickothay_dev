@@ -9,7 +9,7 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
 
 /** Label + input + inline error, wired for react-hook-form's register(). */
 export const FormField = forwardRef<HTMLInputElement, Props>(function FormField(
-  { label, error, className, id, type, ...rest },
+  { label, error, className, id, type, required = true, ...rest },
   ref,
 ) {
   const autoId = useId()
@@ -28,6 +28,9 @@ export const FormField = forwardRef<HTMLInputElement, Props>(function FormField(
     <div className="flex flex-col gap-2">
       <label htmlFor={fieldId} className="text-[12.5px] font-bold text-ink-2">
         {label}
+        {required && 
+          <span aria-hidden="true" className="ml-0.5 text-sev-5">*</span>
+        }
       </label>
 
       <div className="relative flex items-center">

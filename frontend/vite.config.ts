@@ -62,6 +62,22 @@ export default defineConfig(({ mode }) => {
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        screenshots: [
+          {
+            src: 'screenshot-wide.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'PlasticKothay Desktop Map',
+          },
+          {
+            src: 'screenshot-narrow.png',
+            sizes: '540x960',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'PlasticKothay Mobile Feed',
+          },
+        ]
       },
     }),
   ],

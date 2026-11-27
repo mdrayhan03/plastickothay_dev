@@ -7,6 +7,7 @@ import { useAuth } from '@/context/auth-context'
 import { usePostFeed, useMapMarkers } from '@/hooks/usePosts'
 import { useSiteConfig } from '@/hooks/useSiteConfig'
 import { useTheme } from '@/hooks/useTheme'
+import { InstallAppButton } from '@/components/InstallAppButton'
 
 export function HomePage() {
   const { data: config } = useSiteConfig()
@@ -34,6 +35,7 @@ export function HomePage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <InstallAppButton />
           <button
             type="button"
             onClick={toggle}

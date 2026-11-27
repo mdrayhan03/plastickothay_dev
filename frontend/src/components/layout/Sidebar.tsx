@@ -5,6 +5,7 @@ import { LogoMark } from '@/components/Logo'
 import { useAuth } from '@/context/auth-context'
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils'
+import { InstallAppButton } from '../InstallAppButton'
 
 const items = [
   { to: '/', end: true, icon: Home, label: 'Home' },
@@ -60,6 +61,7 @@ export function Sidebar() {
       )}
 
       <div className="flex-1" />
+      <InstallAppButton />
 
       <button
         onClick={toggle}

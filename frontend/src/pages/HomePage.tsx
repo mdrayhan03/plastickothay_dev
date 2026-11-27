@@ -35,7 +35,7 @@ export function HomePage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <InstallAppButton />
+          <InstallAppButton iconOnly={true} />
           <button
             type="button"
             onClick={toggle}

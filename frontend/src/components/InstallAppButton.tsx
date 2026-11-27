@@ -13,7 +13,7 @@ export function InstallAppButton({
   const { canInstall, promptInstall } = usePWAInstall()
 
   // Hide completely if already installed or browser hasn't fired the install event
-  if (!canInstall) return null
+  // if (!canInstall) return null
 
   return (
     <button
@@ -23,7 +23,7 @@ export function InstallAppButton({
       title="Install App"
       className={
         iconOnly
-          ? `inline-flex items-center justify-center rounded-xl p-2.5 text-ink-2 transition hover:bg-surface-2 ${className}`
+          ? `inline-flex items-center justify-center p-2.5 text-ink-2 transition rounded-[13px] bg-surface shadow-sm active:scale-95 ${className}`
           : `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-2 transition hover:bg-surface-2 ${className}`
       }
     >
